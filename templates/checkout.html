@@ -1,0 +1,512 @@
+{% extends "base.html" %}
+{% block content %}
+<main>
+
+  <section class="section checkout-page">
+    <style>
+      /* ============================
+         The Adivasi Store – Checkout
+         ============================ */
+      .checkout-page{
+        min-height:100vh;
+        padding:130px 20px 80px;
+        display:flex;
+        justify-content:center;
+        align-items:flex-start;
+        background:
+          radial-gradient(circle at 12% 0%, #fdf5e9 0, #f3e4d2 32%, #e9dac7 64%, #e1cfbc 100%);
+        color:#22150e;
+        font-family:"Playfair Display", serif;
+        position:relative;
+        overflow:hidden;
+      }
+      .checkout-page::before,
+      .checkout-page::after{
+        content:"";
+        position:absolute;
+        border-radius:999px;
+        border:1px dashed rgba(124,95,64,0.28);
+        pointer-events:none;
+      }
+      .checkout-page::before{
+        width:280px;
+        height:280px;
+        top:-110px;
+        right:-80px;
+      }
+      .checkout-page::after{
+        width:340px;
+        height:340px;
+        bottom:-130px;
+        left:-120px;
+      }
+
+      .checkout-shell{
+        width:100%;
+        max-width:1040px;
+        position:relative;
+        z-index:1;
+        padding:0 6px;
+      }
+
+      .checkout-header{
+        margin-bottom:18px;
+      }
+      .checkout-kicker{
+        font-family:"Fjalla One",sans-serif;
+        font-size:11px;
+        letter-spacing:0.26em;
+        text-transform:uppercase;
+        color:#8a6b46;
+        margin-bottom:6px;
+      }
+      .checkout-title{
+        font-size:22px;
+        letter-spacing:0.18em;
+        text-transform:uppercase;
+        margin:0 0 4px;
+      }
+      .checkout-sub{
+        margin:0;
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        font-size:12px;
+        color:#6f5b47;
+      }
+
+      .checkout-layout{
+        display:flex;
+        gap:26px;
+        margin-top:24px;
+        flex-wrap:wrap;
+      }
+
+      .checkout-col{
+        flex:1;
+        min-width:260px;
+      }
+
+      .checkout-card{
+        background:rgba(248,241,231,0.98);
+        border-radius:20px;
+        border:1px solid rgba(142,112,79,0.45);
+        box-shadow:
+          0 18px 40px rgba(0,0,0,0.28),
+          0 0 0 1px rgba(255,255,255,0.55) inset;
+        padding:18px clamp(16px,3vw,24px) 18px;
+        position:relative;
+        overflow:hidden;
+        animation:checkout-card-float 0.9s ease-out;
+        backdrop-filter:blur(6px);
+      }
+      .checkout-card::before{
+        content:"";
+        position:absolute;
+        inset:14px 12px;
+        border-radius:16px;
+        border:1px dashed rgba(189,143,90,0.5);
+        pointer-events:none;
+      }
+      .checkout-card-inner{
+        position:relative;
+        z-index:1;
+      }
+
+      .checkout-card-title{
+        font-size:14px;
+        text-transform:uppercase;
+        letter-spacing:0.16em;
+        margin:0 0 10px;
+      }
+
+      /* FORM / INPUTS */
+      .checkout-form{
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+        margin-top:4px;
+      }
+      .checkout-field{
+        display:flex;
+        flex-direction:column;
+        gap:6px;
+      }
+      .checkout-label{
+        font-size:11px;
+        letter-spacing:0.2em;
+        text-transform:uppercase;
+        color:#7d6750;
+        font-family:"Fjalla One",sans-serif;
+      }
+      .checkout-input-wrap{
+        position:relative;
+      }
+      .checkout-input{
+        width:100%;
+        border-radius:999px;
+        border:1px solid rgba(131,106,77,0.55);
+        padding:9px 16px;
+        font-size:13px;
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        background:rgba(255,255,255,0.96);
+        color:#22150e;
+        outline:none;
+        transition:
+          border-color 0.18s ease,
+          box-shadow 0.18s ease,
+          background 0.18s ease,
+          transform 0.12s ease;
+      }
+      .checkout-input::placeholder{
+        color:rgba(125,105,82,0.7);
+      }
+      .checkout-input:focus{
+        border-color:#b0673d;
+        box-shadow:
+          0 0 0 1px rgba(176,103,61,0.5),
+          0 0 0 5px rgba(176,103,61,0.16);
+        background:#fffaf2;
+        transform:translateY(-1px);
+      }
+
+      .checkout-actions{
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+        margin-top:16px;
+      }
+
+      .checkout-pay-btn{
+        border:none;
+        border-radius:999px;
+        padding:11px 22px;
+        font-size:10px;
+        letter-spacing:0.22em;
+        text-transform:uppercase;
+        font-family:"Fjalla One",sans-serif;
+        cursor:pointer;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:6px;
+        transition:
+          transform 0.14s ease,
+          box-shadow 0.14s ease,
+          filter 0.14s ease,
+          background 0.18s ease,
+          color 0.18s ease;
+        box-shadow:0 9px 20px rgba(32,18,9,0.38);
+      }
+      .checkout-pay-btn--cod{
+        background:#fbf4e7;
+        color:#1f140e;
+        border:1px solid rgba(31,20,14,0.85);
+      }
+      .checkout-pay-btn--online{
+        background:linear-gradient(120deg,#1b130e,#3a2516);
+        color:#fbeee1;
+        border:1px solid rgba(27,19,14,0.9);
+      }
+      .checkout-pay-btn:hover{
+        transform:translateY(-1px);
+        box-shadow:0 12px 26px rgba(32,18,9,0.55);
+        filter:brightness(1.02);
+      }
+      .checkout-pay-btn:active{
+        transform:translateY(1px);
+        box-shadow:0 6px 16px rgba(32,18,9,0.45);
+      }
+
+      .checkout-razor-hint{
+        margin-top:10px;
+        font-size:11px;
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        color:#7a6a55;
+      }
+
+      /* ORDER SUMMARY */
+      .checkout-summary-list{
+        border-radius:14px;
+        border:1px solid rgba(0,0,0,0.06);
+        background:#fbf5ea;
+        padding:10px 12px 10px;
+        box-shadow:0 14px 30px rgba(0,0,0,0.12);
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        max-height:420px;
+        overflow:auto;
+      }
+      .checkout-summary-item{
+        display:flex;
+        gap:12px;
+        padding:8px 0;
+        border-bottom:1px solid rgba(0,0,0,0.04);
+        align-items:flex-start;
+      }
+      .checkout-summary-item:last-child{
+        border-bottom:none;
+        padding-bottom:0;
+      }
+      .checkout-summary-thumb{
+        width:60px;
+        height:70px;
+        overflow:hidden;
+        border-radius:10px;
+        box-shadow:0 6px 14px rgba(0,0,0,0.16);
+        flex-shrink:0;
+        background:#d7cbbd;
+      }
+      .checkout-summary-thumb img{
+        width:100%;
+        height:100%;
+        object-fit:cover;
+      }
+      .checkout-summary-main{
+        flex:1;
+        font-size:13px;
+      }
+      .checkout-summary-name{
+        text-transform:uppercase;
+        letter-spacing:0.12em;
+        font-size:12px;
+        font-family:"Playfair Display",serif;
+      }
+      .checkout-summary-meta{
+        font-size:11px;
+        color:#7a6a55;
+        margin-top:2px;
+      }
+      .checkout-summary-line{
+        margin-top:4px;
+        font-size:12px;
+        display:flex;
+        justify-content:space-between;
+        gap:8px;
+      }
+
+      .checkout-summary-total{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-top:10px;
+        font-size:13px;
+        font-weight:bold;
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      }
+      .checkout-summary-total-label{
+        text-transform:uppercase;
+        letter-spacing:0.16em;
+        font-size:11px;
+      }
+
+      /* Animations */
+      @keyframes checkout-card-float{
+        0%   {opacity:0;transform:translateY(32px) scale(.97) rotate(-0.8deg);}
+        60%  {opacity:1;transform:translateY(-4px) scale(1.01) rotate(0.3deg);}
+        100% {opacity:1;transform:translateY(0) scale(1) rotate(0);}
+      }
+
+      /* Responsive */
+      @media (max-width:880px){
+        .checkout-page{ padding:120px 14px 70px; }
+        .checkout-card{ border-radius:18px; padding-inline:18px; }
+        .checkout-card::before{ inset:12px 10px; }
+      }
+
+      @media (max-width:600px){
+        .checkout-page{ padding:110px 10px 60px; }
+        .checkout-layout{ gap:18px; }
+        .checkout-summary-list{ max-height:none; }
+        .checkout-title{ font-size:20px; letter-spacing:0.16em; }
+        .checkout-sub{ font-size:11px; }
+        .checkout-pay-btn{ width:100%; justify-content:center; }
+      }
+    </style>
+
+    <div class="checkout-shell">
+      <header class="checkout-header">
+        <div class="checkout-kicker">The Adivasi Store · Checkout</div>
+        <h1 class="checkout-title">Checkout</h1>
+        <p class="checkout-sub">
+          Confirm your shipping details and choose how you’d like to pay for your handwoven picks.
+        </p>
+      </header>
+
+      <div class="checkout-layout">
+        <!-- LEFT: SHIPPING DETAILS -->
+        <div class="checkout-col">
+          <div class="checkout-card">
+            <div class="checkout-card-inner">
+              <h3 class="checkout-card-title">Shipping details</h3>
+
+              <form method="POST" class="checkout-form">
+                <div class="checkout-field">
+                  <label class="checkout-label" for="name">Full name</label>
+                  <div class="checkout-input-wrap">
+                    <input id="name" type="text" name="name" class="checkout-input" value="{{ user.name }}" required>
+                  </div>
+                </div>
+
+                <div class="checkout-field">
+                  <label class="checkout-label" for="email">Email</label>
+                  <div class="checkout-input-wrap">
+                    <input id="email" type="email" name="email" class="checkout-input" value="{{ user.email }}" required>
+                  </div>
+                </div>
+
+                <div class="checkout-field">
+                  <label class="checkout-label" for="phone">Phone number</label>
+                  <div class="checkout-input-wrap">
+                    <input id="phone" type="text" name="phone" class="checkout-input" placeholder="10-digit mobile number" value="{{ user.phone or '' }}" required>
+                  </div>
+                </div>
+
+                <div class="checkout-field">
+                  <label class="checkout-label" for="address">Address</label>
+                  <div class="checkout-input-wrap">
+                    <input id="address" type="text" name="address" class="checkout-input" placeholder="House / lane / locality" value="{{ user.address_line1 or '' }}" required>
+                  </div>
+                </div>
+
+                <div class="checkout-field">
+                  <label class="checkout-label" for="nearest_post_office">Nearest Post Office</label>
+                  <div class="checkout-input-wrap">
+                    <input id="nearest_post_office" type="text" name="nearest_post_office" class="checkout-input" placeholder="Example: Chhimphei PO" value="{{ user.nearest_post_office or '' }}" required>
+                  </div>
+                </div>
+
+                <div class="checkout-field">
+                  <label class="checkout-label" for="pincode">Pincode</label>
+                  <div class="checkout-input-wrap">
+                    <input id="pincode" type="text" name="pincode" class="checkout-input" placeholder="e.g. 781 XXX" value="{{ user.pincode or '' }}" required>
+                  </div>
+                </div>
+
+                <div class="checkout-actions">
+                  <button type="submit" name="payment_mode" value="cod" class="checkout-pay-btn checkout-pay-btn--cod">
+                    Place order (Cash / manual payment)
+                  </button>
+
+                  <button type="submit" name="payment_mode" value="online" class="checkout-pay-btn checkout-pay-btn--online">
+                    Pay Online (Razorpay)
+                  </button>
+                </div>
+              </form>
+
+              {% if razorpay_order_id %}
+                <p class="checkout-razor-hint">Redirecting to secure Razorpay payment…</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: ORDER SUMMARY -->
+        <div class="checkout-col">
+          <div class="checkout-card">
+            <div class="checkout-card-inner">
+              <h3 class="checkout-card-title">Order summary</h3>
+
+              {# ✅ FIX: namespace accumulator (Jinja scoping issue) #}
+              {% set ns = namespace(subtotal=0) %}
+
+              <div class="checkout-summary-list">
+                {% for i in items %}
+                  {% set line = i.product_price * i.quantity %}
+                  {% set ns.subtotal = ns.subtotal + line %}
+
+                  <div class="checkout-summary-item">
+                    {% if i.product_image %}
+                      <div class="checkout-summary-thumb">
+                        <img src="{{ i.product_image }}" alt="{{ i.product_name }}">
+                      </div>
+                    {% endif %}
+                    <div class="checkout-summary-main">
+                      <div class="checkout-summary-name">{{ i.product_name }}</div>
+
+                      {% if i.product_size %}
+                        <div class="checkout-summary-meta">Size: {{ i.product_size }}</div>
+                      {% endif %}
+
+                      {% if i.product_color %}
+                        <div class="checkout-summary-meta">Colour: {{ i.product_color }}</div>
+                      {% endif %}
+
+                      <div class="checkout-summary-line">
+                        <span>Qty: {{ i.quantity }}</span>
+                        <span>Rs. {{ "%.0f"|format(line) }}</span>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+
+              <div class="checkout-summary-total">
+                <span class="checkout-summary-total-label">Total</span>
+                <span>Rs. {{ "%.0f"|format(ns.subtotal) }}</span>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    {# ================= RAZORPAY CHECKOUT SCRIPT (only when online payment started) ================= #}
+    {% if razorpay_order_id %}
+      <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+      <script>
+        (function () {
+          var options = {
+            key: "{{ razorpay_key_id }}",
+            amount: {{ razorpay_amount_paise|int }},
+            currency: "INR",
+            name: "The Adivasi Store",
+            description: "Order #{{ order_id }}",
+            order_id: "{{ razorpay_order_id }}",
+            prefill: {
+              name: "{{ shipping_name|default(user.name)|e }}",
+              email: "{{ shipping_email|default(user.email)|e }}",
+              contact: "{{ shipping_phone|default(user.phone or '')|e }}"
+            },
+            theme: { color: "#7b3321" },
+            handler: function (response) {
+              fetch("{{ url_for('razorpay_verify') }}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  order_id: {{ order_id|tojson }},
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature
+                })
+              })
+              .then(function (res) { return res.json(); })
+              .then(function (data) {
+                if (data && data.ok) {
+                  window.location.href = "{{ url_for('my_orders') }}";
+                } else {
+                  alert("Payment captured but verification failed. If money was deducted, please contact support with your Order ID.");
+                  window.location.href = "{{ url_for('checkout') }}";
+                }
+              })
+              .catch(function () {
+                alert("Payment verification error. If amount was deducted, please contact support.");
+                window.location.href = "{{ url_for('checkout') }}";
+              });
+            },
+            modal: {
+              ondismiss: function () {
+                window.location.href = "{{ url_for('checkout') }}";
+              }
+            }
+          };
+
+          var rzp = new Razorpay(options);
+          rzp.open();
+        })();
+      </script>
+    {% endif %}
+
+  </section>
+
+</main>
+{% endblock %}

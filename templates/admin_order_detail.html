@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<main>
+  <section class="section" style="padding:130px 20px 80px;">
+    <h1 class="hero-title-main" style="text-transform:uppercase;letter-spacing:0.18em;font-size:22px;">
+      Order #{{ order.id }}
+    </h1>
+
+    <div style="max-width:900px;margin:24px auto 0;">
+      <h3>Customer & Address</h3>
+      <p>
+        {{ order.shipping_name }}<br>
+        {{ order.shipping_phone }}<br>
+        {{ order.shipping_email }}<br>
+        {{ order.shipping_address }}<br>
+        {{ order.shipping_post_office }} – {{ order.shipping_pincode }}
+      </p>
+
+      <h3>Items</h3>
+      <ul style="list-style:none;padding:0;margin:0;">
+        {% for item in order.items %}
+          <li style="margin-bottom:6px;">
+            {{ item.product_name }} × {{ item.quantity }} – Rs. {{ "%.0f"|format(item.product_price * item.quantity) }}
+          </li>
+        {% endfor %}
+      </ul>
+
+      <p style="margin-top:10px;font-weight:bold;">Total: Rs. {{ "%.0f"|format(order.total_amount) }}</p>
+
+      <h3 style="margin-top:18px;">Status & Tracking</h3>
+      <form method="POST">
+        <label>Status</label>
+        <select name="status">
+          {% for s in ["Placed","Packed","Shipped","Delivered","Cancelled"] %}
+            <option value="{{ s }}" {% if s == order.status %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+
+        <label style="margin-top:6px;">Tracking message</label>
+        <input type="text" name="tracking_message" value="{{ order.tracking_message }}" style="width:100%;">
+
+        <button type="submit" class="hero-cta" style="margin-top:10px;">Update order</button>
+      </form>
+    </div>
+  </section>
+</main>
+{% endblock %}

@@ -1,0 +1,926 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main>
+
+  <!-- GLOBAL ABOUT PAGE ANIMATIONS / TRANSITIONS -->
+  <style>
+    /* Whole page soft fade-in */
+    body {
+      animation: about-page-fade 0.7s ease-out;
+    }
+
+    @keyframes about-page-fade {
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Section reveal on scroll */
+    .hero-about,
+    .about-story,
+    .about-owner,
+    .about-tea-community,
+    .about-values,
+    .about-journey,
+    .about-team {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+
+    .about-section-visible {
+      opacity: 1 !important;
+      transform: translateY(0) !important;
+      transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+    }
+
+    /* Floating / funky tags or badges */
+    .about-floating-tag {
+      animation: about-float 6s ease-in-out infinite;
+    }
+
+    @keyframes about-float {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-6px); }
+    }
+
+    /* Soft parallax elements */
+    .about-parallax {
+      will-change: transform;
+      transition: transform 0.2s linear;
+    }
+  </style>
+
+  <!-- ABOUT HERO -->
+  <section class="hero hero-about" id="about" data-parallax>
+    <style>
+      .hero-about {
+        min-height: 70vh;
+        align-items: flex-end;
+      }
+      .hero-about .hero-inner {
+        max-width: 840px;
+        padding-bottom: 120px;
+      }
+      .hero-about .hero-kicker {
+        letter-spacing: 0.26em;
+      }
+      .hero-about .hero-title-main {
+        font-size: clamp(42px, 5vw, 62px);
+      }
+      .hero-about .hero-subtitle {
+        font-size: 14px;
+      }
+    </style>
+
+    <div class="hero-inner">
+      <div class="hero-kicker">ABOUT THE ADIVASI STORE</div>
+      <div class="hero-title-main">Woven from our roots</div>
+      <p class="hero-subtitle">
+        The Adivasi Store is a celebration of traditional hand-woven attire, crafted by indigenous artisans
+        whose skills have travelled through stories, seasons and generations. Every piece is a quiet bridge
+        between village looms and urban wardrobes.
+      </p>
+    </div>
+  </section>
+
+  <!-- OUR STORY -->
+  <section class="section about-story">
+    <style>
+      .about-story-inner {
+        max-width: 1120px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+        gap: 50px;
+      }
+
+      .about-eyebrow {
+        font-family: "Fjalla One", sans-serif;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        font-size: 12px;
+        color: #7b6b55;
+        margin-bottom: 10px;
+      }
+
+      .about-title-main {
+        font-size: 28px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        margin-bottom: 14px;
+      }
+
+      .about-body {
+        font-size: 14px;
+        color: #4f4338;
+        max-width: 640px;
+      }
+
+      .about-body p + p {
+        margin-top: 10px;
+      }
+
+      .about-tags {
+        margin-top: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .about-tag {
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        border-radius: 999px;
+        border: 1px solid rgba(23, 19, 15, 0.18);
+        padding: 5px 12px;
+        background: #fbf5ea;
+      }
+
+      .about-visual {
+        position: relative;
+        border-radius: 22px;
+        overflow: hidden;
+        background: #e4dccf;
+        box-shadow: 0 18px 38px rgba(0, 0, 0, 0.28);
+      }
+
+      .about-visual::before {
+        content: "";
+        position: absolute;
+        inset: 14px 12px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.65);
+        pointer-events: none;
+      }
+
+      .about-visual-main {
+        position: relative;
+        height: 100%;
+        min-height: 260px;
+        background-image:
+          linear-gradient(to top, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.1)),
+          url("https://images.pexels.com/photos/3738080/pexels-photo-3738080.jpeg?auto=compress&cs=tinysrgb&w=1200");
+        background-size: cover;
+        background-position: center;
+      }
+
+      .about-visual-caption {
+        position: absolute;
+        left: 20px;
+        bottom: 18px;
+        color: #fff;
+        max-width: 240px;
+        font-size: 12px;
+      }
+
+      .about-visual-caption-title {
+        font-family: "Fjalla One", sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        font-size: 11px;
+        margin-bottom: 4px;
+      }
+
+      .about-visual-caption-text {
+        opacity: 0.95;
+      }
+
+      @media (max-width: 980px) {
+        .about-story-inner {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 34px;
+        }
+      }
+    </style>
+
+    <div class="about-story-inner">
+      <div>
+        <div class="about-eyebrow">OUR STORY</div>
+        <h2 class="about-title-main">From handloom courtyards to your home</h2>
+        <div class="about-body">
+          <p>
+            The Adivasi Store began as a small initiative to document and support the textiles that shaped
+            our childhood – shawls, gamusas, wraps and sarees that carried the warmth of festivals, harvests
+            and everyday life. Instead of letting these weaves disappear into memory, we chose to build a
+            space where they could be seen, treasured and fairly valued.
+          </p>
+          <p>
+            Every collection is sourced directly from artisan families and women’s groups. We focus on
+            slow-made pieces: hand-spun yarns, naturally leaning colours and motifs that hold cultural
+            meanings. Your purchase keeps looms active, skills alive and local economies a little more secure.
+          </p>
+        </div>
+
+        <div class="about-tags">
+          <span class="about-tag about-floating-tag">Handwoven</span>
+          <span class="about-tag">Fair value for artisans</span>
+          <span class="about-tag">Region-rooted designs</span>
+          <span class="about-tag about-floating-tag">Small-batch drops</span>
+        </div>
+      </div>
+
+      <aside class="about-visual about-parallax">
+        <div class="about-visual-main">
+          <div class="about-visual-caption">
+            <div class="about-visual-caption-title">Craft cluster</div>
+            <div class="about-visual-caption-text">
+              Documenting yarn, colour and motif stories directly from artisan homes,
+              before they leave the village for your wardrobe.
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- OWNER SECTION – VISHAL NAG -->
+  <section class="section about-owner">
+    <style>
+      .about-owner-inner {
+        max-width: 1120px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+        gap: 40px;
+        align-items: center;
+      }
+
+      .about-owner-eyebrow {
+        font-family: "Fjalla One", sans-serif;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        font-size: 12px;
+        color: #7b6b55;
+        margin-bottom: 10px;
+      }
+
+      .about-owner-title {
+        font-size: 24px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+      }
+
+      .about-owner-sub {
+        font-size: 13px;
+        color: #675746;
+        margin-bottom: 14px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .about-owner-body {
+        font-size: 14px;
+        color: #4f4338;
+        max-width: 620px;
+      }
+
+      .about-owner-body p + p {
+        margin-top: 8px;
+      }
+
+      .about-owner-meta {
+        margin-top: 16px;
+        font-size: 12px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #8b6f4a;
+      }
+
+      .about-owner-photo-wrap {
+        position: relative;
+        border-radius: 22px;
+        background: #e5ddcf;
+        padding: 14px 12px 18px;
+        box-shadow: 0 18px 32px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+
+      .about-owner-photo-inner {
+        position: relative;
+        border-radius: 18px;
+        overflow: hidden;
+        background: #c8b79f;
+        aspect-ratio: 3/4;
+      }
+
+      .about-owner-photo-inner::before {
+        content: "";
+        position: absolute;
+        inset: 10px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        pointer-events: none;
+      }
+
+      .about-owner-photo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transform: scale(1.02);
+        transition: transform 0.5s ease;
+      }
+
+      .about-owner-photo-wrap:hover .about-owner-photo {
+        transform: scale(1.07);
+      }
+
+      .about-owner-pill {
+        position: absolute;
+        left: 20px;
+        bottom: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(246, 240, 232, 0.96);
+        border: 1px solid rgba(23, 19, 15, 0.16);
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .about-owner-pill-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #b26b39;
+      }
+
+      @media (max-width: 900px) {
+        .about-owner-inner {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 30px;
+        }
+        .about-owner-photo-wrap {
+          max-width: 380px;
+          margin: 0 auto;
+        }
+      }
+    </style>
+
+    <div class="about-owner-inner">
+      <div>
+        <div class="about-owner-eyebrow">FOUNDER & CUSTODIAN</div>
+        <h2 class="about-owner-title">Meet Vishal Nag</h2>
+        <div class="about-owner-sub">Electrical Engineer · Margherita, Assam, India</div>
+        <div class="about-owner-body">
+          <p>
+            The Adivasi Store is founded by <strong>Vishal Nag</strong>, an electrical engineer from
+            Margherita, Assam, who grew up surrounded by the colours, rhythms and textiles of tea-garden
+            life and Adivasi neighbourhoods.
+          </p>
+          <p>
+            With a technical mind and a deep emotional connection to his roots, Vishal brings together
+            precision, structure and community memory. The store is his way of ensuring that the designs he
+            saw in childhood – shawls on washing lines, handwoven wraps at festivals, everyday workwear in the
+            tea gardens – continue to have a future.
+          </p>
+          <p>
+            Between sourcing, quality checks, artisan conversations and late-night calls with the tech team,
+            he keeps one thing constant: that every piece you order carries dignity, fair value and a story
+            worth wearing.
+          </p>
+        </div>
+        <div class="about-owner-meta">
+          BASED IN MARGHERITA · WORKING WITH LOOMS ACROSS ASSAM
+        </div>
+      </div>
+
+      <div class="about-owner-photo-wrap about-parallax">
+        <div class="about-owner-photo-inner">
+          <!-- PLACEHOLDER: PUT VISHAL'S PHOTO HERE -->
+          <img
+            src="{{ url_for('static', filename='images/owner-vishal.jpg') }}"
+            alt="Vishal Nag – Founder of The Adivasi Store"
+            class="about-owner-photo"
+          >
+          <div class="about-owner-pill about-floating-tag">
+            <span class="about-owner-pill-dot"></span>
+            THE PERSON BEHIND THE LOOM
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEA TRIBE COMMUNITY SECTION -->
+  <section class="section about-tea-community">
+    <style>
+      .about-tea-inner {
+        max-width: 1120px;
+        margin: 0 auto;
+      }
+
+      .about-tea-header {
+        margin-bottom: 26px;
+        max-width: 720px;
+      }
+
+      .about-tea-kicker {
+        font-family: "Fjalla One", sans-serif;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        font-size: 12px;
+        color: #7b6b55;
+        margin-bottom: 8px;
+      }
+
+      .about-tea-title {
+        font-size: 24px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+      }
+
+      .about-tea-text {
+        font-size: 14px;
+        color: #4f4338;
+      }
+
+      .about-tea-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+        gap: 30px;
+        margin-top: 24px;
+      }
+
+      .about-tea-note {
+        font-size: 13px;
+        color: #5a4d3f;
+        background: #f6efe5;
+        border-radius: 18px;
+        padding: 18px 20px;
+        border: 1px dashed rgba(139, 111, 74, 0.6);
+      }
+
+      .about-tea-note strong {
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 11px;
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .about-tea-gallery {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .about-tea-frame {
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+        background: #e0d6c8;
+        aspect-ratio: 4/3;
+        box-shadow: 0 14px 26px rgba(0, 0, 0, 0.24);
+      }
+
+      .about-tea-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform: scale(1.03);
+        transition: transform 0.5s ease;
+      }
+
+      .about-tea-frame:hover .about-tea-img {
+        transform: scale(1.08);
+      }
+
+      .about-tea-caption {
+        position: absolute;
+        left: 10px;
+        bottom: 10px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(246, 240, 232, 0.96);
+        font-size: 10px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      @media (max-width: 900px) {
+        .about-tea-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+
+      @media (max-width: 640px) {
+        .about-tea-gallery {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+    </style>
+
+    <div class="about-tea-inner">
+      <header class="about-tea-header">
+        <div class="about-tea-kicker">TEA TRIBE COMMUNITY OF ASSAM</div>
+        <h2 class="about-tea-title">Where looms sit beside tea gardens</h2>
+        <p class="about-tea-text">
+          The Adivasi Store is deeply inspired by the <strong>Tea Tribe communities of Assam</strong> – families
+          whose histories are woven into the state’s tea estates, yet whose textiles, songs and stories often stay
+          invisible outside the gardens. Many of the silhouettes, motifs and colour combinations you see here are
+          rooted in their way of dressing, working and celebrating.
+        </p>
+      </header>
+
+      <div class="about-tea-grid">
+        <div class="about-tea-note">
+          <strong>WEAVES, WORK & WEEKENDS</strong>
+          From early-morning leaf plucking to evening adda in workers’ lines, textiles move with the rhythm of the
+          tea gardens – sturdy wraps for work, brighter shawls for festivals, everyday pieces that carry both comfort
+          and identity. Our goal is to gently translate that world into garments that travel further, without losing
+          their origin.
+        </div>
+
+        <div class="about-tea-gallery about-parallax">
+          <!-- PLACEHOLDER IMAGES – REPLACE WITH YOUR OWN TEA TRIBE PHOTOS -->
+          <div class="about-tea-frame">
+            <img
+              class="about-tea-img"
+              src="{{ url_for('static', filename='images/tea-tribe-1.jpg') }}"
+              alt="Tea tribe community textiles from Assam"
+            >
+            <div class="about-tea-caption">TEXTILES & PATTERNS</div>
+          </div>
+          <div class="about-tea-frame">
+            <img
+              class="about-tea-img"
+              src="{{ url_for('static', filename='images/tea-tribe-2.jpg') }}"
+              alt="Life around tea gardens in Assam"
+            >
+            <div class="about-tea-caption">GARDEN LIFE</div>
+          </div>
+          <div class="about-tea-frame">
+            <img
+              class="about-tea-img"
+              src="{{ url_for('static', filename='images/tea-tribe-3.jpg') }}"
+              alt="Festivals and colours from tea tribe community"
+            >
+            <div class="about-tea-caption">FESTIVALS</div>
+          </div>
+          <div class="about-tea-frame">
+            <img
+              class="about-tea-img"
+              src="{{ url_for('static', filename='images/tea-tribe-4.jpg') }}"
+              alt="Women from tea tribe community in traditional attire"
+            >
+            <div class="about-tea-caption">COMMUNITY</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VALUES STRIP -->
+  <section class="section about-values">
+    <style>
+      .about-values-inner {
+        max-width: 1120px;
+        margin: 0 auto;
+      }
+
+      .about-values-header {
+        text-align: center;
+        margin-bottom: 32px;
+      }
+
+      .about-values-title {
+        font-family: "Fjalla One", sans-serif;
+        letter-spacing: 0.18em;
+        font-size: 13px;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+        color: #7b6b55;
+      }
+
+      .about-values-sub {
+        font-size: 22px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .about-values-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 26px;
+        margin-top: 12px;
+      }
+
+      .about-value-card {
+        background: #f6efe5;
+        border-radius: 18px;
+        padding: 20px 20px 22px;
+        box-shadow: 0 10px 24px rgba(0,0,0,0.14);
+        border: 1px solid rgba(23,19,15,0.06);
+      }
+
+      .about-value-kicker {
+        font-family: "Fjalla One", sans-serif;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        font-size: 11px;
+        margin-bottom: 6px;
+        color: #8b6f4a;
+      }
+
+      .about-value-title {
+        font-size: 15px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+
+      .about-value-text {
+        font-size: 13px;
+        color: #54473a;
+      }
+
+      @media (max-width: 900px) {
+        .about-values-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 640px) {
+        .about-values-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+    </style>
+
+    <div class="about-values-inner">
+      <header class="about-values-header">
+        <div class="about-values-title">WHAT WE STAND FOR</div>
+        <h2 class="about-values-sub">Comfort, culture & care in every weave</h2>
+      </header>
+
+      <div class="about-values-grid">
+        <article class="about-value-card">
+          <div class="about-value-kicker">01</div>
+          <h3 class="about-value-title">Fair partnerships</h3>
+          <p class="about-value-text">
+            We work with artisan clusters through transparent pricing, advance payments on bigger orders
+            and long-term relationships, not one-time purchases.
+          </p>
+        </article>
+
+        <article class="about-value-card">
+          <div class="about-value-kicker">02</div>
+          <h3 class="about-value-title">Thoughtful design</h3>
+          <p class="about-value-text">
+            Our styles are rooted in traditional motifs but cut for everyday wear – so you can reach for
+            your handwoven pieces as often as your favourite T-shirt.
+          </p>
+        </article>
+
+        <article class="about-value-card">
+          <div class="about-value-kicker">03</div>
+          <h3 class="about-value-title">Slow, not seasonal</h3>
+          <p class="about-value-text">
+            We release small curated drops instead of high-volume collections. This keeps production
+            manageable for artisans and special for you.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- JOURNEY / TIMELINE -->
+  <section class="section about-journey">
+    <style>
+      .about-journey-inner {
+        max-width: 1120px;
+        margin: 0 auto;
+        border-radius: 22px;
+        background: #f3eee6;
+        padding: 26px 26px 30px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .about-journey-inner::before {
+        content: "";
+        position: absolute;
+        width: 420px;
+        height: 420px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,255,255,0.95), transparent 65%);
+        top: -140px;
+        right: -120px;
+        opacity: 0.9;
+        pointer-events: none;
+      }
+
+      .about-journey-header {
+        position: relative;
+        z-index: 1;
+        margin-bottom: 18px;
+      }
+
+      .about-journey-kicker {
+        font-family: "Fjalla One", sans-serif;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        font-size: 11px;
+        color: #7b6b55;
+        margin-bottom: 6px;
+      }
+
+      .about-journey-title {
+        font-size: 20px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .about-journey-strip {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 20px;
+      }
+
+      .about-journey-step {
+        position: relative;
+        padding-top: 8px;
+      }
+
+      .about-journey-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #b26b39;
+        margin-bottom: 8px;
+      }
+
+      .about-journey-label {
+        font-family: "Fjalla One", sans-serif;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        font-size: 11px;
+        margin-bottom: 4px;
+      }
+
+      .about-journey-text {
+        font-size: 13px;
+        color: #5a4d3f;
+      }
+
+      .about-journey-line {
+        position: absolute;
+        top: 18px;
+        left: 0;
+        right: 0;
+        height: 1px;
+        border-top: 1px dashed rgba(139, 111, 74, 0.65);
+        z-index: 0;
+      }
+
+      @media (max-width: 900px) {
+        .about-journey-strip {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 16px;
+        }
+        .about-journey-line {
+          display: none;
+        }
+      }
+    </style>
+
+    <div class="about-journey-inner about-parallax">
+      <div class="about-journey-header">
+        <div class="about-journey-kicker">OUR JOURNEY</div>
+        <h2 class="about-journey-title">How a piece travels to you</h2>
+      </div>
+
+      <div class="about-journey-line"></div>
+
+      <div class="about-journey-strip">
+        <article class="about-journey-step">
+          <div class="about-journey-dot"></div>
+          <div class="about-journey-label">Loomside</div>
+          <p class="about-journey-text">
+            Designs are co-created with artisans – respecting traditional motifs while gently adapting
+            lengths, fits and colour palettes to how you wear them today.
+          </p>
+        </article>
+
+        <article class="about-journey-step">
+          <div class="about-journey-dot"></div>
+          <div class="about-journey-label">Care & finishing</div>
+          <p class="about-journey-text">
+            Each piece is washed, checked and finished in small batches. We keep packaging minimal –
+            focusing on protection, not plastic.
+          </p>
+        </article>
+
+        <article class="about-journey-step">
+          <div class="about-journey-dot"></div>
+          <div class="about-journey-label">To your wardrobe</div>
+          <p class="about-journey-text">
+            Orders are shipped with clear care notes, so your garment can be worn for years, repaired
+            when needed and passed on when you are ready.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- SMALL TEAM / COMMUNITY NOTE -->
+  <section class="section about-team">
+    <style>
+      .about-team-inner {
+        max-width: 900px;
+        margin: 0 auto;
+        text-align: center;
+      }
+
+      .about-team-kicker {
+        font-family: "Fjalla One", sans-serif;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        font-size: 11px;
+        color: #7b6b55;
+        margin-bottom: 8px;
+      }
+
+      .about-team-title {
+        font-size: 20px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+
+      .about-team-text {
+        font-size: 14px;
+        color: #4f4338;
+        max-width: 640px;
+        margin: 0 auto;
+      }
+    </style>
+
+    <div class="about-team-inner">
+      <div class="about-team-kicker">PEOPLE & COMMUNITY</div>
+      <h2 class="about-team-title">Built by a small team, held by many hands</h2>
+      <p class="about-team-text">
+        Behind The Adivasi Store is a tiny team handling design, packaging, technology and everyday chaos –
+        but the heart of this work will always be the artisan families, weavers’ collectives and
+        communities who trust us with their craft. Thank you for walking this journey with us, one
+        handwoven piece at a time.
+      </p>
+    </div>
+  </section>
+
+  <!-- ABOUT PAGE ANIMATION / PARALLAX JS -->
+  <script>
+    (function () {
+      // Reveal sections on scroll
+      const animatedSections = document.querySelectorAll(
+        ".hero-about, .about-story, .about-owner, .about-tea-community, .about-values, .about-journey, .about-team"
+      );
+
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("about-section-visible");
+              io.unobserve(entry.target);
+            }
+          });
+        },
+        {
+          threshold: 0.2,
+        }
+      );
+
+      animatedSections.forEach((sec) => io.observe(sec));
+
+      // Soft parallax for selected blocks
+      const parallaxEls = document.querySelectorAll(".about-parallax");
+
+      function handleParallax() {
+        const vh = window.innerHeight || document.documentElement.clientHeight;
+        parallaxEls.forEach((el, index) => {
+          const rect = el.getBoundingClientRect();
+          const centerOffset = rect.top + rect.height / 2 - vh / 2;
+          const baseSpeed = 0.15 + index * 0.03;
+          const offset = -centerOffset * baseSpeed * 0.15;
+          el.style.transform = "translateY(" + offset + "px)";
+        });
+      }
+
+      handleParallax();
+      window.addEventListener("scroll", handleParallax, { passive: true });
+      window.addEventListener("resize", handleParallax);
+    })();
+  </script>
+
+</main>
+{% endblock %}

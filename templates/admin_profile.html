@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main class="section admin-profile-page">
+  <style>
+    .admin-profile-page {
+      padding: 80px 20px 120px;
+      background: #f5eee4;
+      display: flex;
+      justify-content: center;
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .admin-profile-card {
+      width: 100%;
+      max-width: 720px;
+      background: #fffaf3;
+      border-radius: 18px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.18);
+      border: 1px solid rgba(157,122,86,0.2);
+      padding: 28px 26px 30px;
+    }
+
+    .admin-profile-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .admin-profile-meta {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .admin-avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 20%, #ffe7c2, #b15a32);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #20130f;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.28);
+    }
+
+    .admin-profile-title {
+      font-size: 18px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .admin-profile-sub {
+      font-size: 13px;
+      color: #7b6550;
+    }
+
+    .admin-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(40,25,16,0.22);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      background: rgba(255,250,240,0.9);
+    }
+
+    .admin-badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #b15a32;
+    }
+
+    .admin-profile-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 18px 20px;
+      margin-bottom: 24px;
+    }
+
+    .admin-form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .admin-form-group label {
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #7a6350;
+    }
+
+    .admin-form-group input,
+    .admin-form-group textarea {
+      border-radius: 10px;
+      border: 1px solid rgba(96,70,45,0.3);
+      padding: 10px 11px;
+      font-size: 13px;
+      background: #fffdf7;
+      outline: none;
+    }
+
+    .admin-form-group input:focus,
+    .admin-form-group textarea:focus {
+      border-color: #b15a32;
+      box-shadow: 0 0 0 1px rgba(177,90,50,0.35);
+    }
+
+    .admin-address {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 16px 18px;
+    }
+
+    .admin-password-panel {
+      margin-top: 6px;
+      padding-top: 18px;
+      border-top: 1px dashed rgba(120,90,63,0.3);
+    }
+
+    .admin-password-title {
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      color: #4b3324;
+    }
+
+    .admin-password-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 16px 18px;
+    }
+
+    .admin-actions {
+      margin-top: 24px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .btn-admin-secondary,
+    .btn-admin-primary {
+      border-radius: 999px;
+      padding: 9px 18px;
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+
+    .btn-admin-secondary {
+      background: transparent;
+      border-color: rgba(61,43,30,0.35);
+      color: #3d2b1e;
+    }
+
+    .btn-admin-primary {
+      background: #3d2318;
+      color: #fff7eb;
+      border-color: #3d2318;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.26);
+    }
+
+    .btn-admin-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 32px rgba(0,0,0,0.3);
+    }
+
+    @media (max-width: 780px) {
+      .admin-profile-card {
+        padding: 22px 18px 26px;
+      }
+      .admin-profile-grid,
+      .admin-address,
+      .admin-password-grid {
+        grid-template-columns: minmax(0,1fr);
+      }
+      .admin-profile-page {
+        padding-inline: 12px;
+      }
+    }
+  </style>
+
+  <section class="admin-profile-card">
+    <header class="admin-profile-header">
+      <div class="admin-profile-meta">
+        <div class="admin-avatar">
+          {{ admin_user.initials }}
+        </div>
+        <div>
+          <div class="admin-profile-title">Admin Profile</div>
+          <div class="admin-profile-sub">
+            {{ admin_user.email }} · Manage your admin information for The Adivasi Store.
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-badge">
+        <span class="admin-badge-dot"></span>
+        ADMIN ACCOUNT
+      </div>
+    </header>
+
+    <form method="POST" action="{{ url_for('admin_profile') }}">
+      <div class="admin-profile-grid">
+        <div class="admin-form-group">
+          <label for="name">Full Name</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            value="{{ admin_user.name or '' }}"
+            placeholder="Admin name">
+        </div>
+
+        <div class="admin-form-group">
+          <label for="phone">Phone</label>
+          <input
+            type="text"
+            id="phone"
+            name="phone"
+            value="{{ admin_user.phone or '' }}"
+            placeholder="Contact number">
+        </div>
+
+        <div class="admin-form-group">
+          <label>Email (read-only)</label>
+          <input
+            type="email"
+            value="{{ admin_user.email }}"
+            disabled>
+        </div>
+
+        <div class="admin-form-group">
+          <label for="nearest_post_office">Nearest Post Office</label>
+          <input
+            type="text"
+            id="nearest_post_office"
+            name="nearest_post_office"
+            value="{{ admin_user.nearest_post_office or '' }}"
+            placeholder="Nearest post office">
+        </div>
+      </div>
+
+      <div class="admin-address">
+        <div class="admin-form-group">
+          <label for="address_line1">Address line 1</label>
+          <input
+            type="text"
+            id="address_line1"
+            name="address_line1"
+            value="{{ admin_user.address_line1 or '' }}"
+            placeholder="House / Flat / Building">
+        </div>
+
+        <div class="admin-form-group">
+          <label for="address_line2">Address line 2</label>
+          <input
+            type="text"
+            id="address_line2"
+            name="address_line2"
+            value="{{ admin_user.address_line2 or '' }}"
+            placeholder="Street / Landmark">
+        </div>
+
+        <div class="admin-form-group">
+          <label for="pincode">Pincode</label>
+          <input
+            type="text"
+            id="pincode"
+            name="pincode"
+            value="{{ admin_user.pincode or '' }}"
+            placeholder="Pincode">
+        </div>
+      </div>
+
+      <div class="admin-password-panel">
+        <div class="admin-password-title">Update admin password</div>
+        <div class="admin-password-grid">
+          <div class="admin-form-group">
+            <label for="new_password">New password</label>
+            <input
+              type="password"
+              id="new_password"
+              name="new_password"
+              placeholder="Enter new password">
+          </div>
+
+          <div class="admin-form-group">
+            <label for="confirm_password">Confirm new password</label>
+            <input
+              type="password"
+              id="confirm_password"
+              name="confirm_password"
+              placeholder="Re-enter new password">
+          </div>
+        </div>
+      </div>
+
+      
+<div class="admin-actions">
+    <a href="{{ url_for('logout') }}" class="btn-admin-secondary">
+        Logout
+    </a>
+
+    <button type="button" class="btn-admin-secondary"
+            onclick="window.location.href='{{ url_for('admin_dashboard') }}'">
+        Back to Dashboard
+    </button>
+
+    <button type="submit" class="btn-admin-primary">
+        Save Changes
+    </button>
+</div>
+
+    </form>
+  </section>
+</main>
+{% endblock %}

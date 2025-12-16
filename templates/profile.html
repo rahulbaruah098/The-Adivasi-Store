@@ -1,0 +1,660 @@
+{% extends "base.html" %}
+{% block content %}
+<main>
+
+  <section class="section profile-page">
+    <style>
+      /* ============================
+         Adivasi Store – Profile Page
+         ============================ */
+      .profile-page{
+        min-height:100vh;
+        padding:130px 20px 80px;
+        display:flex;
+        justify-content:center;
+        align-items:flex-start;
+        background:
+          radial-gradient(circle at 12% 0%, #fdf5e9 0, #f3e4d2 32%, #e9dac7 64%, #e1cfbc 100%);
+        color:#22150e;
+        font-family:"Playfair Display", serif;
+        position:relative;
+        overflow:hidden;
+      }
+      .profile-page::before,
+      .profile-page::after{
+        content:"";
+        position:absolute;
+        border-radius:999px;
+        border:1px dashed rgba(124,95,64,0.28);
+        pointer-events:none;
+      }
+      .profile-page::before{
+        width:280px;
+        height:280px;
+        top:-110px;
+        right:-80px;
+      }
+      .profile-page::after{
+        width:340px;
+        height:340px;
+        bottom:-130px;
+        left:-120px;
+      }
+
+      .profile-shell{
+        width:100%;
+        max-width:960px;
+        display:grid;
+        grid-template-columns:minmax(0,1.25fr) minmax(0,0.9fr);
+        gap:26px;
+        position:relative;
+        z-index:1;
+        padding:0 6px;
+      }
+
+      .profile-card{
+        background:rgba(248,241,231,0.98);
+        border-radius:20px;
+        border:1px solid rgba(142,112,79,0.45);
+        box-shadow:
+          0 18px 40px rgba(0,0,0,0.28),
+          0 0 0 1px rgba(255,255,255,0.55) inset;
+        padding:24px clamp(18px,3vw,26px) 22px;
+        position:relative;
+        overflow:hidden;
+        animation:profile-card-float 0.9s ease-out;
+        backdrop-filter:blur(6px);
+      }
+      .profile-card::before{
+        content:"";
+        position:absolute;
+        inset:14px 12px;
+        border-radius:16px;
+        border:1px dashed rgba(189,143,90,0.5);
+        pointer-events:none;
+      }
+
+      .profile-header{
+        position:relative;
+        z-index:1;
+        margin-bottom:14px;
+        display:flex;
+        gap:14px;
+        align-items:center;
+      }
+      .profile-avatar-ring{
+        width:54px;
+        height:54px;
+        border-radius:999px;
+        border:1px dashed rgba(130,96,62,0.6);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        position:relative;
+        flex-shrink:0;
+        overflow:hidden;
+      }
+      .profile-avatar-ring::before{
+        content:"";
+        position:absolute;
+        inset:-2px;
+        border-radius:inherit;
+        background:
+          conic-gradient(from 210deg, rgba(173,115,72,0.0), rgba(173,115,72,0.75), rgba(173,115,72,0.0));
+        opacity:0.8;
+        animation:profile-ring-spin 6s linear infinite;
+      }
+      .profile-avatar-initials{
+        position:relative;
+        z-index:1;
+        width:40px;
+        height:40px;
+        border-radius:999px;
+        background:#22150e;
+        color:#fbeee1;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-family:"Fjalla One",sans-serif;
+        font-size:18px;
+        letter-spacing:0.12em;
+        text-transform:uppercase;
+      }
+
+      .profile-header-text{
+        flex:1;
+      }
+      .profile-kicker{
+        font-family:"Fjalla One",sans-serif;
+        font-size:11px;
+        letter-spacing:0.26em;
+        text-transform:uppercase;
+        color:#8a6b46;
+        margin-bottom:4px;
+      }
+      .profile-title{
+        font-size:20px;
+        letter-spacing:0.18em;
+        text-transform:uppercase;
+        margin:0 0 4px;
+      }
+      .profile-sub{
+        margin:0;
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        font-size:12px;
+        color:#6f5b47;
+      }
+
+      /* FORM */
+      .profile-form{
+        position:relative;
+        z-index:1;
+        margin-top:14px;
+        display:flex;
+        flex-direction:column;
+        gap:14px;
+      }
+      .profile-group{
+        display:flex;
+        flex-direction:column;
+        gap:6px;
+      }
+      .profile-label{
+        font-size:11px;
+        letter-spacing:0.2em;
+        text-transform:uppercase;
+        color:#7d6750;
+        font-family:"Fjalla One",sans-serif;
+      }
+      .profile-input-wrap{
+        position:relative;
+      }
+      .profile-input{
+        width:100%;
+        border-radius:999px;
+        border:1px solid rgba(131,106,77,0.55);
+        padding:9px 16px;
+        padding-right:42px;
+        font-size:13px;
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        background:rgba(255,255,255,0.96);
+        color:#22150e;
+        outline:none;
+        transition:
+          border-color 0.18s ease,
+          box-shadow 0.18s ease,
+          background 0.18s ease,
+          transform 0.12s ease;
+      }
+      .profile-input::placeholder{
+        color:rgba(125,105,82,0.7);
+      }
+      .profile-input:focus{
+        border-color:#b0673d;
+        box-shadow:
+          0 0 0 1px rgba(176,103,61,0.5),
+          0 0 0 5px rgba(176,103,61,0.16);
+        background:#fffaf2;
+        transform:translateY(-1px);
+      }
+      .profile-input[disabled]{
+        background:rgba(255,255,255,0.7);
+        color:#917d64;
+        cursor:not-allowed;
+      }
+
+      .profile-section-title{
+        margin-top:10px;
+        font-size:13px;
+        letter-spacing:0.18em;
+        text-transform:uppercase;
+        color:#8b6e4a;
+      }
+
+      .profile-submit-row{
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+        align-items:center;
+        margin-top:10px;
+      }
+      .profile-save-btn{
+        border:none;
+        border-radius:999px;
+        padding:11px 26px;
+        font-size:11px;
+        letter-spacing:0.22em;
+        text-transform:uppercase;
+        font-family:"Fjalla One",sans-serif;
+        background:linear-gradient(120deg,#1f140e,#3a2516);
+        color:#fbeee1;
+        cursor:pointer;
+        box-shadow:0 10px 24px rgba(32,18,9,0.45);
+        transform:translateY(0);
+        transition:
+          transform 0.14s ease,
+          box-shadow 0.14s ease,
+          filter 0.14s ease;
+      }
+      .profile-save-btn:hover{
+        transform:translateY(-1px);
+        box-shadow:0 12px 28px rgba(32,18,9,0.6);
+        filter:brightness(1.03);
+      }
+      .profile-save-btn:active{
+        transform:translateY(1px);
+        box-shadow:0 6px 16px rgba(32,18,9,0.5);
+      }
+      .profile-hint{
+        font-size:11px;
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        color:#7a6651;
+      }
+
+      /* LOGOUT BTN (external link) */
+      .profile-logout-wrap{
+        margin-top:18px;
+      }
+      .profile-logout{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        padding:9px 22px;
+        border-radius:999px;
+        border:1px solid rgba(31,20,14,0.6);
+        background:#fbf4e7;
+        font-size:11px;
+        font-family:"Fjalla One",sans-serif;
+        text-transform:uppercase;
+        letter-spacing:0.18em;
+        cursor:pointer;
+        transition:
+          background 0.22s ease,
+          color 0.22s ease,
+          box-shadow 0.22s ease,
+          transform 0.12s ease;
+      }
+      .profile-logout i{
+        font-size:13px;
+      }
+      .profile-logout:hover{
+        background:#1f140e;
+        color:#fff;
+        box-shadow:0 10px 22px rgba(0,0,0,0.45);
+        transform:translateY(-1px);
+      }
+      .profile-logout:active{
+        transform:translateY(1px);
+        box-shadow:0 6px 16px rgba(0,0,0,0.38);
+      }
+
+      /* SIDEBAR CARD */
+      .profile-side-card{
+        background:rgba(31,20,14,0.96);
+        color:#fceee0;
+        border-radius:20px;
+        border:1px solid rgba(255,255,255,0.16);
+        box-shadow:0 18px 40px rgba(0,0,0,0.4);
+        padding:20px 20px 18px;
+        position:relative;
+        overflow:hidden;
+      }
+      .profile-side-card::before{
+        content:"";
+        position:absolute;
+        inset:-60%;
+        background:
+          radial-gradient(circle at 0% 0%,rgba(255,255,255,0.16),transparent 55%),
+          radial-gradient(circle at 100% 100%,rgba(255,255,255,0.14),transparent 55%);
+        opacity:0.9;
+        mix-blend-mode:screen;
+      }
+      .profile-side-inner{
+        position:relative;
+        z-index:1;
+      }
+      .profile-side-kicker{
+        font-family:"Fjalla One",sans-serif;
+        font-size:10px;
+        letter-spacing:0.24em;
+        text-transform:uppercase;
+        opacity:0.86;
+        margin-bottom:6px;
+      }
+      .profile-side-title{
+        font-size:16px;
+        letter-spacing:0.16em;
+        text-transform:uppercase;
+        margin:0 0 8px;
+      }
+      .profile-side-text{
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        font-size:12px;
+        color:rgba(252,238,224,0.92);
+        margin-bottom:12px;
+      }
+
+      .profile-side-list{
+        list-style:none;
+        padding:0;
+        margin:0 0 12px;
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        font-size:11px;
+      }
+      .profile-side-list li{
+        display:flex;
+        align-items:flex-start;
+        gap:8px;
+        margin-bottom:6px;
+      }
+      .profile-side-list li::before{
+        content:"✺";
+        font-size:10px;
+        margin-top:1px;
+      }
+
+      .profile-side-tag{
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        padding:6px 12px;
+        border-radius:999px;
+        border:1px solid rgba(252,238,224,0.45);
+        font-size:10px;
+        text-transform:uppercase;
+        letter-spacing:0.2em;
+        font-family:"Fjalla One",sans-serif;
+        background:rgba(0,0,0,0.18);
+      }
+
+      /* Animations */
+      @keyframes profile-card-float{
+        0%   {opacity:0;transform:translateY(32px) scale(.97) rotate(-0.8deg);}
+        60%  {opacity:1;transform:translateY(-4px) scale(1.01) rotate(0.3deg);}
+        100% {opacity:1;transform:translateY(0) scale(1) rotate(0);}
+      }
+      @keyframes profile-ring-spin{
+        0%{transform:rotate(0);}
+        100%{transform:rotate(360deg);}
+      }
+
+      /* ============ RESPONSIVE ============ */
+      @media (max-width:980px){
+        .profile-shell{
+          max-width:780px;
+          grid-template-columns:minmax(0,1fr);
+        }
+        .profile-side-card{
+          order:-1;
+        }
+      }
+      @media (max-width:720px){
+        .profile-page{
+          padding:120px 14px 70px;
+        }
+        .profile-card,
+        .profile-side-card{
+          border-radius:18px;
+          padding-inline:18px;
+        }
+        .profile-card::before{
+          inset:12px 10px;
+        }
+        .profile-header{
+          align-items:flex-start;
+        }
+      }
+      @media (max-width:520px){
+        .profile-page{
+          padding:110px 10px 60px;
+        }
+        .profile-shell{
+          padding-inline:0;
+        }
+        .profile-card,
+        .profile-side-card{
+          padding-inline:14px;
+        }
+        .profile-title{
+          font-size:18px;
+          letter-spacing:0.16em;
+        }
+        .profile-sub{
+          font-size:11px;
+        }
+        .profile-input{
+          font-size:12px;
+          padding:8px 14px;
+        }
+        .profile-label{
+          font-size:10px;
+        }
+        .profile-save-btn{
+          font-size:10px;
+          letter-spacing:0.18em;
+          padding:9px 18px;
+        }
+        .profile-logout{
+          font-size:10px;
+          letter-spacing:0.16em;
+        }
+      }
+    </style>
+
+    <div class="profile-shell">
+
+      <!-- MAIN PROFILE CARD -->
+      <div class="profile-card">
+        <div class="profile-header">
+          <div class="profile-avatar-ring">
+            <div class="profile-avatar-initials">
+              {{ (current_user.name or current_user.email or 'A')[:2].upper() }}
+            </div>
+          </div>
+          <div class="profile-header-text">
+            <div class="profile-kicker">Your Profile</div>
+            <h1 class="profile-title">Account & Address</h1>
+            <p class="profile-sub">
+              Update your name, contact details, delivery address and change your password when needed.
+            </p>
+          </div>
+        </div>
+
+        <form method="POST" class="profile-form">
+          {# If you use CSRF protection, include your hidden token here #}
+          {# {{ form.csrf_token }} or similar #}
+
+          <div class="profile-group">
+            <label class="profile-label" for="name">Full name</label>
+            <div class="profile-input-wrap">
+              <input
+                id="name"
+                type="text"
+                name="name"
+                class="profile-input"
+                placeholder="Your full name"
+                value="{{ current_user.name or '' }}"
+                required
+              >
+            </div>
+          </div>
+
+          <div class="profile-group">
+            <label class="profile-label" for="email">Email (login)</label>
+            <div class="profile-input-wrap">
+              <input
+                id="email"
+                type="email"
+                class="profile-input"
+                value="{{ current_user.email }}"
+                disabled
+              >
+            </div>
+          </div>
+
+          <div class="profile-group">
+            <label class="profile-label" for="phone">Phone number</label>
+            <div class="profile-input-wrap">
+              <input
+                id="phone"
+                type="text"
+                name="phone"
+                class="profile-input"
+                placeholder="10-digit mobile number"
+                value="{{ current_user.phone or '' }}"
+              >
+            </div>
+          </div>
+
+          <div class="profile-group">
+            <label class="profile-label" for="address_line1">Address line 1</label>
+            <div class="profile-input-wrap">
+              <input
+                id="address_line1"
+                type="text"
+                name="address_line1"
+                class="profile-input"
+                placeholder="House / Lane / Locality"
+                value="{{ current_user.address_line1 or '' }}"
+              >
+            </div>
+          </div>
+
+          <div class="profile-group">
+            <label class="profile-label" for="address_line2">Address line 2</label>
+            <div class="profile-input-wrap">
+              <input
+                id="address_line2"
+                type="text"
+                name="address_line2"
+                class="profile-input"
+                placeholder="Landmark / Area"
+                value="{{ current_user.address_line2 or '' }}"
+              >
+            </div>
+          </div>
+
+          <div class="profile-group">
+            <label class="profile-label" for="nearest_post_office">Nearest Post Office</label>
+            <div class="profile-input-wrap">
+              <input
+                id="nearest_post_office"
+                type="text"
+                name="nearest_post_office"
+                class="profile-input"
+                placeholder="Example: Chhimphei PO"
+                value="{{ current_user.nearest_post_office or '' }}"
+              >
+            </div>
+          </div>
+
+          <div class="profile-group">
+            <label class="profile-label" for="pincode">Pincode</label>
+            <div class="profile-input-wrap">
+              <input
+                id="pincode"
+                type="text"
+                name="pincode"
+                class="profile-input"
+                placeholder="e.g. 781 XXX"
+                value="{{ current_user.pincode or '' }}"
+              >
+            </div>
+          </div>
+
+          <div class="profile-section-title">Change password</div>
+
+          <div class="profile-group">
+            <label class="profile-label" for="new_password">New password</label>
+            <div class="profile-input-wrap">
+              <input
+                id="new_password"
+                type="password"
+                name="new_password"
+                class="profile-input"
+                placeholder="Leave blank to keep current"
+              >
+            </div>
+          </div>
+
+          <div class="profile-group">
+            <label class="profile-label" for="confirm_password">Confirm new password</label>
+            <div class="profile-input-wrap">
+              <input
+                id="confirm_password"
+                type="password"
+                name="confirm_password"
+                class="profile-input"
+                placeholder="Re-enter new password"
+              >
+            </div>
+          </div>
+
+          <div class="profile-submit-row">
+            <button type="submit" class="profile-save-btn">
+              Save profile
+            </button>
+            <span class="profile-hint">
+              Your changes apply to the next order you place.
+            </span>
+          </div>
+
+          <div class="profile-logout-wrap">
+            <a href="{{ url_for('logout') }}" class="profile-logout">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i>
+              Logout
+            </a>
+          </div>
+        </form>
+      </div>
+
+      <!-- SIDE CARD -->
+      <aside class="profile-side-card">
+        <div class="profile-side-inner">
+          <div class="profile-side-kicker">The Adivasi Store</div>
+          <h2 class="profile-side-title">Address tips</h2>
+          <p class="profile-side-text">
+            A clear address helps our delivery partners find your home faster – especially in interiors and tea
+            garden areas. Add a nearby shop, landmark or “lane name” if it helps them recognise the spot.
+          </p>
+
+          <ul class="profile-side-list">
+            <li>Keep your primary phone switched on on the day of delivery.</li>
+            <li>Use the same pincode you usually use for online orders.</li>
+            <li>Mention flat / house number and nearest landmark clearly.</li>
+          </ul>
+
+          <span class="profile-side-tag">
+            <span>Handwoven · Packed with care</span>
+          </span>
+        </div>
+      </aside>
+
+    </div>
+
+    <script>
+      // Small funky animation: pulse save button once on load
+      window.addEventListener("load", () => {
+        const btn = document.querySelector(".profile-save-btn");
+        if (!btn) return;
+        btn.classList.add("profile-save-btn--pulse");
+        setTimeout(() => btn.classList.remove("profile-save-btn--pulse"), 900);
+      });
+    </script>
+
+    <style>
+      /* pulse keyframe defined separately so we don't clutter the main block */
+      .profile-save-btn--pulse{
+        animation:profile-save-pulse 0.9s ease-out;
+      }
+      @keyframes profile-save-pulse{
+        0%{transform:translateY(0) scale(1);}
+        40%{transform:translateY(-1px) scale(1.04);}
+        100%{transform:translateY(0) scale(1);}
+      }
+    </style>
+
+  </section>
+
+</main>
+{% endblock %}

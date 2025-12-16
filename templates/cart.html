@@ -1,0 +1,564 @@
+{% extends "base.html" %} 
+{% block content %}
+<main>
+
+  <section class="section cart-page">
+    <style>
+      /* ============================
+         Adivasi Store – Cart Page
+         ============================ */
+      .cart-page{
+        min-height:100vh;
+        padding:130px 20px 80px;
+        display:flex;
+        justify-content:center;
+        align-items:flex-start;
+        background:
+          radial-gradient(circle at 12% 0%, #fdf5e9 0, #f3e4d2 32%, #e9dac7 64%, #e1cfbc 100%);
+        color:#22150e;
+        font-family:"Playfair Display", serif;
+        position:relative;
+        overflow:hidden;
+      }
+      .cart-page::before,
+      .cart-page::after{
+        content:"";
+        position:absolute;
+        border-radius:999px;
+        border:1px dashed rgba(124,95,64,0.28);
+        pointer-events:none;
+      }
+      .cart-page::before{
+        width:280px;
+        height:280px;
+        top:-110px;
+        right:-80px;
+      }
+      .cart-page::after{
+        width:340px;
+        height:340px;
+        bottom:-130px;
+        left:-120px;
+      }
+
+      .cart-shell{
+        width:100%;
+        max-width:980px;
+        position:relative;
+        z-index:1;
+        padding:0 6px;
+      }
+
+      .cart-header{
+        margin-bottom:18px;
+      }
+      .cart-kicker{
+        font-family:"Fjalla One",sans-serif;
+        font-size:11px;
+        letter-spacing:0.26em;
+        text-transform:uppercase;
+        color:#8a6b46;
+        margin-bottom:6px;
+      }
+      .cart-title{
+        font-size:22px;
+        letter-spacing:0.18em;
+        text-transform:uppercase;
+        margin:0 0 4px;
+      }
+      .cart-sub{
+        margin:0;
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        font-size:12px;
+        color:#6f5b47;
+      }
+
+      .cart-card{
+        margin-top:20px;
+        background:rgba(248,241,231,0.98);
+        border-radius:20px;
+        border:1px solid rgba(142,112,79,0.45);
+        box-shadow:
+          0 18px 40px rgba(0,0,0,0.28),
+          0 0 0 1px rgba(255,255,255,0.55) inset;
+        padding:18px clamp(16px,3vw,24px) 18px;
+        position:relative;
+        overflow:hidden;
+        animation:cart-card-float 0.9s ease-out;
+        backdrop-filter:blur(6px);
+      }
+      .cart-card::before{
+        content:"";
+        position:absolute;
+        inset:14px 12px;
+        border-radius:16px;
+        border:1px dashed rgba(189,143,90,0.5);
+        pointer-events:none;
+      }
+
+      .cart-list{
+        position:relative;
+        z-index:1;
+      }
+
+      .cart-item-row{
+        position:relative;
+        display:flex;
+        gap:16px;
+        padding:14px 0;
+        border-bottom:1px solid rgba(0,0,0,0.06);
+        align-items:flex-start;
+        animation:cart-item-in 0.4s ease-out;
+      }
+      .cart-item-row:last-child{
+        border-bottom:none;
+        padding-bottom:0;
+      }
+
+      .cart-item-thumb{
+        width:90px;
+        height:110px;
+        overflow:hidden;
+        border-radius:14px;
+        box-shadow:0 10px 24px rgba(0,0,0,0.18);
+        flex-shrink:0;
+        background:#d7cbbd;
+      }
+      .cart-item-thumb img{
+        width:100%;
+        height:100%;
+        object-fit:cover;
+      }
+
+      .cart-item-main{
+        flex:1;
+        position:relative;
+      }
+      .cart-item-name{
+        font-size:13px;
+        text-transform:uppercase;
+        letter-spacing:0.12em;
+      }
+      .cart-item-meta{
+        margin-top:3px;
+        font-size:12px;
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        color:#7a6a55;
+      }
+
+      .cart-item-controls{
+        margin-top:8px;
+        font-size:13px;
+        display:flex;
+        align-items:center;
+        gap:10px;
+        flex-wrap:wrap;
+      }
+
+      .cart-item-price{
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      }
+      .cart-item-price-label{
+        letter-spacing:0.16em;
+        text-transform:uppercase;
+        font-size:10px;
+        margin-right:2px;
+      }
+
+      .cart-qty-form{
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      }
+      .cart-qty-label{
+        font-size:11px;
+        color:#7a6a55;
+      }
+      .cart-qty-input{
+        width:60px;
+        padding:4px 8px;
+        border-radius:999px;
+        border:1px solid rgba(0,0,0,0.18);
+        font-size:12px;
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        outline:none;
+        background:#fffdf8;
+        transition:border-color 0.18s ease,box-shadow 0.18s ease,background 0.18s ease;
+      }
+      .cart-qty-input:focus{
+        border-color:#b0673d;
+        box-shadow:
+          0 0 0 1px rgba(176,103,61,0.45),
+          0 0 0 4px rgba(176,103,61,0.18);
+        background:#fffaf2;
+      }
+      .cart-qty-update{
+        font-size:10px;
+        text-transform:uppercase;
+        letter-spacing:0.16em;
+        border:none;
+        background:transparent;
+        cursor:pointer;
+        padding:3px 4px;
+        position:relative;
+      }
+      .cart-qty-update::after{
+        content:"";
+        position:absolute;
+        left:0;
+        right:0;
+        bottom:-1px;
+        height:1px;
+        background:rgba(58,36,22,0.55);
+        transform-origin:left;
+        transform:scaleX(0);
+        transition:transform 0.18s ease;
+      }
+      .cart-qty-update:hover::after{
+        transform:scaleX(1);
+      }
+
+      .cart-item-subtotal{
+        margin-left:auto;
+        font-size:13px;
+        font-weight:600;
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      }
+
+      .cart-remove-form{
+        margin-top:6px;
+      }
+      .cart-remove-btn{
+        font-size:10px;
+        text-transform:uppercase;
+        letter-spacing:0.16em;
+        border:none;
+        background:transparent;
+        color:#7a3a32;
+        cursor:pointer;
+        padding:0;
+        font-family:"Fjalla One",sans-serif;
+        position:relative;
+      }
+      .cart-remove-btn::after{
+        content:"";
+        position:absolute;
+        left:0;
+        right:0;
+        bottom:-1px;
+        height:1px;
+        background:rgba(122,58,50,0.8);
+        transform-origin:left;
+        transform:scaleX(0);
+        transition:transform 0.18s ease;
+      }
+      .cart-remove-btn:hover::after{
+        transform:scaleX(1);
+      }
+
+      /* SUMMARY BAR */
+      .cart-summary{
+        position:relative;
+        z-index:1;
+        margin-top:20px;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        flex-wrap:wrap;
+        gap:10px;
+      }
+      .cart-total-label{
+        font-size:14px;
+        text-transform:uppercase;
+        letter-spacing:0.16em;
+      }
+      .cart-total-value{
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        font-size:14px;
+      }
+
+      .cart-checkout-btn{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        padding:11px 32px;
+        border-radius:999px;
+        border:1px solid rgba(31,20,14,0.9);
+        background:linear-gradient(120deg,#1f140e,#3a2516);
+        color:#fbeee1;
+        font-family:"Fjalla One",sans-serif;
+        font-size:11px;
+        letter-spacing:0.22em;
+        text-transform:uppercase;
+        cursor:pointer;
+        box-shadow:0 10px 24px rgba(32,18,9,0.45);
+        transform:translateY(0);
+        transition:
+          transform 0.14s ease,
+          box-shadow 0.14s ease,
+          filter 0.14s ease;
+      }
+      .cart-checkout-btn:hover{
+        transform:translateY(-1px);
+        box-shadow:0 12px 28px rgba(32,18,9,0.6);
+        filter:brightness(1.03);
+      }
+      .cart-checkout-btn:active{
+        transform:translateY(1px);
+        box-shadow:0 6px 16px rgba(32,18,9,0.5);
+      }
+
+      /* EMPTY STATE */
+      .cart-empty{
+        margin-top:32px;
+        padding:26px 18px 22px;
+        max-width:520px;
+        border-radius:18px;
+        border:1px dashed rgba(130,96,62,0.55);
+        background:rgba(248,241,231,0.9);
+        box-shadow:0 14px 32px rgba(0,0,0,0.16);
+      }
+      .cart-empty-title{
+        font-size:16px;
+        letter-spacing:0.18em;
+        text-transform:uppercase;
+        margin:0 0 6px;
+      }
+      .cart-empty-text{
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        font-size:12px;
+        color:#6f5b47;
+        margin:0 0 14px;
+      }
+      .cart-empty-cta{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        padding:9px 24px;
+        border-radius:999px;
+        border:1px solid rgba(31,20,14,0.8);
+        background:#1f140e;
+        color:#fbeee1;
+        font-family:"Fjalla One",sans-serif;
+        font-size:10px;
+        letter-spacing:0.22em;
+        text-transform:uppercase;
+        cursor:pointer;
+        text-decoration:none;
+        transition:transform 0.14s ease,box-shadow 0.14s ease,background 0.14s ease;
+      }
+      .cart-empty-cta:hover{
+        transform:translateY(-1px);
+        box-shadow:0 10px 22px rgba(0,0,0,0.5);
+        background:#382417;
+      }
+
+      /* Animations */
+      @keyframes cart-card-float{
+        0%   {opacity:0;transform:translateY(32px) scale(.97) rotate(-0.8deg);}
+        60%  {opacity:1;transform:translateY(-4px) scale(1.01) rotate(0.3deg);}
+        100% {opacity:1;transform:translateY(0) scale(1) rotate(0);}
+      }
+      @keyframes cart-item-in{
+        0%{opacity:0;transform:translateY(12px);}
+        100%{opacity:1;transform:translateY(0);}
+      }
+      @keyframes cart-row-wiggle{
+        0%{transform:translateX(0);}
+        20%{transform:translateX(-2px);}
+        40%{transform:translateX(2px);}
+        60%{transform:translateX(-1px);}
+        80%{transform:translateX(1px);}
+        100%{transform:translateX(0);}
+      }
+
+      /* Responsive */
+      @media (max-width:780px){
+        .cart-page{
+          padding:120px 14px 70px;
+        }
+        .cart-card{
+          border-radius:18px;
+          padding-inline:18px;
+        }
+        .cart-card::before{
+          inset:12px 10px;
+        }
+        .cart-item-row{
+          align-items:flex-start;
+        }
+      }
+
+      @media (max-width:600px){
+        .cart-item-row{
+          gap:12px;
+        }
+        .cart-item-thumb{
+          width:80px;
+          height:100px;
+        }
+        .cart-item-name{
+          font-size:12px;
+          letter-spacing:0.1em;
+        }
+        .cart-item-meta{
+          font-size:11px;
+        }
+        .cart-qty-input{
+          width:52px;
+        }
+        .cart-summary{
+          align-items:flex-start;
+        }
+        .cart-total-label,
+        .cart-total-value{
+          font-size:13px;
+        }
+        .cart-checkout-btn{
+          width:100%;
+          justify-content:center;
+        }
+      }
+
+      @media (max-width:480px){
+        .cart-page{
+          padding:110px 10px 60px;
+        }
+        .cart-card{
+          padding-inline:14px;
+        }
+        .cart-title{
+          font-size:20px;
+          letter-spacing:0.16em;
+        }
+        .cart-sub{
+          font-size:11px;
+        }
+        .cart-item-row{
+          flex-direction:row;
+        }
+      }
+    </style>
+
+    <div class="cart-shell">
+      <header class="cart-header">
+        <div class="cart-kicker">The Adivasi Store · Cart</div>
+        <h1 class="cart-title">Your Cart</h1>
+        <p class="cart-sub">
+          Review your woven picks, adjust quantities and move ahead to checkout when you’re ready.
+        </p>
+      </header>
+
+      {% if items %}
+        <div class="cart-card">
+          <div class="cart-list">
+            {% for item in items %}
+              <div class="cart-item-row">
+                {% if item.product_image %}
+                  <div class="cart-item-thumb">
+                    <img src="{{ item.product_image }}" alt="{{ item.product_name }}">
+                  </div>
+                {% endif %}
+
+                <div class="cart-item-main">
+                  <div class="cart-item-name">
+                    {{ item.product_name }}
+                  </div>
+
+                  {% if item.product_size %}
+                    <div class="cart-item-meta">
+                      Size: {{ item.product_size }}
+                    </div>
+                  {% endif %}
+
+                  {% if item.product_color %}
+                    <div class="cart-item-meta">
+                      Colour: {{ item.product_color }}
+                    </div>
+                  {% endif %}
+
+                  <div class="cart-item-controls">
+                    <span class="cart-item-price">
+                      <span class="cart-item-price-label">Rs.</span>
+                      {{ "%.0f"|format(item.product_price) }}
+                    </span>
+
+                    <form method="POST"
+                          action="{{ url_for('update_cart_item', item_id=item.id) }}"
+                          class="cart-qty-form">
+                      <span class="cart-qty-label">Qty</span>
+                      <input type="number"
+                             name="quantity"
+                             value="{{ item.quantity }}"
+                             min="1"
+                             class="cart-qty-input">
+                      <button type="submit" class="cart-qty-update">
+                        Update
+                      </button>
+                    </form>
+
+                    <span class="cart-item-subtotal">
+                      Subtotal: Rs. {{ "%.0f"|format(item.product_price * item.quantity) }}
+                    </span>
+                  </div>
+
+                  <form method="POST"
+                        action="{{ url_for('remove_cart_item', item_id=item.id) }}"
+                        class="cart-remove-form">
+                    <button type="submit" class="cart-remove-btn">
+                      Remove
+                    </button>
+                  </form>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="cart-summary">
+          <div>
+            <div class="cart-total-label">Total</div>
+            <div class="cart-total-value">
+              Rs. {{ "%.0f"|format(total) }}
+            </div>
+          </div>
+
+          <a href="{{ url_for('checkout') }}" class="cart-checkout-btn">
+            Proceed to checkout
+          </a>
+        </div>
+      {% else %}
+        <div class="cart-empty">
+          <h2 class="cart-empty-title">Your cart is empty</h2>
+          <p class="cart-empty-text">
+            No weaves in your basket yet. Browse sarees, shawls, gamusas and ornaments – then add the ones that feel
+            most like “home” to your cart.
+          </p>
+
+          <!-- ✅ FIXED: removed globals() check -->
+          <a href="{{ url_for('shop') }}" class="cart-empty-cta">
+            Back to shop
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+    <script>
+      document.addEventListener("submit", function(e){
+        const form = e.target;
+        if(form.classList.contains("cart-qty-form")){
+          const row = form.closest(".cart-item-row");
+          if(row){
+            row.style.animation = "none";
+            void row.offsetWidth;
+            row.style.animation = "cart-row-wiggle 0.4s ease-out";
+          }
+        }
+      }, false);
+    </script>
+
+  </section>
+
+</main>
+{% endblock %}

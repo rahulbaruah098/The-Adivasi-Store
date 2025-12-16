@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block content %}
+<main>
+  <section class="section" style="padding:130px 20px 80px;">
+    <h1 class="hero-title-main" style="text-transform:uppercase;letter-spacing:0.18em;font-size:22px;">
+      My Orders
+    </h1>
+
+    {% if orders %}
+      <div style="max-width:900px;margin:24px auto 0;">
+        {% for o in orders %}
+          <!-- Order card -->
+          <div style="
+            padding:16px 18px;
+            border-radius:14px;
+            border:1px solid rgba(0,0,0,0.06);
+            background:#fbf5ea;
+            box-shadow:0 10px 22px rgba(0,0,0,0.12);
+            margin-bottom:18px;
+          ">
+            <!-- Order header -->
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+              <div>
+                <div style="font-size:13px;text-transform:uppercase;letter-spacing:0.14em;">
+                  Order #{{ o.id }} · {{ o.created_at.strftime("%d %b %Y") }}
+                </div>
+                <div style="font-size:12px;color:#7a6a55;margin-top:4px;">
+                  Status: {{ o.status }} · {{ o.tracking_message }}
+                </div>
+              </div>
+              <div style="font-size:12px;text-align:right;">
+                <div style="font-weight:bold;">
+                  Total: Rs. {{ "%.0f"|format(o.total_amount) }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Items list with images -->
+            <div style="margin-top:10px;border-top:1px dashed rgba(0,0,0,0.1);padding-top:8px;">
+              {% for item in o.items %}
+                <div style="
+                  display:flex;
+                  gap:12px;
+                  padding:8px 0;
+                  border-bottom:1px solid rgba(0,0,0,0.04);
+                  align-items:flex-start;
+                ">
+                  {% if item.product_image %}
+                    <div style="
+                      width:60px;
+                      height:70px;
+                      overflow:hidden;
+                      border-radius:10px;
+                      box-shadow:0 6px 14px rgba(0,0,0,0.16);
+                      flex-shrink:0;
+                    ">
+                      <img src="{{ item.product_image }}" alt="{{ item.product_name }}"
+                           style="width:100%;height:100%;object-fit:cover;">
+                    </div>
+                  {% endif %}
+                  <div style="flex:1;font-size:13px;">
+                    <div style="text-transform:uppercase;letter-spacing:0.12em;font-size:12px;">
+                      {{ item.product_name }}
+                    </div>
+
+                    {% if item.product_size %}
+                      <div style="font-size:11px;color:#7a6a55;margin-top:2px;">
+                        Size: {{ item.product_size }}
+                      </div>
+                    {% endif %}
+
+                    {% if item.product_color %}
+                      <div style="font-size:11px;color:#7a6a55;margin-top:2px;">
+                        Colour: {{ item.product_color }}
+                      </div>
+                    {% endif %}
+
+                    <div style="margin-top:4px;font-size:12px;display:flex;justify-content:space-between;gap:8px;">
+                      <span>Qty: {{ item.quantity }}</span>
+                      <span>Rs. {{ "%.0f"|format(item.product_price * item.quantity) }}</span>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+
+            <!-- Shipping summary (optional but useful) -->
+            <div style="margin-top:8px;font-size:11px;color:#7a6a55;">
+              Deliver to:
+              {{ o.shipping_name or o.shipping_email }},
+              {{ o.shipping_address }},
+              {{ o.shipping_post_office }} – {{ o.shipping_pincode }}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p style="margin-top:20px;">You don’t have any orders yet.</p>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

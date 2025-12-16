@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block content %}
+<main>
+  <section class="section" style="padding:130px 20px 80px;">
+    <h1 class="hero-title-main" style="text-transform:uppercase;letter-spacing:0.18em;font-size:22px;">
+      Store Admin Panel
+    </h1>
+
+    <!-- Admin profile shortcut -->
+    <a href="{{ url_for('admin_profile') }}"
+       style="
+         display:inline-flex;
+         align-items:center;
+         gap:8px;
+         margin-top:10px;
+         padding:6px 14px;
+         border-radius:999px;
+         border:1px solid rgba(0,0,0,0.2);
+         font-size:11px;
+         text-transform:uppercase;
+         letter-spacing:0.16em;
+       ">
+      <span style="font-size:12px;">Admin Profile</span>
+    </a>
+
+    <div style="max-width:1000px;margin:24px auto 0;">
+      <!-- Top stats row -->
+      <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:24px;">
+        <div style="
+          flex:1;
+          min-width:220px;
+          padding:16px 18px;
+          border-radius:14px;
+          border:1px solid rgba(0,0,0,0.06);
+          background:#fbf5ea;
+          box-shadow:0 10px 22px rgba(0,0,0,0.12);
+        ">
+          <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:0.16em;margin-bottom:6px;">
+            Total revenue
+          </h3>
+          <p style="font-size:18px;font-weight:bold;">
+            Rs. {{ "%.0f"|format(total_revenue) }}
+          </p>
+        </div>
+
+        <div style="
+          flex:1;
+          min-width:220px;
+          padding:16px 18px;
+          border-radius:14px;
+          border:1px solid rgba(0,0,0,0.06);
+          background:#fbf5ea;
+          box-shadow:0 10px 22px rgba(0,0,0,0.12);
+        ">
+          <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:0.16em;margin-bottom:6px;">
+            Live orders
+          </h3>
+          <p style="font-size:18px;font-weight:bold;">
+            {{ live_orders|length }} active
+          </p>
+        </div>
+      </div>
+
+      <!-- Orders list with product images -->
+      <h3 style="margin-bottom:10px;font-size:14px;text-transform:uppercase;letter-spacing:0.16em;">
+        All orders
+      </h3>
+
+      {% if orders %}
+        <div>
+          {% for o in orders %}
+            <div style="
+              padding:16px 18px;
+              border-radius:14px;
+              border:1px solid rgba(0,0,0,0.06);
+              background:#fbf5ea;
+              box-shadow:0 10px 22px rgba(0,0,0,0.12);
+              margin-bottom:18px;
+            ">
+              <!-- Header row -->
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+                <div>
+                  <div style="font-size:13px;text-transform:uppercase;letter-spacing:0.14em;">
+                    Order #{{ o.id }} · {{ o.created_at.strftime("%d %b %Y") }}
+                  </div>
+                  <div style="font-size:12px;color:#7a6a55;margin-top:4px;">
+                    {{ o.shipping_name or 'No name' }} · Rs. {{ "%.0f"|format(o.total_amount) }}
+                  </div>
+                </div>
+                <div style="text-align:right;font-size:12px;">
+                  <div style="font-weight:bold;">
+                    {{ o.status }}
+                  </div>
+                  <div style="color:#7a6a55;margin-top:2px;max-width:220px;">
+                    {{ o.tracking_message }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Items with images -->
+              <div style="margin-top:10px;border-top:1px dashed rgba(0,0,0,0.1);padding-top:8px;">
+                {% for item in o.items %}
+                  <div style="
+                    display:flex;
+                    gap:12px;
+                    padding:8px 0;
+                    border-bottom:1px solid rgba(0,0,0,0.04);
+                    align-items:flex-start;
+                  ">
+                    {% if item.product_image %}
+                      <div style="
+                        width:60px;
+                        height:70px;
+                        overflow:hidden;
+                        border-radius:10px;
+                        box-shadow:0 6px 14px rgba(0,0,0,0.16);
+                        flex-shrink:0;
+                      ">
+                        <img src="{{ item.product_image }}" alt="{{ item.product_name }}"
+                             style="width:100%;height:100%;object-fit:cover;">
+                      </div>
+                    {% endif %}
+                    <div style="flex:1;font-size:13px;">
+                      <div style="text-transform:uppercase;letter-spacing:0.12em;font-size:12px;">
+                        {{ item.product_name }}
+                      </div>
+
+                      {% if item.product_size %}
+                        <div style="font-size:11px;color:#7a6a55;margin-top:2px;">
+                          Size: {{ item.product_size }}
+                        </div>
+                      {% endif %}
+
+                      {% if item.product_color %}
+                        <div style="font-size:11px;color:#7a6a55;margin-top:2px;">
+                          Colour: {{ item.product_color }}
+                        </div>
+                      {% endif %}
+
+                      <div style="margin-top:4px;font-size:12px;display:flex;justify-content:space-between;gap:8px;">
+                        <span>Qty: {{ item.quantity }}</span>
+                        <span>Rs. {{ "%.0f"|format(item.product_price * item.quantity) }}</span>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+
+              <!-- Shipping summary + detail link -->
+              <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:12px;
+                margin-top:8px;
+                font-size:11px;
+                color:#7a6a55;
+                flex-wrap:wrap;
+              ">
+                <div>
+                  Deliver to:
+                  {{ o.shipping_name or o.shipping_email }},
+                  {{ o.shipping_address }},
+                  {{ o.shipping_post_office }} – {{ o.shipping_pincode }}
+                </div>
+
+                <a href="{{ url_for('admin_order_detail', order_id=o.id) }}"
+                   style="
+                     text-transform:uppercase;
+                     letter-spacing:0.16em;
+                     font-size:11px;
+                     padding:6px 12px;
+                     border-radius:999px;
+                     border:1px solid rgba(0,0,0,0.35);
+                   ">
+                  View / Update
+                </a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p style="margin-top:12px;">No orders yet.</p>
+      {% endif %}
+    </div>
+  </section>
+</main>
+{% endblock %}
