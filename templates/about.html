@@ -3,16 +3,70 @@
 {% block content %}
 <main>
 
-  <!-- GLOBAL ABOUT PAGE ANIMATIONS / TRANSITIONS -->
+  <!-- ===========================
+    ABOUT PAGE — GLOBAL STYLES + MOTION
+  ============================ -->
   <style>
-    /* Whole page soft fade-in */
-    body {
-      animation: about-page-fade 0.7s ease-out;
+    /* ---------
+      Bigger type scale (page-wide)
+    --------- */
+    :root{
+      --about-ink:#22150e;
+      --about-muted:#5a4d3f;
+      --about-soft:#f6efe5;
+      --about-cream:#fbf5ea;
+      --about-line:rgba(139, 111, 74, 0.45);
+      --about-accent:#b26b39;
+      --about-shadow: 0 18px 38px rgba(0, 0, 0, 0.22);
+      --about-radius: 22px;
+
+      --about-body: clamp(16px, 1.25vw, 18px);
+      --about-small: clamp(12px, 1.05vw, 14px);
+      --about-title: clamp(28px, 2.4vw, 40px);
+      --about-h2: clamp(24px, 2.0vw, 34px);
+      --about-h3: clamp(18px, 1.6vw, 22px);
+      --about-kicker: 12px;
+
+      --about-scroll: 0; /* updated by JS for scroll-driven effects */
     }
 
+    /* Whole page soft fade-in */
+    body { animation: about-page-fade 0.7s ease-out; }
     @keyframes about-page-fade {
       0% { opacity: 0; transform: translateY(10px); }
       100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Subtle ambient texture (film grain) */
+    .about-texture{
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.08;
+      mix-blend-mode: multiply;
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+      animation: grainMove 7s steps(10) infinite;
+    }
+    @keyframes grainMove{
+      0%{ transform: translate3d(0,0,0); }
+      25%{ transform: translate3d(-2%, 1%, 0); }
+      50%{ transform: translate3d(-1%, -2%, 0); }
+      75%{ transform: translate3d(2%, 1%, 0); }
+      100%{ transform: translate3d(0,0,0); }
+    }
+
+    /* Fixed scroll progress (storytelling indicator) */
+    .about-progress{
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      width: calc(var(--about-scroll) * 100%);
+      background: linear-gradient(90deg, rgba(178,107,57,0.9), rgba(34,21,14,0.55));
+      z-index: 9999;
+      transform-origin: left;
     }
 
     /* Section reveal on scroll */
@@ -22,37 +76,62 @@
     .about-tea-community,
     .about-values,
     .about-journey,
+    .about-process,
     .about-team {
       opacity: 0;
-      transform: translateY(40px);
+      transform: translateY(44px);
     }
-
     .about-section-visible {
       opacity: 1 !important;
       transform: translateY(0) !important;
-      transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+      transition: opacity 0.8s ease-out, transform 0.8s ease-out;
     }
 
     /* Floating / funky tags or badges */
-    .about-floating-tag {
-      animation: about-float 6s ease-in-out infinite;
-    }
-
-    @keyframes about-float {
-      0%, 100% { transform: translateY(0); }
-      50%      { transform: translateY(-6px); }
-    }
+    .about-floating-tag { animation: about-float 6s ease-in-out infinite; }
+    @keyframes about-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 
     /* Soft parallax elements */
-    .about-parallax {
-      will-change: transform;
-      transition: transform 0.2s linear;
+    .about-parallax { will-change: transform; transition: transform 0.2s linear; }
+
+    /* Scroll “ink shimmer” effect on headings */
+    .about-shimmer{
+      background: linear-gradient(
+        110deg,
+        rgba(34,21,14,0.95) 0%,
+        rgba(34,21,14,0.95) 35%,
+        rgba(178,107,57,0.85) 50%,
+        rgba(34,21,14,0.95) 65%,
+        rgba(34,21,14,0.95) 100%
+      );
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      background-size: 220% 100%;
+      background-position: calc(10% + (var(--about-scroll) * 120%)) 50%;
+      transition: background-position 0.12s linear;
+    }
+
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce){
+      body{ animation: none !important; }
+      .about-texture{ animation: none !important; }
+      .about-floating-tag{ animation: none !important; }
+      .about-parallax{ transition: none !important; }
+      .about-section-visible{ transition: none !important; }
     }
   </style>
 
-  <!-- ABOUT HERO -->
+  <!-- Ambient overlays (non-intrusive, behind everything) -->
+  <div class="about-texture" aria-hidden="true"></div>
+  <div class="about-progress" aria-hidden="true"></div>
+
+  <!-- ===========================
+    ABOUT HERO — ORIGINAL DESIGN (KEPT)
+  ============================ -->
   <section class="hero hero-about" id="about" data-parallax>
     <style>
+      /* YOUR ORIGINAL HERO TUNING */
       .hero-about {
         min-height: 70vh;
         align-items: flex-end;
@@ -83,7 +162,9 @@
     </div>
   </section>
 
-  <!-- OUR STORY -->
+  <!-- ===========================
+    OUR STORY
+  ============================ -->
   <section class="section about-story">
     <style>
       .about-story-inner {
@@ -91,58 +172,70 @@
         margin: 0 auto;
         display: grid;
         grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-        gap: 50px;
+        gap: 56px;
+        position: relative;
+        z-index: 1;
       }
 
       .about-eyebrow {
         font-family: "Fjalla One", sans-serif;
-        letter-spacing: 0.22em;
+        letter-spacing: 0.24em;
         text-transform: uppercase;
-        font-size: 12px;
+        font-size: var(--about-kicker);
         color: #7b6b55;
         margin-bottom: 10px;
       }
 
       .about-title-main {
-        font-size: 28px;
-        letter-spacing: 0.16em;
+        font-size: var(--about-title);
+        letter-spacing: 0.14em;
         text-transform: uppercase;
         margin-bottom: 14px;
+        color: var(--about-ink);
       }
 
       .about-body {
-        font-size: 14px;
+        font-size: var(--about-body);
+        line-height: 1.75;
         color: #4f4338;
-        max-width: 640px;
+        max-width: 720px;
       }
 
-      .about-body p + p {
-        margin-top: 10px;
+      .about-body p + p { margin-top: 12px; }
+
+      .about-body .about-dropcap:first-letter{
+        float: left;
+        font-family: "Playfair Display", serif;
+        font-size: 52px;
+        line-height: 0.9;
+        padding-right: 10px;
+        padding-top: 6px;
+        color: var(--about-accent);
       }
 
       .about-tags {
-        margin-top: 20px;
+        margin-top: 22px;
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
+        gap: 10px;
       }
 
       .about-tag {
-        font-size: 11px;
+        font-size: 12px;
         letter-spacing: 0.16em;
         text-transform: uppercase;
         border-radius: 999px;
         border: 1px solid rgba(23, 19, 15, 0.18);
-        padding: 5px 12px;
-        background: #fbf5ea;
+        padding: 7px 14px;
+        background: var(--about-cream);
       }
 
       .about-visual {
         position: relative;
-        border-radius: 22px;
+        border-radius: var(--about-radius);
         overflow: hidden;
         background: #e4dccf;
-        box-shadow: 0 18px 38px rgba(0, 0, 0, 0.28);
+        box-shadow: var(--about-shadow);
       }
 
       .about-visual::before {
@@ -157,33 +250,46 @@
       .about-visual-main {
         position: relative;
         height: 100%;
-        min-height: 260px;
+        min-height: 320px;
         background-image:
-          linear-gradient(to top, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.1)),
+          linear-gradient(to top, rgba(0, 0, 0, 0.52), rgba(0, 0, 0, 0.10)),
           url("https://images.pexels.com/photos/3738080/pexels-photo-3738080.jpeg?auto=compress&cs=tinysrgb&w=1200");
         background-size: cover;
         background-position: center;
       }
 
+      /* motion graphics: slow “scanline” shimmer */
+      .about-visual-main::after{
+        content:"";
+        position:absolute;
+        inset:0;
+        background: linear-gradient(180deg, transparent, rgba(255,255,255,0.09), transparent);
+        transform: translateY(calc(-30% + (var(--about-scroll) * 60%)));
+        opacity: 0.6;
+        pointer-events:none;
+      }
+
       .about-visual-caption {
         position: absolute;
-        left: 20px;
-        bottom: 18px;
+        left: 18px;
+        right: 18px;
+        bottom: 16px;
         color: #fff;
-        max-width: 240px;
-        font-size: 12px;
+        font-size: var(--about-small);
+        line-height: 1.55;
+        background: rgba(0,0,0,0.22);
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 16px;
+        padding: 12px 14px;
+        backdrop-filter: blur(10px);
       }
 
       .about-visual-caption-title {
         font-family: "Fjalla One", sans-serif;
         text-transform: uppercase;
-        letter-spacing: 0.2em;
-        font-size: 11px;
-        margin-bottom: 4px;
-      }
-
-      .about-visual-caption-text {
-        opacity: 0.95;
+        letter-spacing: 0.22em;
+        font-size: 12px;
+        margin-bottom: 6px;
       }
 
       @media (max-width: 980px) {
@@ -197,11 +303,12 @@
     <div class="about-story-inner">
       <div>
         <div class="about-eyebrow">OUR STORY</div>
-        <h2 class="about-title-main">From handloom courtyards to your home</h2>
+        <h2 class="about-title-main about-shimmer">From handloom courtyards to your home</h2>
+
         <div class="about-body">
-          <p>
+          <p class="about-dropcap">
             The Adivasi Store began as a small initiative to document and support the textiles that shaped
-            our childhood – shawls, gamusas, wraps and sarees that carried the warmth of festivals, harvests
+            our childhood — shawls, gamusas, wraps and sarees that carried the warmth of festivals, harvests
             and everyday life. Instead of letting these weaves disappear into memory, we chose to build a
             space where they could be seen, treasured and fairly valued.
           </p>
@@ -210,6 +317,10 @@
             slow-made pieces: hand-spun yarns, naturally leaning colours and motifs that hold cultural
             meanings. Your purchase keeps looms active, skills alive and local economies a little more secure.
           </p>
+          <p>
+            Our promise is simple: when you open a parcel from us, you’re not just receiving clothing —
+            you’re receiving a lineage of hands, a rhythm of the loom, and a story that deserves to travel.
+          </p>
         </div>
 
         <div class="about-tags">
@@ -217,6 +328,7 @@
           <span class="about-tag">Fair value for artisans</span>
           <span class="about-tag">Region-rooted designs</span>
           <span class="about-tag about-floating-tag">Small-batch drops</span>
+          <span class="about-tag">Care notes included</span>
         </div>
       </div>
 
@@ -224,222 +336,218 @@
         <div class="about-visual-main">
           <div class="about-visual-caption">
             <div class="about-visual-caption-title">Craft cluster</div>
-            <div class="about-visual-caption-text">
-              Documenting yarn, colour and motif stories directly from artisan homes,
-              before they leave the village for your wardrobe.
-            </div>
+            Documenting yarn, colour and motif stories directly from artisan homes —
+            before they leave the village for your wardrobe.
           </div>
         </div>
       </aside>
     </div>
   </section>
 
-  <!-- OWNER SECTION – VISHAL NAG -->
+  <!-- ===========================
+    FOUNDER SECTION — TEXT ONLY (IMAGE REMOVED)
+  ============================ -->
   <section class="section about-owner">
     <style>
       .about-owner-inner {
         max-width: 1120px;
         margin: 0 auto;
         display: grid;
-        grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-        gap: 40px;
-        align-items: center;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 18px;
+        align-items: start;
+        position: relative;
+        z-index: 1;
       }
 
       .about-owner-eyebrow {
         font-family: "Fjalla One", sans-serif;
-        letter-spacing: 0.22em;
+        letter-spacing: 0.24em;
         text-transform: uppercase;
-        font-size: 12px;
+        font-size: var(--about-kicker);
         color: #7b6b55;
         margin-bottom: 10px;
       }
 
       .about-owner-title {
-        font-size: 24px;
-        letter-spacing: 0.16em;
+        font-size: var(--about-h2);
+        letter-spacing: 0.14em;
         text-transform: uppercase;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
+        color: var(--about-ink);
       }
 
       .about-owner-sub {
-        font-size: 13px;
+        font-size: var(--about-small);
         color: #675746;
-        margin-bottom: 14px;
-        letter-spacing: 0.08em;
+        margin-bottom: 16px;
+        letter-spacing: 0.12em;
         text-transform: uppercase;
       }
 
       .about-owner-body {
-        font-size: 14px;
+        font-size: var(--about-body);
+        line-height: 1.75;
         color: #4f4338;
-        max-width: 620px;
+        max-width: 980px;
       }
-
-      .about-owner-body p + p {
-        margin-top: 8px;
-      }
+      .about-owner-body p + p { margin-top: 12px; }
 
       .about-owner-meta {
         margin-top: 16px;
         font-size: 12px;
-        letter-spacing: 0.18em;
+        letter-spacing: 0.20em;
         text-transform: uppercase;
         color: #8b6f4a;
       }
 
-      .about-owner-photo-wrap {
+      /* Storytelling “pull quote” card */
+      .about-quote-card{
+        margin-top: 18px;
+        background: #f3eee6;
+        border-radius: var(--about-radius);
+        padding: 22px 22px 18px;
+        border: 1px dashed rgba(139, 111, 74, 0.55);
+        box-shadow: 0 12px 26px rgba(0,0,0,0.10);
         position: relative;
-        border-radius: 22px;
-        background: #e5ddcf;
-        padding: 14px 12px 18px;
-        box-shadow: 0 18px 32px rgba(0, 0, 0, 0.3);
         overflow: hidden;
       }
 
-      .about-owner-photo-inner {
+      .about-quote-card::before{
+        content:"";
+        position:absolute;
+        inset:-40%;
+        background:
+          radial-gradient(circle at 30% 45%, rgba(255,255,255,0.75), transparent 55%),
+          radial-gradient(circle at 75% 30%, rgba(178,107,57,0.25), transparent 55%);
+        opacity: 0.45;
+        transform: translate3d(0,0,0);
+        animation: quoteGlow 10s ease-in-out infinite;
+        pointer-events:none;
+      }
+      @keyframes quoteGlow{
+        0%{ transform: translate3d(-1%, 1%, 0) rotate(0deg); }
+        50%{ transform: translate3d(1%, -1%, 0) rotate(10deg); }
+        100%{ transform: translate3d(-1%, 1%, 0) rotate(0deg); }
+      }
+
+      .about-quote{
         position: relative;
-        border-radius: 18px;
-        overflow: hidden;
-        background: #c8b79f;
-        aspect-ratio: 3/4;
+        z-index: 1;
+        font-size: clamp(18px, 1.7vw, 22px);
+        line-height: 1.6;
+        color: #2a1b12;
+        margin: 0;
       }
-
-      .about-owner-photo-inner::before {
-        content: "";
-        position: absolute;
-        inset: 10px;
-        border-radius: 14px;
-        border: 1px solid rgba(255, 255, 255, 0.7);
-        pointer-events: none;
+      .about-quote-mark{
+        font-family: "Playfair Display", serif;
+        font-size: 52px;
+        line-height: 0;
+        vertical-align: -10px;
+        color: rgba(178,107,57,0.85);
+        margin-right: 6px;
       }
-
-      .about-owner-photo {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-        transform: scale(1.02);
-        transition: transform 0.5s ease;
-      }
-
-      .about-owner-photo-wrap:hover .about-owner-photo {
-        transform: scale(1.07);
-      }
-
-      .about-owner-pill {
-        position: absolute;
-        left: 20px;
-        bottom: 20px;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 12px;
-        border-radius: 999px;
-        background: rgba(246, 240, 232, 0.96);
-        border: 1px solid rgba(23, 19, 15, 0.16);
-        font-size: 11px;
-        letter-spacing: 0.16em;
+      .about-quote-by{
+        position: relative;
+        z-index: 1;
+        margin-top: 10px;
+        font-size: 12px;
+        letter-spacing: 0.20em;
         text-transform: uppercase;
+        color: #7b6b55;
       }
 
-      .about-owner-pill-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: #b26b39;
+      /* subtle “thread lines” */
+      .about-quote-lines{
+        position:absolute;
+        inset:0;
+        pointer-events:none;
+        opacity: 0.22;
+        background-image:
+          repeating-linear-gradient(
+            90deg,
+            rgba(139,111,74,0.25) 0px,
+            rgba(139,111,74,0.25) 1px,
+            transparent 1px,
+            transparent 16px
+          );
+        transform: translateX(calc(var(--about-scroll) * 12px));
       }
 
-      @media (max-width: 900px) {
-        .about-owner-inner {
-          grid-template-columns: minmax(0, 1fr);
-          gap: 30px;
-        }
-        .about-owner-photo-wrap {
-          max-width: 380px;
-          margin: 0 auto;
-        }
+      @media (prefers-reduced-motion: reduce){
+        .about-quote-card::before{ animation:none !important; }
       }
     </style>
 
     <div class="about-owner-inner">
       <div>
         <div class="about-owner-eyebrow">FOUNDER & CUSTODIAN</div>
-        <h2 class="about-owner-title">Meet Vishal Nag</h2>
+        <h2 class="about-owner-title about-shimmer">Meet Vishal Nag</h2>
         <div class="about-owner-sub">Electrical Engineer · Margherita, Assam, India</div>
+
         <div class="about-owner-body">
           <p>
             The Adivasi Store is founded by <strong>Vishal Nag</strong>, an electrical engineer from
-            Margherita, Assam, who grew up surrounded by the colours, rhythms and textiles of tea-garden
+            Margherita, Assam — someone who grew up surrounded by the colours, rhythms and textiles of tea-garden
             life and Adivasi neighbourhoods.
           </p>
           <p>
             With a technical mind and a deep emotional connection to his roots, Vishal brings together
             precision, structure and community memory. The store is his way of ensuring that the designs he
-            saw in childhood – shawls on washing lines, handwoven wraps at festivals, everyday workwear in the
-            tea gardens – continue to have a future.
+            saw in childhood — shawls on washing lines, handwoven wraps at festivals, everyday workwear in the
+            tea gardens — continue to have a future.
           </p>
           <p>
-            Between sourcing, quality checks, artisan conversations and late-night calls with the tech team,
-            he keeps one thing constant: that every piece you order carries dignity, fair value and a story
-            worth wearing.
+            Today, the work is simple but constant: sourcing with respect, checking quality with care,
+            and keeping the conversation open with the artisans so every order carries dignity, fair value,
+            and a story worth wearing.
           </p>
         </div>
+
         <div class="about-owner-meta">
           BASED IN MARGHERITA · WORKING WITH LOOMS ACROSS ASSAM
         </div>
-      </div>
 
-      <div class="about-owner-photo-wrap about-parallax">
-        <div class="about-owner-photo-inner">
-          <!-- PLACEHOLDER: PUT VISHAL'S PHOTO HERE -->
-          <img
-            src="{{ url_for('static', filename='images/owner-vishal.jpg') }}"
-            alt="Vishal Nag – Founder of The Adivasi Store"
-            class="about-owner-photo"
-          >
-          <div class="about-owner-pill about-floating-tag">
-            <span class="about-owner-pill-dot"></span>
-            THE PERSON BEHIND THE LOOM
-          </div>
+        <div class="about-quote-card about-parallax">
+          <div class="about-quote-lines" aria-hidden="true"></div>
+          <p class="about-quote">
+            <span class="about-quote-mark">“</span>
+            If a weave can carry a memory, it can also carry a future —
+            for the artisan, for the family, and for the culture we refuse to lose.
+          </p>
+          <div class="about-quote-by">— Adivasi Store, Loomside Note</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- TEA TRIBE COMMUNITY SECTION -->
+  <!-- ===========================
+    TEA TRIBE COMMUNITY SECTION
+  ============================ -->
   <section class="section about-tea-community">
     <style>
-      .about-tea-inner {
-        max-width: 1120px;
-        margin: 0 auto;
-      }
+      .about-tea-inner { max-width: 1120px; margin: 0 auto; position: relative; z-index: 1; }
 
-      .about-tea-header {
-        margin-bottom: 26px;
-        max-width: 720px;
-      }
+      .about-tea-header { margin-bottom: 26px; max-width: 820px; }
 
       .about-tea-kicker {
         font-family: "Fjalla One", sans-serif;
-        letter-spacing: 0.22em;
+        letter-spacing: 0.24em;
         text-transform: uppercase;
-        font-size: 12px;
+        font-size: var(--about-kicker);
         color: #7b6b55;
         margin-bottom: 8px;
       }
 
       .about-tea-title {
-        font-size: 24px;
-        letter-spacing: 0.16em;
+        font-size: var(--about-h2);
+        letter-spacing: 0.14em;
         text-transform: uppercase;
         margin-bottom: 10px;
+        color: var(--about-ink);
       }
 
-      .about-tea-text {
-        font-size: 14px;
-        color: #4f4338;
-      }
+      .about-tea-text { font-size: var(--about-body); line-height: 1.75; color: #4f4338; }
 
       .about-tea-grid {
         display: grid;
@@ -449,20 +557,41 @@
       }
 
       .about-tea-note {
-        font-size: 13px;
+        font-size: var(--about-body);
+        line-height: 1.75;
         color: #5a4d3f;
         background: #f6efe5;
         border-radius: 18px;
-        padding: 18px 20px;
+        padding: 20px 22px;
         border: 1px dashed rgba(139, 111, 74, 0.6);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .about-tea-note::before{
+        content:"";
+        position:absolute;
+        inset:-30%;
+        background: radial-gradient(circle at 30% 40%, rgba(255,255,255,0.75), transparent 55%);
+        opacity: 0.35;
+        transform: translateY(calc(var(--about-scroll) * 16px));
+        pointer-events:none;
       }
 
       .about-tea-note strong {
         text-transform: uppercase;
-        letter-spacing: 0.12em;
-        font-size: 11px;
+        letter-spacing: 0.16em;
+        font-size: 12px;
         display: block;
-        margin-bottom: 4px;
+        margin-bottom: 8px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .about-tea-note span,
+      .about-tea-note p{
+        position: relative;
+        z-index: 1;
       }
 
       .about-tea-gallery {
@@ -477,7 +606,8 @@
         overflow: hidden;
         background: #e0d6c8;
         aspect-ratio: 4/3;
-        box-shadow: 0 14px 26px rgba(0, 0, 0, 0.24);
+        box-shadow: 0 14px 26px rgba(0, 0, 0, 0.22);
+        border: 1px solid rgba(0,0,0,0.06);
       }
 
       .about-tea-img {
@@ -485,44 +615,33 @@
         height: 100%;
         object-fit: cover;
         transform: scale(1.03);
-        transition: transform 0.5s ease;
+        transition: transform 0.55s ease;
       }
 
-      .about-tea-frame:hover .about-tea-img {
-        transform: scale(1.08);
-      }
+      .about-tea-frame:hover .about-tea-img { transform: scale(1.09); }
 
       .about-tea-caption {
         position: absolute;
         left: 10px;
         bottom: 10px;
-        padding: 4px 10px;
+        padding: 5px 11px;
         border-radius: 999px;
         background: rgba(246, 240, 232, 0.96);
         font-size: 10px;
-        letter-spacing: 0.16em;
+        letter-spacing: 0.18em;
         text-transform: uppercase;
       }
 
-      @media (max-width: 900px) {
-        .about-tea-grid {
-          grid-template-columns: minmax(0, 1fr);
-        }
-      }
-
-      @media (max-width: 640px) {
-        .about-tea-gallery {
-          grid-template-columns: minmax(0, 1fr);
-        }
-      }
+      @media (max-width: 900px) { .about-tea-grid { grid-template-columns: minmax(0, 1fr); } }
+      @media (max-width: 640px) { .about-tea-gallery { grid-template-columns: minmax(0, 1fr); } }
     </style>
 
     <div class="about-tea-inner">
       <header class="about-tea-header">
         <div class="about-tea-kicker">TEA TRIBE COMMUNITY OF ASSAM</div>
-        <h2 class="about-tea-title">Where looms sit beside tea gardens</h2>
+        <h2 class="about-tea-title about-shimmer">Where looms sit beside tea gardens</h2>
         <p class="about-tea-text">
-          The Adivasi Store is deeply inspired by the <strong>Tea Tribe communities of Assam</strong> – families
+          The Adivasi Store is deeply inspired by the <strong>Tea Tribe communities of Assam</strong> — families
           whose histories are woven into the state’s tea estates, yet whose textiles, songs and stories often stay
           invisible outside the gardens. Many of the silhouettes, motifs and colour combinations you see here are
           rooted in their way of dressing, working and celebrating.
@@ -533,43 +652,29 @@
         <div class="about-tea-note">
           <strong>WEAVES, WORK & WEEKENDS</strong>
           From early-morning leaf plucking to evening adda in workers’ lines, textiles move with the rhythm of the
-          tea gardens – sturdy wraps for work, brighter shawls for festivals, everyday pieces that carry both comfort
-          and identity. Our goal is to gently translate that world into garments that travel further, without losing
-          their origin.
+          tea gardens — sturdy wraps for work, brighter shawls for festivals, everyday pieces that carry both comfort
+          and identity.
+          <br><br>
+          We don’t “modernise” a culture. We translate it gently — keeping origin visible, keeping craft respected,
+          and ensuring the makers are paid fairly for what they create.
         </div>
 
         <div class="about-tea-gallery about-parallax">
           <!-- PLACEHOLDER IMAGES – REPLACE WITH YOUR OWN TEA TRIBE PHOTOS -->
           <div class="about-tea-frame">
-            <img
-              class="about-tea-img"
-              src="{{ url_for('static', filename='images/tea-tribe-1.jpg') }}"
-              alt="Tea tribe community textiles from Assam"
-            >
+            <img class="about-tea-img" src="{{ url_for('static', filename='images/tea-tribe-1.jpg') }}" alt="Tea tribe community textiles from Assam">
             <div class="about-tea-caption">TEXTILES & PATTERNS</div>
           </div>
           <div class="about-tea-frame">
-            <img
-              class="about-tea-img"
-              src="{{ url_for('static', filename='images/tea-tribe-2.jpg') }}"
-              alt="Life around tea gardens in Assam"
-            >
+            <img class="about-tea-img" src="{{ url_for('static', filename='images/tea-tribe-2.jpg') }}" alt="Life around tea gardens in Assam">
             <div class="about-tea-caption">GARDEN LIFE</div>
           </div>
           <div class="about-tea-frame">
-            <img
-              class="about-tea-img"
-              src="{{ url_for('static', filename='images/tea-tribe-3.jpg') }}"
-              alt="Festivals and colours from tea tribe community"
-            >
+            <img class="about-tea-img" src="{{ url_for('static', filename='images/tea-tribe-3.jpg') }}" alt="Festivals and colours from tea tribe community">
             <div class="about-tea-caption">FESTIVALS</div>
           </div>
           <div class="about-tea-frame">
-            <img
-              class="about-tea-img"
-              src="{{ url_for('static', filename='images/tea-tribe-4.jpg') }}"
-              alt="Women from tea tribe community in traditional attire"
-            >
+            <img class="about-tea-img" src="{{ url_for('static', filename='images/tea-tribe-4.jpg') }}" alt="Women from tea tribe community in traditional attire">
             <div class="about-tea-caption">COMMUNITY</div>
           </div>
         </div>
@@ -577,32 +682,29 @@
     </div>
   </section>
 
-  <!-- VALUES STRIP -->
+  <!-- ===========================
+    VALUES STRIP
+  ============================ -->
   <section class="section about-values">
     <style>
-      .about-values-inner {
-        max-width: 1120px;
-        margin: 0 auto;
-      }
+      .about-values-inner { max-width: 1120px; margin: 0 auto; position: relative; z-index: 1; }
 
-      .about-values-header {
-        text-align: center;
-        margin-bottom: 32px;
-      }
+      .about-values-header { text-align: center; margin-bottom: 34px; }
 
       .about-values-title {
         font-family: "Fjalla One", sans-serif;
-        letter-spacing: 0.18em;
+        letter-spacing: 0.20em;
         font-size: 13px;
         text-transform: uppercase;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
         color: #7b6b55;
       }
 
       .about-values-sub {
-        font-size: 22px;
+        font-size: clamp(22px, 2.1vw, 30px);
         letter-spacing: 0.12em;
         text-transform: uppercase;
+        color: var(--about-ink);
       }
 
       .about-values-grid {
@@ -615,49 +717,67 @@
       .about-value-card {
         background: #f6efe5;
         border-radius: 18px;
-        padding: 20px 20px 22px;
-        box-shadow: 0 10px 24px rgba(0,0,0,0.14);
+        padding: 22px 22px 24px;
+        box-shadow: 0 10px 24px rgba(0,0,0,0.12);
         border: 1px solid rgba(23,19,15,0.06);
+        position: relative;
+        overflow: hidden;
+        transform: translateY(0);
+        transition: transform .35s ease, box-shadow .35s ease;
+      }
+      .about-value-card:hover{
+        transform: translateY(-6px);
+        box-shadow: 0 18px 34px rgba(0,0,0,0.16);
+      }
+
+      /* motion graphics: animated corner sheen */
+      .about-value-card::after{
+        content:"";
+        position:absolute;
+        inset:-40%;
+        background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.65), transparent 55%);
+        opacity: 0.22;
+        transform: translate3d(calc(var(--about-scroll) * 10px), calc(var(--about-scroll) * -10px), 0);
+        pointer-events:none;
       }
 
       .about-value-kicker {
         font-family: "Fjalla One", sans-serif;
         letter-spacing: 0.18em;
         text-transform: uppercase;
-        font-size: 11px;
-        margin-bottom: 6px;
+        font-size: 12px;
+        margin-bottom: 8px;
         color: #8b6f4a;
+        position: relative;
+        z-index: 1;
       }
 
       .about-value-title {
-        font-size: 15px;
+        font-size: var(--about-h3);
         letter-spacing: 0.14em;
         text-transform: uppercase;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
+        position: relative;
+        z-index: 1;
+        color: var(--about-ink);
       }
 
       .about-value-text {
-        font-size: 13px;
+        font-size: var(--about-body);
+        line-height: 1.75;
         color: #54473a;
+        position: relative;
+        z-index: 1;
       }
 
-      @media (max-width: 900px) {
-        .about-values-grid {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-      }
-
-      @media (max-width: 640px) {
-        .about-values-grid {
-          grid-template-columns: minmax(0, 1fr);
-        }
-      }
+      @media (max-width: 900px) { .about-values-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+      @media (max-width: 640px) { .about-values-grid { grid-template-columns: minmax(0, 1fr); } }
     </style>
 
     <div class="about-values-inner">
       <header class="about-values-header">
         <div class="about-values-title">WHAT WE STAND FOR</div>
-        <h2 class="about-values-sub">Comfort, culture & care in every weave</h2>
+        <h2 class="about-values-sub about-shimmer">Comfort, culture & care in every weave</h2>
       </header>
 
       <div class="about-values-grid">
@@ -665,8 +785,8 @@
           <div class="about-value-kicker">01</div>
           <h3 class="about-value-title">Fair partnerships</h3>
           <p class="about-value-text">
-            We work with artisan clusters through transparent pricing, advance payments on bigger orders
-            and long-term relationships, not one-time purchases.
+            We work with artisan clusters through transparent pricing, advance payments on bigger orders,
+            and long-term relationships — not one-time purchases.
           </p>
         </article>
 
@@ -674,8 +794,8 @@
           <div class="about-value-kicker">02</div>
           <h3 class="about-value-title">Thoughtful design</h3>
           <p class="about-value-text">
-            Our styles are rooted in traditional motifs but cut for everyday wear – so you can reach for
-            your handwoven pieces as often as your favourite T-shirt.
+            Rooted in traditional motifs, adapted for everyday wear — so your handwoven piece becomes a
+            habit, not a “special occasion”.
           </p>
         </article>
 
@@ -683,59 +803,276 @@
           <div class="about-value-kicker">03</div>
           <h3 class="about-value-title">Slow, not seasonal</h3>
           <p class="about-value-text">
-            We release small curated drops instead of high-volume collections. This keeps production
-            manageable for artisans and special for you.
+            Small curated drops over high-volume collections. It’s manageable for artisans, and genuinely
+            special for you.
           </p>
         </article>
       </div>
     </div>
   </section>
 
-  <!-- JOURNEY / TIMELINE -->
+  <!-- ===========================
+    PROCESS — STORYTELLING SCROLL (STICKY)
+  ============================ -->
+  <section class="section about-process">
+    <style>
+      .about-process-inner{
+        max-width: 1120px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+        gap: 34px;
+        align-items: start;
+        position: relative;
+        z-index: 1;
+      }
+
+      .about-process-left{
+        position: sticky;
+        top: 110px;
+        border-radius: var(--about-radius);
+        background: #f3eee6;
+        padding: 22px 22px 20px;
+        box-shadow: 0 14px 28px rgba(0,0,0,0.12);
+        border: 1px solid rgba(23,19,15,0.06);
+        overflow: hidden;
+      }
+
+      .about-process-left::before{
+        content:"";
+        position:absolute;
+        inset:-50%;
+        background:
+          radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), transparent 55%),
+          radial-gradient(circle at 80% 40%, rgba(178,107,57,0.22), transparent 60%);
+        opacity: .35;
+        transform: translate3d(calc(var(--about-scroll) * 12px), calc(var(--about-scroll) * -8px), 0);
+        pointer-events:none;
+      }
+
+      .about-process-kicker{
+        font-family: "Fjalla One", sans-serif;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        font-size: var(--about-kicker);
+        color: #7b6b55;
+        margin-bottom: 8px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .about-process-title{
+        font-size: var(--about-h2);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+        color: var(--about-ink);
+        position: relative;
+        z-index: 1;
+      }
+
+      .about-process-desc{
+        font-size: var(--about-body);
+        line-height: 1.75;
+        color: #4f4338;
+        position: relative;
+        z-index: 1;
+      }
+
+      .about-process-meter{
+        margin-top: 16px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(34,21,14,0.10);
+        overflow: hidden;
+        position: relative;
+        z-index: 1;
+      }
+      .about-process-meter > i{
+        display:block;
+        height: 100%;
+        width: calc(var(--process-progress, 0) * 100%);
+        background: linear-gradient(90deg, rgba(178,107,57,0.92), rgba(34,21,14,0.55));
+        border-radius: 999px;
+        transition: width 0.35s ease;
+      }
+
+      .about-process-right{
+        display: grid;
+        gap: 14px;
+      }
+
+      .about-step{
+        border-radius: 18px;
+        background: var(--about-soft);
+        border: 1px dashed rgba(139,111,74,0.55);
+        padding: 18px 18px 16px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .about-step::before{
+        content:"";
+        position:absolute;
+        inset:-30%;
+        background: radial-gradient(circle at 25% 45%, rgba(255,255,255,0.75), transparent 55%);
+        opacity: 0.18;
+        transform: translateY(calc(var(--about-scroll) * 10px));
+        pointer-events:none;
+      }
+
+      .about-step-head{
+        display:flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .about-step-title{
+        font-family: "Fjalla One", sans-serif;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        font-size: 12px;
+        color: #2a1b12;
+      }
+      .about-step-no{
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #8b6f4a;
+      }
+
+      .about-step-text{
+        margin-top: 8px;
+        font-size: var(--about-body);
+        line-height: 1.75;
+        color: #54473a;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Active step highlight (scroll storytelling) */
+      .about-step.is-active{
+        border-style: solid;
+        border-color: rgba(178,107,57,0.55);
+        box-shadow: 0 18px 34px rgba(0,0,0,0.12);
+      }
+
+      @media (max-width: 980px){
+        .about-process-inner{
+          grid-template-columns: minmax(0,1fr);
+        }
+        .about-process-left{
+          position: relative;
+          top: auto;
+        }
+      }
+    </style>
+
+    <div class="about-process-inner">
+      <div class="about-process-left about-parallax">
+        <div class="about-process-kicker">THE MAKING</div>
+        <h2 class="about-process-title about-shimmer">A story told in four steps</h2>
+        <p class="about-process-desc">
+          Scroll and watch how a piece moves — from yarn to loom, from finishing to packing —
+          with small checks that protect the craft and the customer.
+        </p>
+        <div class="about-process-meter" aria-hidden="true"><i></i></div>
+      </div>
+
+      <div class="about-process-right">
+        <article class="about-step" data-step>
+          <div class="about-step-head">
+            <div class="about-step-title">Sourcing</div><div class="about-step-no">Step 01</div>
+          </div>
+          <div class="about-step-text">
+            We source directly from artisan families and collectives — prioritising consistency, fair pricing,
+            and transparent communication.
+          </div>
+        </article>
+
+        <article class="about-step" data-step>
+          <div class="about-step-head">
+            <div class="about-step-title">Loom & weave</div><div class="about-step-no">Step 02</div>
+          </div>
+          <div class="about-step-text">
+            Traditional motifs remain intact while dimensions, drape and comfort are thoughtfully adapted
+            to how you wear them today.
+          </div>
+        </article>
+
+        <article class="about-step" data-step>
+          <div class="about-step-head">
+            <div class="about-step-title">Finish & check</div><div class="about-step-no">Step 03</div>
+          </div>
+          <div class="about-step-text">
+            Each piece is checked in small batches — edges, threads, softness and fall — so what arrives feels
+            like it was made with attention (because it was).
+          </div>
+        </article>
+
+        <article class="about-step" data-step>
+          <div class="about-step-head">
+            <div class="about-step-title">Pack & ship</div><div class="about-step-no">Step 04</div>
+          </div>
+          <div class="about-step-text">
+            Minimal packaging, clear care notes, and a focus on protection — not plastic. A good textile should
+            last, be repaired, and be passed on.
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===========================
+    JOURNEY / TIMELINE
+  ============================ -->
   <section class="section about-journey">
     <style>
       .about-journey-inner {
         max-width: 1120px;
         margin: 0 auto;
-        border-radius: 22px;
+        border-radius: var(--about-radius);
         background: #f3eee6;
-        padding: 26px 26px 30px;
+        padding: 28px 26px 34px;
         position: relative;
         overflow: hidden;
+        z-index: 1;
       }
 
       .about-journey-inner::before {
         content: "";
         position: absolute;
-        width: 420px;
-        height: 420px;
+        width: 460px;
+        height: 460px;
         border-radius: 50%;
         background: radial-gradient(circle, rgba(255,255,255,0.95), transparent 65%);
-        top: -140px;
-        right: -120px;
-        opacity: 0.9;
+        top: -160px;
+        right: -140px;
+        opacity: 0.92;
         pointer-events: none;
+        transform: translate3d(calc(var(--about-scroll) * 10px), 0, 0);
       }
 
-      .about-journey-header {
-        position: relative;
-        z-index: 1;
-        margin-bottom: 18px;
-      }
+      .about-journey-header { position: relative; z-index: 1; margin-bottom: 18px; }
 
       .about-journey-kicker {
         font-family: "Fjalla One", sans-serif;
-        letter-spacing: 0.22em;
+        letter-spacing: 0.24em;
         text-transform: uppercase;
-        font-size: 11px;
+        font-size: var(--about-kicker);
         color: #7b6b55;
         margin-bottom: 6px;
       }
 
       .about-journey-title {
-        font-size: 20px;
+        font-size: clamp(22px, 2vw, 28px);
         letter-spacing: 0.14em;
         text-transform: uppercase;
+        color: var(--about-ink);
       }
 
       .about-journey-strip {
@@ -747,35 +1084,34 @@
         margin-top: 20px;
       }
 
-      .about-journey-step {
-        position: relative;
-        padding-top: 8px;
-      }
+      .about-journey-step { position: relative; padding-top: 8px; }
 
       .about-journey-dot {
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        background: #b26b39;
-        margin-bottom: 8px;
+        background: var(--about-accent);
+        margin-bottom: 10px;
+        box-shadow: 0 0 0 6px rgba(178,107,57,0.12);
       }
 
       .about-journey-label {
         font-family: "Fjalla One", sans-serif;
         letter-spacing: 0.18em;
         text-transform: uppercase;
-        font-size: 11px;
-        margin-bottom: 4px;
+        font-size: 12px;
+        margin-bottom: 6px;
       }
 
       .about-journey-text {
-        font-size: 13px;
+        font-size: var(--about-body);
+        line-height: 1.75;
         color: #5a4d3f;
       }
 
       .about-journey-line {
         position: absolute;
-        top: 18px;
+        top: 20px;
         left: 0;
         right: 0;
         height: 1px;
@@ -784,20 +1120,15 @@
       }
 
       @media (max-width: 900px) {
-        .about-journey-strip {
-          grid-template-columns: minmax(0, 1fr);
-          gap: 16px;
-        }
-        .about-journey-line {
-          display: none;
-        }
+        .about-journey-strip { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+        .about-journey-line { display: none; }
       }
     </style>
 
     <div class="about-journey-inner about-parallax">
       <div class="about-journey-header">
         <div class="about-journey-kicker">OUR JOURNEY</div>
-        <h2 class="about-journey-title">How a piece travels to you</h2>
+        <h2 class="about-journey-title about-shimmer">How a piece travels to you</h2>
       </div>
 
       <div class="about-journey-line"></div>
@@ -807,8 +1138,8 @@
           <div class="about-journey-dot"></div>
           <div class="about-journey-label">Loomside</div>
           <p class="about-journey-text">
-            Designs are co-created with artisans – respecting traditional motifs while gently adapting
-            lengths, fits and colour palettes to how you wear them today.
+            Designs are co-created with artisans — respecting traditional motifs while gently adapting
+            lengths, fits and palettes to how you wear them today.
           </p>
         </article>
 
@@ -816,8 +1147,8 @@
           <div class="about-journey-dot"></div>
           <div class="about-journey-label">Care & finishing</div>
           <p class="about-journey-text">
-            Each piece is washed, checked and finished in small batches. We keep packaging minimal –
-            focusing on protection, not plastic.
+            Washed, checked, finished in small batches. We keep packaging minimal — focusing on protection,
+            not plastic.
           </p>
         </article>
 
@@ -825,65 +1156,100 @@
           <div class="about-journey-dot"></div>
           <div class="about-journey-label">To your wardrobe</div>
           <p class="about-journey-text">
-            Orders are shipped with clear care notes, so your garment can be worn for years, repaired
-            when needed and passed on when you are ready.
+            Orders ship with clear care notes so your garment can be worn for years, repaired when needed,
+            and passed on when you’re ready.
           </p>
         </article>
       </div>
     </div>
   </section>
 
-  <!-- SMALL TEAM / COMMUNITY NOTE -->
+  <!-- ===========================
+    TEAM / COMMUNITY NOTE
+  ============================ -->
   <section class="section about-team">
     <style>
       .about-team-inner {
-        max-width: 900px;
+        max-width: 980px;
         margin: 0 auto;
         text-align: center;
+        position: relative;
+        z-index: 1;
       }
 
       .about-team-kicker {
         font-family: "Fjalla One", sans-serif;
-        letter-spacing: 0.22em;
+        letter-spacing: 0.24em;
         text-transform: uppercase;
-        font-size: 11px;
+        font-size: var(--about-kicker);
         color: #7b6b55;
         margin-bottom: 8px;
       }
 
       .about-team-title {
-        font-size: 20px;
+        font-size: clamp(22px, 2vw, 28px);
         letter-spacing: 0.14em;
         text-transform: uppercase;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
+        color: var(--about-ink);
       }
 
       .about-team-text {
-        font-size: 14px;
+        font-size: var(--about-body);
+        line-height: 1.8;
         color: #4f4338;
-        max-width: 640px;
+        max-width: 760px;
         margin: 0 auto;
+      }
+
+      .about-team-sign{
+        margin-top: 18px;
+        display:flex;
+        justify-content:center;
+        gap:10px;
+        flex-wrap:wrap;
+        opacity: 0.95;
+      }
+      .about-team-pill{
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: #fbf5ea;
+        border: 1px solid rgba(23,19,15,0.14);
       }
     </style>
 
     <div class="about-team-inner">
       <div class="about-team-kicker">PEOPLE & COMMUNITY</div>
-      <h2 class="about-team-title">Built by a small team, held by many hands</h2>
+      <h2 class="about-team-title about-shimmer">Built by a small team, held by many hands</h2>
       <p class="about-team-text">
-        Behind The Adivasi Store is a tiny team handling design, packaging, technology and everyday chaos –
-        but the heart of this work will always be the artisan families, weavers’ collectives and
-        communities who trust us with their craft. Thank you for walking this journey with us, one
-        handwoven piece at a time.
+        Behind The Adivasi Store is a tiny team handling design, packaging, technology and everyday chaos —
+        but the heart of this work will always be the artisan families, weavers’ collectives and communities
+        who trust us with their craft.
+        <br><br>
+        Thank you for walking this journey with us — one handwoven piece at a time.
       </p>
+
+      <div class="about-team-sign">
+        <span class="about-team-pill about-floating-tag">Craft-first</span>
+        <span class="about-team-pill">Dignity in every order</span>
+        <span class="about-team-pill about-floating-tag">Rooted in Assam</span>
+      </div>
     </div>
   </section>
 
-  <!-- ABOUT PAGE ANIMATION / PARALLAX JS -->
+  <!-- ===========================
+    ABOUT PAGE — JS (REVEAL, PARALLAX, SCROLL STORY)
+  ============================ -->
   <script>
     (function () {
-      // Reveal sections on scroll
+      const prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      // 1) Reveal sections on scroll
       const animatedSections = document.querySelectorAll(
-        ".hero-about, .about-story, .about-owner, .about-tea-community, .about-values, .about-journey, .about-team"
+        ".hero-about, .about-story, .about-owner, .about-tea-community, .about-values, .about-process, .about-journey, .about-team"
       );
 
       const io = new IntersectionObserver(
@@ -895,30 +1261,68 @@
             }
           });
         },
-        {
-          threshold: 0.2,
-        }
+        { threshold: 0.18 }
       );
 
       animatedSections.forEach((sec) => io.observe(sec));
 
-      // Soft parallax for selected blocks
+      // 2) Parallax (soft) for selected blocks
       const parallaxEls = document.querySelectorAll(".about-parallax");
 
       function handleParallax() {
+        if (prefersReduced) return;
         const vh = window.innerHeight || document.documentElement.clientHeight;
         parallaxEls.forEach((el, index) => {
           const rect = el.getBoundingClientRect();
           const centerOffset = rect.top + rect.height / 2 - vh / 2;
-          const baseSpeed = 0.15 + index * 0.03;
-          const offset = -centerOffset * baseSpeed * 0.15;
+          const baseSpeed = 0.14 + index * 0.028;
+          const offset = -centerOffset * baseSpeed * 0.12;
           el.style.transform = "translateY(" + offset + "px)";
         });
       }
 
+      // 3) Scroll progress for storytelling + CSS motion graphics
+      function setScrollVars() {
+        const doc = document.documentElement;
+        const max = (doc.scrollHeight - window.innerHeight) || 1;
+        const p = Math.min(1, Math.max(0, window.scrollY / max));
+        doc.style.setProperty("--about-scroll", p.toFixed(4));
+      }
+
+      // 4) Process section storytelling (active step + meter)
+      const steps = Array.from(document.querySelectorAll(".about-step[data-step]"));
+
+      function setActiveStep(index) {
+        steps.forEach((s, i) => s.classList.toggle("is-active", i === index));
+        const progress = steps.length > 1 ? index / (steps.length - 1) : 0;
+        document.documentElement.style.setProperty("--process-progress", progress.toFixed(4));
+      }
+
+      if (steps.length) {
+        const stepIO = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(e => e.isIntersecting)
+            .sort((a,b) => (b.intersectionRatio || 0) - (a.intersectionRatio || 0))[0];
+
+          if (!visible) return;
+          const idx = steps.indexOf(visible.target);
+          if (idx >= 0) setActiveStep(idx);
+        }, { threshold: [0.22, 0.35, 0.5, 0.65] });
+
+        steps.forEach(s => stepIO.observe(s));
+        setActiveStep(0);
+      }
+
+      // 5) Bind scroll
+      function onScroll() {
+        setScrollVars();
+        handleParallax();
+      }
+
+      setScrollVars();
       handleParallax();
-      window.addEventListener("scroll", handleParallax, { passive: true });
-      window.addEventListener("resize", handleParallax);
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", () => { setScrollVars(); handleParallax(); });
     })();
   </script>
 

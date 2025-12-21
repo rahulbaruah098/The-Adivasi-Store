@@ -1,188 +1,875 @@
 {% extends "base.html" %}
 {% block content %}
 <main>
-  <section class="section" style="padding:130px 20px 80px;">
-    <h1 class="hero-title-main" style="text-transform:uppercase;letter-spacing:0.18em;font-size:22px;">
-      Store Admin Panel
-    </h1>
+  <section class="admin-wrap">
+    <style>
+      /* ==============================
+         Admin Dashboard — Classic Pro
+         Scoped to this template only
+         ============================== */
 
-    <!-- Admin profile shortcut -->
-    <a href="{{ url_for('admin_profile') }}"
-       style="
-         display:inline-flex;
-         align-items:center;
-         gap:8px;
-         margin-top:10px;
-         padding:6px 14px;
-         border-radius:999px;
-         border:1px solid rgba(0,0,0,0.2);
-         font-size:11px;
-         text-transform:uppercase;
-         letter-spacing:0.16em;
-       ">
-      <span style="font-size:12px;">Admin Profile</span>
-    </a>
+      :root{
+        --bg: #f6efe5;
+        --paper: #fffaf2;
+        --card: #fbf5ea;
+        --ink: #22150e;
+        --muted: rgba(34,21,14,0.62);
+        --line: rgba(0,0,0,0.08);
+        --line2: rgba(0,0,0,0.12);
+        --shadow: 0 12px 26px rgba(0,0,0,0.12);
+        --shadow2: 0 10px 22px rgba(0,0,0,0.10);
+        --radius: 16px;
+        --radius2: 14px;
+        --pill: 999px;
+        --accent: #2b6cb0; /* subtle classic blue */
+        --good: #2f855a;
+        --warn: #b7791f;
+        --bad: #c53030;
+        --focus: 0 0 0 4px rgba(43,108,176,0.18);
+      }
 
-    <div style="max-width:1000px;margin:24px auto 0;">
-      <!-- Top stats row -->
-      <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:24px;">
-        <div style="
-          flex:1;
-          min-width:220px;
-          padding:16px 18px;
-          border-radius:14px;
-          border:1px solid rgba(0,0,0,0.06);
-          background:#fbf5ea;
-          box-shadow:0 10px 22px rgba(0,0,0,0.12);
-        ">
-          <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:0.16em;margin-bottom:6px;">
-            Total revenue
-          </h3>
-          <p style="font-size:18px;font-weight:bold;">
-            Rs. {{ "%.0f"|format(total_revenue) }}
-          </p>
+      .admin-wrap{
+        min-height: 100vh;
+        padding: 130px 20px 80px;
+        background:
+          radial-gradient(circle at 12% 0%, #fff6ea 0, #f3e4d2 32%, #ead9c6 64%, #e1cfbc 100%);
+        color: var(--ink);
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* soft bubbles */
+      .admin-wrap::before,
+      .admin-wrap::after{
+        content:"";
+        position:absolute;
+        border-radius:999px;
+        border:1px dashed rgba(124,95,64,0.28);
+        pointer-events:none;
+      }
+      .admin-wrap::before{
+        width:320px;height:320px;
+        top:-120px;right:-90px;
+        opacity:.9;
+      }
+      .admin-wrap::after{
+        width:240px;height:240px;
+        bottom:-120px;left:-90px;
+        opacity:.65;
+      }
+
+      .admin-container{
+        max-width: 1120px;
+        margin: 0 auto;
+      }
+
+      /* Header */
+      .admin-header{
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+      }
+
+      .admin-title{
+        margin:0;
+        font-size: 22px;
+        text-transform: uppercase;
+        letter-spacing: .18em;
+        line-height: 1.2;
+      }
+
+      .admin-sub{
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--muted);
+        letter-spacing: .06em;
+      }
+
+      .admin-actions{
+        display:flex;
+        gap:10px;
+        flex-wrap: wrap;
+        align-items:center;
+      }
+
+      .pill-link, .pill-btn{
+        display:inline-flex;
+        align-items:center;
+        gap:10px;
+        padding: 9px 14px;
+        border-radius: var(--pill);
+        border: 1px solid rgba(0,0,0,0.22);
+        background: rgba(255,250,242,0.65);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+        color: var(--ink);
+        text-decoration:none;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .16em;
+        cursor:pointer;
+        transition: transform .15s ease, background .15s ease, border-color .15s ease;
+      }
+      .pill-link:hover, .pill-btn:hover{
+        transform: translateY(-1px);
+        background: rgba(255,250,242,0.95);
+        border-color: rgba(0,0,0,0.28);
+      }
+      .pill-link:focus, .pill-btn:focus{
+        outline:none;
+        box-shadow: var(--focus), 0 8px 18px rgba(0,0,0,0.08);
+      }
+
+      /* KPI row */
+      .kpi-row{
+        display:grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 14px;
+        margin: 18px 0 18px;
+      }
+
+      .kpi{
+        grid-column: span 4;
+        padding: 16px 16px;
+        border-radius: var(--radius2);
+        border: 1px solid var(--line);
+        background: var(--card);
+        box-shadow: var(--shadow2);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .kpi::after{
+        content:"";
+        position:absolute;
+        inset:-60px -120px auto auto;
+        width:200px;height:200px;
+        border-radius:999px;
+        background: radial-gradient(circle at 30% 30%, rgba(43,108,176,0.18), rgba(43,108,176,0.02) 60%, transparent 70%);
+        transform: rotate(12deg);
+      }
+
+      .kpi h3{
+        margin:0 0 6px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: .16em;
+      }
+
+      .kpi .kpi-value{
+        font-size: 18px;
+        font-weight: 800;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+      }
+
+      .kpi .kpi-meta{
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--muted);
+        position: relative;
+        z-index: 1;
+      }
+
+      .badge{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .14em;
+        border: 1px solid rgba(0,0,0,0.22);
+        background: rgba(255,250,242,0.85);
+        margin-left: 10px;
+      }
+
+      /* Tabs */
+      .tabs{
+        margin-top: 10px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(255,250,242,0.55);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .tabbar{
+        display:flex;
+        gap: 6px;
+        padding: 10px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255,250,242,0.8);
+        flex-wrap: wrap;
+      }
+
+      .tab-btn{
+        appearance:none;
+        border: 1px solid rgba(0,0,0,0.18);
+        background: rgba(255,255,255,0.55);
+        padding: 10px 12px;
+        border-radius: 999px;
+        cursor:pointer;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .16em;
+        color: var(--ink);
+        display:inline-flex;
+        align-items:center;
+        gap: 10px;
+        transition: transform .15s ease, background .15s ease, border-color .15s ease;
+      }
+      .tab-btn:hover{
+        transform: translateY(-1px);
+        border-color: rgba(0,0,0,0.28);
+        background: rgba(255,255,255,0.88);
+      }
+      .tab-btn[aria-selected="true"]{
+        background: rgba(43,108,176,0.10);
+        border-color: rgba(43,108,176,0.30);
+      }
+      .tab-btn:focus{
+        outline:none;
+        box-shadow: var(--focus);
+      }
+
+      .tabcount{
+        font-size: 11px;
+        letter-spacing: .08em;
+        color: rgba(34,21,14,0.72);
+        background: rgba(0,0,0,0.06);
+        border: 1px solid rgba(0,0,0,0.10);
+        padding: 3px 10px;
+        border-radius: 999px;
+      }
+
+      .tab-panels{
+        padding: 14px;
+      }
+
+      .panel{
+        display:none;
+      }
+      .panel.active{
+        display:block;
+      }
+
+      /* Toolbar */
+      .toolbar{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+      }
+
+      .toolbar .left,
+      .toolbar .right{
+        display:flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items:center;
+      }
+
+      .field{
+        display:flex;
+        align-items:center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(0,0,0,0.16);
+        background: rgba(255,255,255,0.55);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.06);
+      }
+
+      .field input{
+        border:none;
+        outline:none;
+        background: transparent;
+        font-size: 13px;
+        min-width: 240px;
+        color: var(--ink);
+      }
+
+      .field select{
+        border:none;
+        outline:none;
+        background: transparent;
+        font-size: 12px;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: rgba(34,21,14,0.85);
+        cursor:pointer;
+      }
+
+      /* Cards */
+      .card{
+        padding: 16px 18px;
+        border-radius: var(--radius2);
+        border: 1px solid var(--line);
+        background: var(--card);
+        box-shadow: var(--shadow2);
+        margin-bottom: 14px;
+      }
+
+      .cardhead{
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .titleline{
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: .14em;
+      }
+
+      .subline{
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      .rightmeta{
+        text-align:right;
+        font-size: 12px;
+      }
+
+      .status{
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .12em;
+        font-size: 11px;
+        display:inline-flex;
+        align-items:center;
+        gap: 8px;
+        justify-content:flex-end;
+      }
+
+      .dot{
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        display:inline-block;
+        background: rgba(0,0,0,0.25);
+        box-shadow: 0 0 0 4px rgba(0,0,0,0.05);
+      }
+      .dot.good{ background: var(--good); box-shadow: 0 0 0 4px rgba(47,133,90,0.12); }
+      .dot.warn{ background: var(--warn); box-shadow: 0 0 0 4px rgba(183,121,31,0.14); }
+      .dot.bad{ background: var(--bad); box-shadow: 0 0 0 4px rgba(197,48,48,0.12); }
+
+      .divider{
+        margin-top: 12px;
+        border-top: 1px dashed rgba(0,0,0,0.12);
+        padding-top: 12px;
+      }
+
+      /* Order item rows */
+      .item{
+        display:flex;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        align-items:flex-start;
+      }
+
+      .thumb{
+        width: 64px;
+        height: 74px;
+        border-radius: 12px;
+        overflow:hidden;
+        box-shadow: 0 10px 18px rgba(0,0,0,0.16);
+        flex-shrink: 0;
+        border: 1px solid rgba(0,0,0,0.08);
+        background: rgba(255,255,255,0.6);
+      }
+      .thumb img{
+        width:100%;
+        height:100%;
+        object-fit: cover;
+        display:block;
+      }
+
+      .item .name{
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: .12em;
+      }
+      .item .meta{
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 4px;
+        display:flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .item .row{
+        margin-top: 6px;
+        font-size: 12px;
+        display:flex;
+        justify-content:space-between;
+        gap: 10px;
+        color: rgba(34,21,14,0.9);
+      }
+
+      .footrow{
+        margin-top: 12px;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap: 12px;
+        flex-wrap: wrap;
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .cta{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(0,0,0,0.30);
+        text-decoration:none;
+        text-transform: uppercase;
+        letter-spacing: .16em;
+        font-size: 11px;
+        color: var(--ink);
+        background: rgba(255,250,242,0.75);
+        transition: transform .15s ease, background .15s ease;
+      }
+      .cta:hover{
+        transform: translateY(-1px);
+        background: rgba(255,250,242,0.95);
+      }
+
+      .empty{
+        padding: 18px;
+        border-radius: var(--radius2);
+        border: 1px dashed rgba(0,0,0,0.18);
+        color: var(--muted);
+        background: rgba(255,255,255,0.35);
+      }
+
+      /* Responsive */
+      @media (max-width: 980px){
+        .kpi{ grid-column: span 6; }
+        .field input{ min-width: 180px; }
+      }
+      @media (max-width: 640px){
+        .kpi{ grid-column: span 12; }
+        .field{ width: 100%; }
+        .field input{ width: 100%; min-width: 0; }
+      }
+    </style>
+
+    <div class="admin-container">
+      <div class="admin-header">
+        <div>
+          <h1 class="admin-title">Store Admin Panel</h1>
+          <div class="admin-sub">
+            Manage orders, customer messages, and quick actions — all in one place.
+          </div>
         </div>
 
-        <div style="
-          flex:1;
-          min-width:220px;
-          padding:16px 18px;
-          border-radius:14px;
-          border:1px solid rgba(0,0,0,0.06);
-          background:#fbf5ea;
-          box-shadow:0 10px 22px rgba(0,0,0,0.12);
-        ">
-          <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:0.16em;margin-bottom:6px;">
-            Live orders
-          </h3>
-          <p style="font-size:18px;font-weight:bold;">
-            {{ live_orders|length }} active
-          </p>
+        <div class="admin-actions">
+          <a class="pill-link" href="{{ url_for('admin_profile') }}">
+            Admin Profile
+          </a>
         </div>
       </div>
 
-      <!-- Orders list with product images -->
-      <h3 style="margin-bottom:10px;font-size:14px;text-transform:uppercase;letter-spacing:0.16em;">
-        All orders
-      </h3>
+      <!-- KPI Row -->
+      <div class="kpi-row">
+        <div class="kpi">
+          <h3>Total revenue</h3>
+          <p class="kpi-value">Rs. {{ "%.0f"|format(total_revenue) }}</p>
+          <div class="kpi-meta">Lifetime sales total</div>
+        </div>
 
-      {% if orders %}
-        <div>
-          {% for o in orders %}
-            <div style="
-              padding:16px 18px;
-              border-radius:14px;
-              border:1px solid rgba(0,0,0,0.06);
-              background:#fbf5ea;
-              box-shadow:0 10px 22px rgba(0,0,0,0.12);
-              margin-bottom:18px;
-            ">
-              <!-- Header row -->
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
-                <div>
-                  <div style="font-size:13px;text-transform:uppercase;letter-spacing:0.14em;">
-                    Order #{{ o.id }} · {{ o.created_at.strftime("%d %b %Y") }}
-                  </div>
-                  <div style="font-size:12px;color:#7a6a55;margin-top:4px;">
-                    {{ o.shipping_name or 'No name' }} · Rs. {{ "%.0f"|format(o.total_amount) }}
-                  </div>
+        <div class="kpi">
+          <h3>Live orders</h3>
+          <p class="kpi-value">{{ live_orders|length }} active</p>
+          <div class="kpi-meta">Orders currently in progress</div>
+        </div>
+
+        <div class="kpi">
+          <h3>Contact messages</h3>
+          <p class="kpi-value">
+            {{ contact_messages|length if contact_messages else 0 }} total
+            {% if new_contact_count and new_contact_count > 0 %}
+              <span class="badge">{{ new_contact_count }} New</span>
+            {% endif %}
+          </p>
+          <div class="kpi-meta">Customer / visitor messages</div>
+        </div>
+      </div>
+
+      <!-- Tabs (Sheets) -->
+      <div class="tabs" id="adminTabs">
+        <div class="tabbar" role="tablist" aria-label="Admin sheets">
+          <button class="tab-btn" role="tab" aria-selected="true" data-tab="orders">
+            Orders <span class="tabcount">{{ orders|length if orders else 0 }}</span>
+          </button>
+
+          <button class="tab-btn" role="tab" aria-selected="false" data-tab="messages">
+            Contact Messages <span class="tabcount">{{ contact_messages|length if contact_messages else 0 }}</span>
+          </button>
+        </div>
+
+        <div class="tab-panels">
+          <!-- ======================
+               ORDERS PANEL
+               ====================== -->
+          <div class="panel active" id="panel-orders" role="tabpanel">
+            <div class="toolbar">
+              <div class="left">
+                <div class="field">
+                  <span style="font-size:12px;opacity:.7;">🔎</span>
+                  <input id="orderSearch" type="text" placeholder="Search orders by name, email, pincode, or order id…">
                 </div>
-                <div style="text-align:right;font-size:12px;">
-                  <div style="font-weight:bold;">
-                    {{ o.status }}
-                  </div>
-                  <div style="color:#7a6a55;margin-top:2px;max-width:220px;">
-                    {{ o.tracking_message }}
-                  </div>
+
+                <div class="field">
+                  <span style="font-size:12px;opacity:.7;">Filter</span>
+                  <select id="orderStatusFilter">
+                    <option value="">All statuses</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Processing">Processing</option>
+                    <option value="Shipped">Shipped</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="Paid">Paid</option>
+                  </select>
                 </div>
               </div>
 
-              <!-- Items with images -->
-              <div style="margin-top:10px;border-top:1px dashed rgba(0,0,0,0.1);padding-top:8px;">
-                {% for item in o.items %}
-                  <div style="
-                    display:flex;
-                    gap:12px;
-                    padding:8px 0;
-                    border-bottom:1px solid rgba(0,0,0,0.04);
-                    align-items:flex-start;
-                  ">
-                    {% if item.product_image %}
-                      <div style="
-                        width:60px;
-                        height:70px;
-                        overflow:hidden;
-                        border-radius:10px;
-                        box-shadow:0 6px 14px rgba(0,0,0,0.16);
-                        flex-shrink:0;
-                      ">
-                        <img src="{{ item.product_image }}" alt="{{ item.product_name }}"
-                             style="width:100%;height:100%;object-fit:cover;">
-                      </div>
-                    {% endif %}
-                    <div style="flex:1;font-size:13px;">
-                      <div style="text-transform:uppercase;letter-spacing:0.12em;font-size:12px;">
-                        {{ item.product_name }}
-                      </div>
+              <div class="right">
+                <button class="pill-btn" type="button" id="collapseAllOrders">Collapse items</button>
+                <button class="pill-btn" type="button" id="expandAllOrders">Expand items</button>
+              </div>
+            </div>
 
-                      {% if item.product_size %}
-                        <div style="font-size:11px;color:#7a6a55;margin-top:2px;">
-                          Size: {{ item.product_size }}
+            {% if orders %}
+              <div id="ordersList">
+                {% for o in orders %}
+                  {# searchable text pack #}
+                  {% set o_search = (
+                    (o.id|string) ~ " " ~
+                    (o.shipping_name or "") ~ " " ~
+                    (o.shipping_email or "") ~ " " ~
+                    (o.shipping_pincode or "") ~ " " ~
+                    (o.status or "") ~ " " ~
+                    (o.tracking_message or "")
+                  ) %}
+
+                  <div class="card order-card"
+                       data-status="{{ o.status }}"
+                       data-search="{{ o_search|lower }}">
+                    <div class="cardhead">
+                      <div>
+                        <div class="titleline">
+                          Order #{{ o.id }} · {{ o.created_at.strftime("%d %b %Y") }}
                         </div>
-                      {% endif %}
-
-                      {% if item.product_color %}
-                        <div style="font-size:11px;color:#7a6a55;margin-top:2px;">
-                          Colour: {{ item.product_color }}
+                        <div class="subline">
+                          {{ o.shipping_name or 'No name' }} · Rs. {{ "%.0f"|format(o.total_amount) }}
                         </div>
-                      {% endif %}
+                      </div>
 
-                      <div style="margin-top:4px;font-size:12px;display:flex;justify-content:space-between;gap:8px;">
-                        <span>Qty: {{ item.quantity }}</span>
-                        <span>Rs. {{ "%.0f"|format(item.product_price * item.quantity) }}</span>
+                      <div class="rightmeta">
+                        <div class="status">
+                          {% set s = (o.status or "")|lower %}
+                          {% if "deliver" in s %}
+                            <span class="dot good"></span>
+                          {% elif "cancel" in s %}
+                            <span class="dot bad"></span>
+                          {% elif "ship" in s %}
+                            <span class="dot warn"></span>
+                          {% else %}
+                            <span class="dot"></span>
+                          {% endif %}
+                          {{ o.status }}
+                        </div>
+                        <div class="subline" style="max-width:320px;">
+                          {{ o.tracking_message }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="divider">
+                      <details class="order-items" open>
+                        <summary style="cursor:pointer;user-select:none;list-style:none;">
+                          <span style="text-transform:uppercase;letter-spacing:.14em;font-size:11px;">
+                            Items ({{ o.items|length }}) — click to toggle
+                          </span>
+                        </summary>
+
+                        <div style="margin-top:10px;">
+                          {% for item in o.items %}
+                            <div class="item">
+                              {% if item.product_image %}
+                                <div class="thumb">
+                                  <img src="{{ item.product_image }}" alt="{{ item.product_name }}">
+                                </div>
+                              {% endif %}
+
+                              <div style="flex:1;">
+                                <div class="name">{{ item.product_name }}</div>
+                                <div class="meta">
+                                  {% if item.product_size %}<span>Size: {{ item.product_size }}</span>{% endif %}
+                                  {% if item.product_color %}<span>Colour: {{ item.product_color }}</span>{% endif %}
+                                </div>
+                                <div class="row">
+                                  <span>Qty: {{ item.quantity }}</span>
+                                  <span>Rs. {{ "%.0f"|format(item.product_price * item.quantity) }}</span>
+                                </div>
+                              </div>
+                            </div>
+                          {% endfor %}
+                        </div>
+                      </details>
+
+                      <div class="footrow">
+                        <div>
+                          Deliver to:
+                          {{ o.shipping_name or o.shipping_email }},
+                          {{ o.shipping_address }},
+                          {{ o.shipping_post_office }} – {{ o.shipping_pincode }}
+                        </div>
+
+                        <a class="cta" href="{{ url_for('admin_order_detail', order_id=o.id) }}">
+                          View / Update
+                        </a>
                       </div>
                     </div>
                   </div>
                 {% endfor %}
               </div>
+            {% else %}
+              <div class="empty">No orders yet.</div>
+            {% endif %}
+          </div>
 
-              <!-- Shipping summary + detail link -->
-              <div style="
-                display:flex;
-                justify-content:space-between;
-                align-items:center;
-                gap:12px;
-                margin-top:8px;
-                font-size:11px;
-                color:#7a6a55;
-                flex-wrap:wrap;
-              ">
-                <div>
-                  Deliver to:
-                  {{ o.shipping_name or o.shipping_email }},
-                  {{ o.shipping_address }},
-                  {{ o.shipping_post_office }} – {{ o.shipping_pincode }}
+          <!-- ======================
+               MESSAGES PANEL
+               ====================== -->
+          <div class="panel" id="panel-messages" role="tabpanel">
+            <div class="toolbar">
+              <div class="left">
+                <div class="field">
+                  <span style="font-size:12px;opacity:.7;">🔎</span>
+                  <input id="msgSearch" type="text" placeholder="Search messages by name, email, phone, subject…">
                 </div>
 
-                <a href="{{ url_for('admin_order_detail', order_id=o.id) }}"
-                   style="
-                     text-transform:uppercase;
-                     letter-spacing:0.16em;
-                     font-size:11px;
-                     padding:6px 12px;
-                     border-radius:999px;
-                     border:1px solid rgba(0,0,0,0.35);
-                   ">
-                  View / Update
-                </a>
+                <div class="field">
+                  <span style="font-size:12px;opacity:.7;">Filter</span>
+                  <select id="msgStatusFilter">
+                    <option value="">All</option>
+                    <option value="New">New</option>
+                    <option value="Read">Read</option>
+                    <option value="Replied">Replied</option>
+                    <option value="Closed">Closed</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="right">
+                <button class="pill-btn" type="button" id="collapseAllMsgs">Collapse</button>
+                <button class="pill-btn" type="button" id="expandAllMsgs">Expand</button>
               </div>
             </div>
-          {% endfor %}
+
+            {% if contact_messages and contact_messages|length > 0 %}
+              <div id="msgsList">
+                {% for m in contact_messages %}
+                  {% set m_search = (
+                    (m.name or "") ~ " " ~
+                    (m.email or "") ~ " " ~
+                    (m.phone or "") ~ " " ~
+                    (m.subject or "") ~ " " ~
+                    (m.status or "") ~ " " ~
+                    (m.message or "")
+                  ) %}
+
+                  <div class="card msg-card"
+                       data-status="{{ m.status }}"
+                       data-search="{{ m_search|lower }}">
+                    <div class="cardhead">
+                      <div>
+                        <div class="titleline">
+                          {{ m.name }} · {{ m.created_at.strftime("%d %b %Y") }}
+                        </div>
+                        <div class="subline">
+                          {{ m.email }}{% if m.phone %} · {{ m.phone }}{% endif %}
+                        </div>
+                      </div>
+
+                      <div class="rightmeta">
+                        <div class="status">
+                          {% set ms = (m.status or "")|lower %}
+                          {% if "new" in ms %}
+                            <span class="dot warn"></span>
+                          {% elif "read" in ms or "replied" in ms %}
+                            <span class="dot good"></span>
+                          {% elif "closed" in ms %}
+                            <span class="dot"></span>
+                          {% else %}
+                            <span class="dot"></span>
+                          {% endif %}
+                          {{ m.status }}
+                        </div>
+                        {% if m.subject %}
+                          <div class="subline" style="max-width:340px;">
+                            Subject: {{ m.subject }}
+                          </div>
+                        {% endif %}
+                      </div>
+                    </div>
+
+                    <div class="divider">
+                      <details class="msg-body" open>
+                        <summary style="cursor:pointer;user-select:none;list-style:none;">
+                          <span style="text-transform:uppercase;letter-spacing:.14em;font-size:11px;">
+                            Message — click to toggle
+                          </span>
+                        </summary>
+                        <div style="margin-top:10px;font-size:12px;line-height:1.75;color:rgba(34,21,14,0.92);">
+                          {{ m.message }}
+                        </div>
+                      </details>
+
+                      <div class="footrow">
+                        <div></div>
+                        {% if m.status == "New" %}
+                          <form method="POST" action="{{ url_for('admin_mark_contact_read', msg_id=m.id) }}">
+                            <button type="submit" class="cta" style="cursor:pointer;background:rgba(255,250,242,0.85);">
+                              Mark as read
+                            </button>
+                          </form>
+                        {% else %}
+                          <span style="font-size:11px;color:var(--muted);">—</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="empty">No contact messages yet.</div>
+            {% endif %}
+          </div>
         </div>
-      {% else %}
-        <p style="margin-top:12px;">No orders yet.</p>
-      {% endif %}
+      </div>
     </div>
+
+    <script>
+      (function(){
+        // -------------------------
+        // Tabs (sheets)
+        // -------------------------
+        const tabsRoot = document.getElementById("adminTabs");
+        if(!tabsRoot) return;
+
+        const tabBtns = Array.from(tabsRoot.querySelectorAll(".tab-btn"));
+        const panels = {
+          orders: document.getElementById("panel-orders"),
+          messages: document.getElementById("panel-messages"),
+        };
+
+        function activate(tab){
+          tabBtns.forEach(b => {
+            const on = b.dataset.tab === tab;
+            b.setAttribute("aria-selected", on ? "true" : "false");
+          });
+          Object.keys(panels).forEach(k => {
+            if(!panels[k]) return;
+            panels[k].classList.toggle("active", k === tab);
+          });
+          // optional: remember last tab
+          try{ localStorage.setItem("admin_active_tab", tab); }catch(e){}
+        }
+
+        tabBtns.forEach(btn => {
+          btn.addEventListener("click", () => activate(btn.dataset.tab));
+        });
+
+        // restore last tab
+        try{
+          const last = localStorage.getItem("admin_active_tab");
+          if(last && panels[last]) activate(last);
+        }catch(e){}
+
+        // -------------------------
+        // Helpers: filter list
+        // -------------------------
+        function wireSearchAndFilter(opts){
+          const {searchInput, statusSelect, listRoot, cardSelector} = opts;
+          if(!listRoot) return;
+
+          function apply(){
+            const q = (searchInput?.value || "").trim().toLowerCase();
+            const st = (statusSelect?.value || "").trim();
+            const cards = Array.from(listRoot.querySelectorAll(cardSelector));
+
+            cards.forEach(card => {
+              const hay = (card.getAttribute("data-search") || "");
+              const cst = (card.getAttribute("data-status") || "");
+              const okQ = !q || hay.includes(q);
+              const okS = !st || cst === st;
+              card.style.display = (okQ && okS) ? "" : "none";
+            });
+          }
+
+          searchInput?.addEventListener("input", apply);
+          statusSelect?.addEventListener("change", apply);
+          apply();
+        }
+
+        // Orders filter
+        wireSearchAndFilter({
+          searchInput: document.getElementById("orderSearch"),
+          statusSelect: document.getElementById("orderStatusFilter"),
+          listRoot: document.getElementById("ordersList"),
+          cardSelector: ".order-card"
+        });
+
+        // Messages filter
+        wireSearchAndFilter({
+          searchInput: document.getElementById("msgSearch"),
+          statusSelect: document.getElementById("msgStatusFilter"),
+          listRoot: document.getElementById("msgsList"),
+          cardSelector: ".msg-card"
+        });
+
+        // -------------------------
+        // Expand/Collapse details
+        // -------------------------
+        function setDetailsOpen(root, selector, open){
+          if(!root) return;
+          root.querySelectorAll(selector).forEach(d => d.open = !!open);
+        }
+
+        document.getElementById("collapseAllOrders")?.addEventListener("click", () => {
+          setDetailsOpen(document.getElementById("panel-orders"), "details.order-items", false);
+        });
+        document.getElementById("expandAllOrders")?.addEventListener("click", () => {
+          setDetailsOpen(document.getElementById("panel-orders"), "details.order-items", true);
+        });
+
+        document.getElementById("collapseAllMsgs")?.addEventListener("click", () => {
+          setDetailsOpen(document.getElementById("panel-messages"), "details.msg-body", false);
+        });
+        document.getElementById("expandAllMsgs")?.addEventListener("click", () => {
+          setDetailsOpen(document.getElementById("panel-messages"), "details.msg-body", true);
+        });
+      })();
+    </script>
   </section>
 </main>
 {% endblock %}

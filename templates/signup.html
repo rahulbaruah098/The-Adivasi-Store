@@ -45,12 +45,70 @@
         left: -100px;
       }
 
+      /* ✅ SAME background texture/art used in login (woven + ambient + grain) */
+      .auth-ambient{
+        position:absolute;
+        inset:-40%;
+        background:
+          radial-gradient(circle at 18% 14%, rgba(255,255,255,0.18), transparent 55%),
+          radial-gradient(circle at 78% 82%, rgba(178,107,57,0.14), transparent 58%),
+          radial-gradient(circle at 60% 18%, rgba(31,19,15,0.10), transparent 60%);
+        filter: blur(18px);
+        opacity: 0.9;
+        pointer-events:none;
+        z-index:0;
+        animation: auth-ambient-drift 10s ease-in-out infinite alternate;
+      }
+      @keyframes auth-ambient-drift{
+        0%{ transform: translate3d(-1.5%, -0.8%, 0) scale(1); }
+        100%{ transform: translate3d(1.2%, 1.0%, 0) scale(1.03); }
+      }
+
+      .auth-weave{
+        position:absolute;
+        inset:-30%;
+        z-index:0;
+        pointer-events:none;
+        opacity:0.55;
+        background:
+          repeating-linear-gradient(45deg,
+            rgba(23,19,15,0.045) 0px,
+            rgba(23,19,15,0.045) 2px,
+            rgba(255,255,255,0.0) 2px,
+            rgba(255,255,255,0.0) 12px),
+          repeating-linear-gradient(-45deg,
+            rgba(178,107,57,0.045) 0px,
+            rgba(178,107,57,0.045) 2px,
+            rgba(255,255,255,0.0) 2px,
+            rgba(255,255,255,0.0) 14px);
+        filter: blur(0.2px);
+        animation: auth-weave-pan 14s ease-in-out infinite alternate;
+        transform-origin:center;
+      }
+      @keyframes auth-weave-pan{
+        0%{ transform: translate3d(-1.8%, -1.2%, 0) rotate(-1.2deg) scale(1); }
+        100%{ transform: translate3d(1.4%, 1.6%, 0) rotate(1.1deg) scale(1.02); }
+      }
+
+      .auth-grain{
+        position:absolute;
+        inset:0;
+        pointer-events:none;
+        z-index:1;
+        opacity:0.18;
+        background-image:
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+        mix-blend-mode: multiply;
+      }
+
       .auth-shell {
         width: 100%;
         max-width: 720px;
         display: flex;
         justify-content: center;
         padding: 0 6px;
+        position: relative;
+        z-index: 2;
       }
 
       .auth-card {
@@ -68,6 +126,7 @@
         flex-direction: column;
         gap: 20px;
         backdrop-filter: blur(6px);
+        overflow:hidden;
       }
 
       .auth-card::before {
@@ -77,6 +136,21 @@
         border-radius: 16px;
         border: 1px dashed rgba(181, 139, 81, 0.4);
         pointer-events: none;
+      }
+
+      /* ✅ subtle glass sheen on card (same vibe) */
+      .auth-card::after{
+        content:"";
+        position:absolute;
+        inset:-2px;
+        border-radius: 22px;
+        background:
+          radial-gradient(140px 90px at 14% 10%, rgba(255,255,255,0.55), rgba(255,255,255,0) 70%),
+          radial-gradient(220px 140px at 88% 86%, rgba(178,107,57,0.16), rgba(178,107,57,0) 72%),
+          linear-gradient(115deg, rgba(255,255,255,0.0) 10%, rgba(255,255,255,0.18) 45%, rgba(255,255,255,0.0) 75%);
+        opacity:0.85;
+        pointer-events:none;
+        mix-blend-mode: screen;
       }
 
       .auth-header {
@@ -161,6 +235,14 @@
         transform: translateY(-1px);
       }
 
+      /* ✅ micro UX: typing glow (same as login) */
+      .auth-input-wrap.is-typing .auth-input{
+        box-shadow:
+          0 0 0 1px rgba(23,19,15,0.12),
+          0 10px 22px rgba(0,0,0,0.10);
+        transform: translateY(-1px);
+      }
+
       .auth-toggle-pass {
         position: absolute;
         right: 10px;
@@ -207,6 +289,20 @@
           transform 0.14s ease,
           box-shadow 0.14s ease,
           filter 0.14s ease;
+        position:relative;
+        overflow:hidden;
+      }
+
+      /* ✅ subtle sheen on submit (same concept) */
+      .auth-submit::after{
+        content:"";
+        position:absolute;
+        inset:0;
+        background: linear-gradient(110deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.16) 45%, rgba(255,255,255,0) 70%);
+        transform: translateX(-130%) skewX(-18deg);
+        transition: transform 0.65s ease;
+        pointer-events:none;
+        opacity:0.9;
       }
 
       .auth-submit:hover {
@@ -214,10 +310,18 @@
         box-shadow: 0 12px 28px rgba(32, 18, 9, 0.6);
         filter: brightness(1.03);
       }
+      .auth-submit:hover::after{ transform: translateX(140%) skewX(-18deg); }
 
       .auth-submit:active {
         transform: translateY(1px);
         box-shadow: 0 6px 16px rgba(32, 18, 9, 0.5);
+      }
+
+      .auth-submit:disabled{
+        opacity:0.75;
+        cursor:not-allowed;
+        transform:none;
+        box-shadow:none;
       }
 
       .auth-or {
@@ -240,14 +344,8 @@
         background: linear-gradient(to right, transparent, rgba(139, 115, 88, 0.6));
       }
 
-      .auth-or::before {
-        left: 0;
-      }
-
-      .auth-or::after {
-        right: 0;
-        transform: scaleX(-1);
-      }
+      .auth-or::before { left: 0; }
+      .auth-or::after  { right: 0; transform: scaleX(-1); }
 
       .auth-social-row {
         display: flex;
@@ -269,10 +367,15 @@
         transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
       }
 
-      .auth-social-btn i {
-        font-size: 15px;
-        color: #2c1c11;
+      /* ✅ FIX: icons always show (inline SVG, no FontAwesome dependency) */
+      .auth-social-btn svg{
+        width: 16px;
+        height: 16px;
+        display:block;
+        fill: #2c1c11;
       }
+      .auth-social-btn--x svg{ width:15px; height:15px; }
+      .auth-social-btn--fb svg{ width:15px; height:15px; }
 
       .auth-social-btn:hover {
         transform: translateY(-1px) rotate(-1.5deg);
@@ -398,11 +501,19 @@
           width: 34px;
           height: 34px;
         }
-        .auth-social-btn i {
-          font-size: 14px;
-        }
+      }
+
+      @media (prefers-reduced-motion: reduce){
+        .auth-ambient{ animation:none; }
+        .auth-weave{ animation:none; }
+        .auth-submit::after{ transition:none; }
       }
     </style>
+
+    <!-- ✅ SAME texture/art background layers -->
+    <div class="auth-ambient"></div>
+    <div class="auth-weave"></div>
+    <div class="auth-grain"></div>
 
     <div class="auth-shell">
       <div class="auth-card">
@@ -451,19 +562,28 @@
             </span>
           </div>
 
-          <button type="submit" class="auth-submit">Create account</button>
+          <button type="submit" class="auth-submit" id="auth-submit-btn">Create account</button>
 
           <div class="auth-or">or</div>
 
+          <!-- ✅ FIXED: Social icons using inline SVG (always shows) -->
           <div class="auth-social-row">
-            <button type="button" class="auth-social-btn" title="Sign up with Google">
-              <i class="fa-brands fa-google"></i>
+            <button type="button" class="auth-social-btn auth-social-btn--google" title="Sign up with Google" aria-label="Sign up with Google">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M21.35 11.1H12v2.95h5.35c-.45 2.6-2.65 3.95-5.35 3.95-3.25 0-5.9-2.7-5.9-6s2.65-6 5.9-6c1.7 0 3.1.65 4.05 1.7l2.1-2.1C16.85 3.9 14.7 3 12 3 7.05 3 3 7.05 3 12s4.05 9 9 9c5.2 0 8.65-3.65 8.65-8.8 0-.6-.05-1.05-.15-1.1z"/>
+              </svg>
             </button>
-            <button type="button" class="auth-social-btn" title="Sign up with Facebook">
-              <i class="fa-brands fa-facebook-f"></i>
+
+            <button type="button" class="auth-social-btn auth-social-btn--fb" title="Sign up with Facebook" aria-label="Sign up with Facebook">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M14 8.5V7.2c0-.7.5-1.2 1.2-1.2H17V3h-2.2C12.8 3 11 4.8 11 6.8v1.7H9v3h2V21h3v-9.5h2.4l.6-3H14z"/>
+              </svg>
             </button>
-            <button type="button" class="auth-social-btn" title="Sign up with X">
-              <i class="fa-brands fa-x-twitter"></i>
+
+            <button type="button" class="auth-social-btn auth-social-btn--x" title="Sign up with X" aria-label="Sign up with X">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M18.9 3H21l-6.6 7.6L22 21h-6.6l-4-5.2L6.8 21H3l7.2-8.2L2 3h6.8l3.7 4.8L18.9 3zm-2.3 16h1.2L7.3 4.9H6L16.6 19z"/>
+              </svg>
             </button>
           </div>
 
@@ -489,6 +609,31 @@
           btn.textContent = isPassword ? "HIDE" : "SHOW";
         });
       });
+
+      // micro UX: typing glow on input wrappers
+      document.querySelectorAll(".auth-input").forEach(inp => {
+        const wrap = inp.closest(".auth-input-wrap");
+        if (!wrap) return;
+
+        const setTyping = () => {
+          const has = (inp.value || "").trim().length > 0;
+          wrap.classList.toggle("is-typing", has);
+        };
+
+        inp.addEventListener("input", setTyping);
+        inp.addEventListener("blur", setTyping);
+        setTyping();
+      });
+
+      // prevent double-submit + tiny feedback
+      const form = document.querySelector(".auth-form");
+      const submitBtn = document.getElementById("auth-submit-btn");
+      if (form && submitBtn) {
+        form.addEventListener("submit", () => {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Creating…";
+        });
+      }
     })();
   </script>
 

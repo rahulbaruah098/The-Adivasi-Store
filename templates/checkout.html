@@ -482,7 +482,9 @@
               .then(function (res) { return res.json(); })
               .then(function (data) {
                 if (data && data.ok) {
-                  window.location.href = "{{ url_for('my_orders') }}";
+                  // ✅ NEW: Redirect to the new success page
+                  var oid = data.order_id || {{ order_id|tojson }};
+                  window.location.href = "/order-success/" + oid;
                 } else {
                   alert("Payment captured but verification failed. If money was deducted, please contact support with your Order ID.");
                   window.location.href = "{{ url_for('checkout') }}";

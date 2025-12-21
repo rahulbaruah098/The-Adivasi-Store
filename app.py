@@ -11,13 +11,14 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import smtplib
 from email.mime.text import MIMEText
-import razorpay  # NEW: Razorpay client
+import razorpay  # Razorpay client
 
 app = Flask(__name__)
 
 # ----------------------------
 # CONFIG
 # ----------------------------
+# ⚠️ SECURITY: put real values in environment variables in production
 app.config["SECRET_KEY"] = "change-this-secret-key"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///adivasi_store.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -27,14 +28,14 @@ app.config["MAIL_SERVER"] = "smtp.gmail.com"
 app.config["MAIL_PORT"] = 587
 app.config["MAIL_USE_TLS"] = True
 app.config["MAIL_USERNAME"] = "theadivasistore@gmail.com"
-app.config["MAIL_PASSWORD"] = "copn lept eaxr oqql"  # <-- change this
+app.config["MAIL_PASSWORD"] = "YOUR_GMAIL_APP_PASSWORD_HERE"  # use env ideally
 
 # Admin email constant
 ADMIN_EMAIL = "theadivasistore@gmail.com"
 
 # Razorpay (fill with your real keys)
-app.config["RAZORPAY_KEY_ID"] = "rzp_live_Rpr7NCGKEWF1zH"
-app.config["RAZORPAY_KEY_SECRET"] = "pfVOqcaOxlya6baESuZwxbzs"
+app.config["RAZORPAY_KEY_ID"] = "YOUR_RAZORPAY_KEY_ID"
+app.config["RAZORPAY_KEY_SECRET"] = "YOUR_RAZORPAY_KEY_SECRET"
 
 db = SQLAlchemy(app)
 
@@ -48,13 +49,9 @@ razorpay_client = razorpay.Client(auth=(
 ))
 
 # --------------------------------------------------------------------
-# PRODUCT CATALOG (used ONLY for product_detail pages & optional fallback)
-# You DO NOT need to touch this to add new products to cart.
-# New products can be defined purely in index.html / shop.html and sent
-# to /cart/add via query params (name, price, image, etc.).
+# PRODUCT CATALOG
 # --------------------------------------------------------------------
 PRODUCT_CATALOG = {
-    # --- WOMEN ---
     "gamusa-border-cotton-saree": {
         "id": "gamusa-border-cotton-saree",
         "name": "Gamusa Border Cotton Saree",
@@ -99,8 +96,6 @@ PRODUCT_CATALOG = {
         "sizes": ["Free Size"],
         "description": "Handwoven festive mekhela chador set inspired by traditional motifs."
     },
-
-    # --- MEN ---
     "handloom-border-shirt": {
         "id": "handloom-border-shirt",
         "name": "Handloom Cotton Shirt with Border",
@@ -134,8 +129,6 @@ PRODUCT_CATALOG = {
         "sizes": ["S", "M", "L"],
         "description": "Layered jacket with subtle woven trims along collar and front."
     },
-
-    # --- KIDS ---
     "mini-handwoven-jacket": {
         "id": "mini-handwoven-jacket",
         "name": "Mini Handwoven Jacket",
@@ -158,8 +151,6 @@ PRODUCT_CATALOG = {
         "sizes": ["2-3Y", "4-5Y", "6-7Y"],
         "description": "Festive kurta set with bright woven yoke and comfy fit."
     },
-
-    # --- ORNAMENTS ---
     "multi-strand-bead-neckpiece": {
         "id": "multi-strand-bead-neckpiece",
         "name": "Multi-strand Bead Neckpiece",
@@ -182,8 +173,6 @@ PRODUCT_CATALOG = {
         "sizes": ["Free Size"],
         "description": "Round brass hoops with a warm, antique finish."
     },
-
-    # --- BAGS ---
     "gamusa-panel-sling-bag": {
         "id": "gamusa-panel-sling-bag",
         "name": "Gamusa Panel Sling Bag",
@@ -206,8 +195,6 @@ PRODUCT_CATALOG = {
         "sizes": ["One Size"],
         "description": "Sturdy tote with handloom panel – perfect for haat and city runs."
     },
-
-    # --- ACCESSORIES ---
     "handloom-weave-belt": {
         "id": "handloom-weave-belt",
         "name": "Handloom Weave Belt",
@@ -260,7 +247,7 @@ class CartItem(db.Model):
     product_price = db.Column(db.Float, nullable=False)
     product_image = db.Column(db.String(500))
     product_size = db.Column(db.String(50))
-    product_color = db.Column(db.String(50))  # NEW
+    product_color = db.Column(db.String(50))
 
     quantity = db.Column(db.Integer, default=1)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -271,10 +258,9 @@ class Order(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
     total_amount = db.Column(db.Float, nullable=False)
-    status = db.Column(db.String(50), default="Placed")  # Placed, Packed, Shipped, Delivered
+    status = db.Column(db.String(50), default="Placed")
     tracking_message = db.Column(db.String(255), default="Order received")
 
-    # Razorpay
     razorpay_order_id = db.Column(db.String(100))
     payment_status = db.Column(db.String(50), default="Pending")  # Pending / Paid / Failed
 
@@ -298,8 +284,22 @@ class OrderItem(db.Model):
     product_price = db.Column(db.Float, nullable=False)
     product_image = db.Column(db.String(500))
     product_size = db.Column(db.String(50))
-    product_color = db.Column(db.String(50))  # NEW
+    product_color = db.Column(db.String(50))
     quantity = db.Column(db.Integer, default=1)
+
+
+# ✅ NEW: Contact messages model (shown in Admin)
+class ContactMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    name = db.Column(db.String(150), nullable=False)
+    email = db.Column(db.String(150), nullable=False)
+    phone = db.Column(db.String(30))
+    subject = db.Column(db.String(200))
+    message = db.Column(db.Text, nullable=False)
+
+    status = db.Column(db.String(30), default="New")  # New / Read / Replied
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 # ----------------------------
@@ -315,10 +315,6 @@ def load_user(user_id):
 # ----------------------------
 @app.context_processor
 def inject_cart_info():
-    """
-    Inject cart_count and cart_just_added into all templates.
-    cart_just_added is a one-time flag used for cart icon animation.
-    """
     cart_count = 0
     if current_user.is_authenticated and not getattr(current_user, "is_admin", False):
         cart_count = (
@@ -328,7 +324,6 @@ def inject_cart_info():
             or 0
         )
 
-    # one-time flag – removed from session after first read
     cart_just_added = session.pop("cart_just_added", False)
 
     return dict(
@@ -341,7 +336,6 @@ def inject_cart_info():
 # EMAIL HELPERS
 # ----------------------------
 def send_email(to_email, subject, body):
-    """Simple SMTP email using Gmail app password."""
     try:
         msg = MIMEText(body)
         msg["Subject"] = subject
@@ -357,7 +351,6 @@ def send_email(to_email, subject, body):
 
 
 def send_welcome_password_change_email(user: User):
-    """Send email after signup telling user they can change password in profile."""
     subject = "Welcome to The Adivasi Store"
     body = f"""
 Hi {user.name or user.email},
@@ -462,10 +455,6 @@ def admin_required(fn):
 
 
 def redirect_admin_if_needed():
-    """
-    If an admin is logged in, they should only see the admin side.
-    Use this at the top of customer-facing routes.
-    """
     if current_user.is_authenticated and current_user.is_admin:
         return redirect(url_for("admin_dashboard"))
     return None
@@ -497,6 +486,41 @@ def shop():
     if redirect_resp:
         return redirect_resp
     return render_template("shop.html")
+
+
+# ✅ NEW: CONTACT PAGE (GET + POST)
+@app.route("/contact", methods=["GET", "POST"])
+def contact():
+    redirect_resp = redirect_admin_if_needed()
+    if redirect_resp:
+        return redirect_resp
+
+    if request.method == "POST":
+        name = (request.form.get("name") or "").strip()
+        email = (request.form.get("email") or "").strip()
+        phone = (request.form.get("phone") or "").strip()
+        subject = (request.form.get("subject") or "").strip()
+        message = (request.form.get("message") or "").strip()
+
+        if not name or not email or not message:
+            flash("Please fill Name, Email, and Message.", "error")
+            return redirect(url_for("contact"))
+
+        cm = ContactMessage(
+            name=name,
+            email=email,
+            phone=phone,
+            subject=subject,
+            message=message,
+            status="New"
+        )
+        db.session.add(cm)
+        db.session.commit()
+
+        flash("Message sent successfully. We’ll get back to you soon.", "success")
+        return redirect(url_for("contact"))
+
+    return render_template("contact.html")
 
 
 # Universal product detail endpoint (GET shows page, POST adds to cart)
@@ -657,7 +681,6 @@ def profile():
     return render_template("profile.html")
 
 
-# SINGLE, CLEAN ADMIN PROFILE ROUTE
 @app.route("/admin/profile", methods=["GET", "POST"])
 @admin_required
 def admin_profile():
@@ -704,28 +727,13 @@ def cart():
 
 @app.route("/cart/add", methods=["GET", "POST"])
 def add_to_cart():
-    """
-    Add item to cart.
-
-    Supports:
-    - POST form (product_id/name, price, image, size, color)
-    - GET query (product_id/name, price, image, size, color)
-    - Optional JSON (for future AJAX).
-
-    IMPORTANT:
-    - New products can send ALL details directly from index.html / shop.html.
-    - PRODUCT_CATALOG is only used as a fallback if some fields are missing.
-    """
-    # Must be logged in
     if not current_user.is_authenticated:
         flash("Please log in to add items to your cart.", "info")
         return redirect(url_for("login"))
 
-    # Admin should not be shopping; keep them on admin side
     if current_user.is_admin:
         return redirect(url_for("admin_dashboard"))
 
-    # ---------- read raw input ----------
     name = price = image = size = color = None
     product_id = None
 
@@ -745,24 +753,14 @@ def add_to_cart():
             image = request.form.get("image", "")
             size = request.form.get("size", "")
             color = request.form.get("color", "")
-    else:  # GET
-        product_id = (
-            request.args.get("product_id")
-            or request.args.get("id")
-        )
-        name = (
-            request.args.get("name")
-            or request.args.get("product_name")
-            or request.args.get("product_id")
-        )
+    else:
+        product_id = request.args.get("product_id") or request.args.get("id")
+        name = request.args.get("name") or request.args.get("product_name") or request.args.get("product_id")
         price = request.args.get("price", "0")
         image = request.args.get("image", "")
         size = request.args.get("size", "")
         color = request.args.get("color", "")
 
-    # ---------- fill from PRODUCT_CATALOG if product_id is given ----------
-    # This is ONLY a backup. If you pass name/price/image from frontend,
-    # you NEVER need to touch the Python catalog.
     if product_id and (not name or not price or not image):
         catalog_item = PRODUCT_CATALOG.get(product_id)
         if catalog_item:
@@ -774,7 +772,6 @@ def add_to_cart():
         flash("No product information received.", "error")
         return redirect(request.referrer or url_for("shop"))
 
-    # ---------- clean/parse price ----------
     if isinstance(price, str):
         price_clean = price.replace(",", "").strip()
     else:
@@ -785,7 +782,6 @@ def add_to_cart():
     except Exception:
         price_val = 0.0
 
-    # ---------- save / merge item ----------
     existing = CartItem.query.filter_by(
         user_id=current_user.id,
         product_name=name,
@@ -807,11 +803,8 @@ def add_to_cart():
         db.session.add(item)
 
     db.session.commit()
-
-    # flag for animation on next page load
     session["cart_just_added"] = True
 
-    # If AJAX/JSON, return JSON (optional, for future)
     if request.is_json or request.headers.get("X-Requested-With") == "XMLHttpRequest":
         new_count = (
             db.session.query(db.func.coalesce(db.func.sum(CartItem.quantity), 0))
@@ -860,6 +853,9 @@ def remove_cart_item(item_id):
 # ----------------------------
 # CHECKOUT (COD + RAZORPAY)
 # ----------------------------
+# ----------------------------
+# CHECKOUT (COD + RAZORPAY)
+# ----------------------------
 @app.route("/checkout", methods=["GET", "POST"])
 @login_required
 def checkout():
@@ -871,17 +867,20 @@ def checkout():
         flash("Your cart is empty.", "info")
         return redirect(url_for("shop"))
 
-    total = sum(i.product_price * i.quantity for i in items)  # ✅ compute once
+    total = sum(i.product_price * i.quantity for i in items)
 
     if request.method == "POST":
         payment_mode = request.form.get("payment_mode", "cod")
 
-        shipping_name = request.form.get("name") or current_user.name
-        shipping_email = request.form.get("email") or current_user.email
-        shipping_phone = request.form.get("phone") or current_user.phone
-        shipping_address = request.form.get("address")
-        shipping_post_office = request.form.get("nearest_post_office")
-        shipping_pincode = request.form.get("pincode")
+        # ✅ Use checkout form values first, else fallback to profile values
+        shipping_name = (request.form.get("name") or "").strip() or (current_user.name or "")
+        shipping_email = (request.form.get("email") or "").strip() or (current_user.email or "")
+        shipping_phone = (request.form.get("phone") or "").strip() or (current_user.phone or "")
+        shipping_address = (request.form.get("address") or "").strip() or (
+            " ".join(filter(None, [current_user.address_line1, current_user.address_line2])).strip()
+        )
+        shipping_post_office = (request.form.get("nearest_post_office") or "").strip() or (current_user.nearest_post_office or "")
+        shipping_pincode = (request.form.get("pincode") or "").strip() or (current_user.pincode or "")
 
         # ---------------- COD / MANUAL PAYMENT ----------------
         if payment_mode == "cod":
@@ -896,7 +895,7 @@ def checkout():
                 shipping_phone=shipping_phone,
                 shipping_address=shipping_address,
                 shipping_post_office=shipping_post_office,
-                shipping_pincode=shipping_pincode,
+                shipping_pincode=shipping_pincode,  # ✅ will now come from profile if missing in form
             )
             db.session.add(order)
             db.session.flush()
@@ -918,10 +917,10 @@ def checkout():
             db.session.commit()
 
             send_order_confirmation_email(order)
-            send_new_order_admin_email(order)
+            send_new_order_admin_email(order)  # ✅ admin email already contains pincode
 
             flash("Order placed successfully (Cash/manual).", "success")
-            return redirect(url_for("my_orders"))
+            return redirect(url_for("order_success", order_id=order.id))
 
         # ---------------- ONLINE PAYMENT – RAZORPAY ----------------
         order = Order(
@@ -935,7 +934,7 @@ def checkout():
             shipping_phone=shipping_phone,
             shipping_address=shipping_address,
             shipping_post_office=shipping_post_office,
-            shipping_pincode=shipping_pincode,
+            shipping_pincode=shipping_pincode,  # ✅ will now come from profile if missing in form
         )
         db.session.add(order)
         db.session.flush()
@@ -959,6 +958,7 @@ def checkout():
                 "notes": {
                     "local_order_id": str(order.id),
                     "customer_email": shipping_email or "",
+                    "customer_pincode": shipping_pincode or "",  # ✅ optional: keep pincode in Razorpay notes too
                 },
             })
             order.razorpay_order_id = rp_order["id"]
@@ -974,7 +974,7 @@ def checkout():
             "checkout.html",
             items=items,
             user=current_user,
-            total=total,  # ✅ IMPORTANT
+            total=total,
             razorpay_order_id=order.razorpay_order_id,
             razorpay_amount_paise=int(total * 100),
             razorpay_key_id=app.config["RAZORPAY_KEY_ID"],
@@ -984,8 +984,8 @@ def checkout():
             shipping_phone=shipping_phone,
         )
 
-    # ✅ GET
     return render_template("checkout.html", items=items, user=current_user, total=total)
+
 
 
 # ----------------------------
@@ -994,10 +994,6 @@ def checkout():
 @app.route("/payment/razorpay/verify", methods=["POST"])
 @login_required
 def razorpay_verify():
-    """
-    Called from frontend JS after successful Razorpay Checkout.
-    Verifies signature, marks order as Paid, clears cart, sends emails.
-    """
     data = request.get_json() or {}
 
     local_order_id = data.get("order_id")
@@ -1010,15 +1006,12 @@ def razorpay_verify():
 
     order = Order.query.get_or_404(local_order_id)
 
-    # customer protection
     if order.user_id != current_user.id and not current_user.is_admin:
         return jsonify({"ok": False, "error": "Not allowed"}), 403
 
-    # already paid? just acknowledge
     if order.payment_status == "Paid":
-        return jsonify({"ok": True, "already_paid": True})
+        return jsonify({"ok": True, "already_paid": True, "order_id": order.id})
 
-    # verify signature
     try:
         razorpay_client.utility.verify_payment_signature({
             "razorpay_order_id": rp_order_id,
@@ -1035,25 +1028,43 @@ def razorpay_verify():
         print("Razorpay verify error:", e)
         return jsonify({"ok": False, "error": "Verification error"}), 400
 
-    # mark order as paid
     order.payment_status = "Paid"
     order.status = "Placed"
     order.tracking_message = "Payment received. Order confirmed."
     db.session.commit()
 
-    # clear cart now that payment succeeded
     CartItem.query.filter_by(user_id=order.user_id).delete()
     db.session.commit()
 
-    # send emails (only now for online payment)
     send_order_confirmation_email(order)
     send_new_order_admin_email(order)
 
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "order_id": order.id})
 
 
 # ----------------------------
-# MY ORDERS
+# ORDER SUCCESS PAGE
+# ----------------------------
+@app.route("/order-success/<int:order_id>")
+@login_required
+def order_success(order_id):
+    if current_user.is_admin:
+        return redirect(url_for("admin_dashboard"))
+
+    order = Order.query.get_or_404(order_id)
+
+    if order.user_id != current_user.id:
+        abort(403)
+
+    if order.status in ("Pending Payment", "Payment Failed"):
+        flash("This order is not confirmed yet.", "info")
+        return redirect(url_for("checkout"))
+
+    return render_template("order_success.html", order=order)
+
+
+# ----------------------------
+# MY ORDERS (kept)
 # ----------------------------
 @app.route("/my-orders")
 @login_required
@@ -1074,13 +1085,31 @@ def admin_dashboard():
     orders = Order.query.order_by(Order.created_at.desc()).all()
     total_revenue = sum(o.total_amount for o in orders)
     live_orders = [o for o in orders if o.status not in ("Delivered", "Cancelled")]
+
+    # ✅ NEW: load contact messages for admin
+    contact_messages = ContactMessage.query.order_by(ContactMessage.created_at.desc()).all()
+    new_contact_count = ContactMessage.query.filter_by(status="New").count()
+
     return render_template(
         "admin_dashboard.html",
         orders=orders,
         total_revenue=total_revenue,
         live_orders=live_orders,
-        admin_user=current_user
+        admin_user=current_user,
+        contact_messages=contact_messages,
+        new_contact_count=new_contact_count
     )
+
+
+# ✅ NEW: admin mark contact message as Read
+@app.route("/admin/contact/<int:msg_id>/mark-read", methods=["POST"])
+@admin_required
+def admin_mark_contact_read(msg_id):
+    msg = ContactMessage.query.get_or_404(msg_id)
+    msg.status = "Read"
+    db.session.commit()
+    flash("Message marked as Read.", "success")
+    return redirect(url_for("admin_dashboard"))
 
 
 @app.route("/admin/order/<int:order_id>", methods=["GET", "POST"])
@@ -1169,7 +1198,6 @@ def create_tables_and_admin():
         db.create_all()
 
         admin = User.query.filter_by(email=ADMIN_EMAIL).first()
-
         if not admin:
             admin = User(
                 email=ADMIN_EMAIL,

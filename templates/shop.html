@@ -22,8 +22,9 @@
       img{max-width:100%;display:block;}
       a{text-decoration:none;color:inherit;}
 
-      /* ================= HERO (SHOP) ================= */
-
+      /* ================= HERO (SHOP) =================
+         ✅ Full-bleed (left-to-right) even inside container layouts
+      ================================================= */
       .hero-shop{
         position:relative;
         min-height:90vh;
@@ -35,6 +36,11 @@
         text-align:center;
         overflow:hidden;
         --hero-offset:0px;
+
+        /* ✅ full width stretch */
+        width:100vw;
+        margin-left:calc(50% - 50vw);
+        margin-right:calc(50% - 50vw);
       }
       .hero-shop::before{
         content:"";
@@ -435,6 +441,7 @@
         }
       }
     </style>
+
     <!-- =============== HERO =============== -->
     <section class="hero hero-shop" id="hero">
       <div class="hero-inner">
@@ -590,7 +597,7 @@
             </div>
           </article>
 
-                    <article class="product-card" data-detail-url="{{ url_for('product_detail', product_id='festive-mekhela-chador-set') }}">
+          <article class="product-card" data-detail-url="{{ url_for('product_detail', product_id='festive-mekhela-chador-set') }}">
             <div class="product-media">
               <img class="product-img product-img-primary" src="static/images/IMG_0493.JPG" alt="">
               <img class="product-img product-img-hover" src="static/images/IMG_0494.JPG" alt="">
@@ -616,7 +623,7 @@
             </div>
           </article>
 
-                    <article class="product-card" data-detail-url="{{ url_for('product_detail', product_id='festive-mekhela-chador-set') }}">
+          <article class="product-card" data-detail-url="{{ url_for('product_detail', product_id='festive-mekhela-chador-set') }}">
             <div class="product-media">
               <img class="product-img product-img-primary" src="static/images/IMG_0530.JPG" alt="">
               <img class="product-img product-img-hover" src="static/images/IMG_0531.JPG" alt="">
@@ -978,19 +985,43 @@
         });
       });
 
-      // Product detail – click on image area
-      document.querySelectorAll(".product-media").forEach(media => {
-        media.addEventListener("click", (e) => {
-          const addBtn = media.querySelector(".product-add");
-          if (addBtn && addBtn.contains(e.target)) return; // don't trigger on add-to-cart click
+      // ✅ FIX: Product detail navigation (drag-safe inside horizontal product-track)
+      (function () {
+        let startX = 0, startY = 0;
+        let isDown = false;
 
-          const card = media.closest(".product-card");
-          const url = card ? card.dataset.detailUrl : null;
-          if (url) {
-            window.location.href = url;
-          }
+        document.querySelectorAll(".product-card").forEach((card) => {
+          card.style.cursor = "pointer";
+
+          card.addEventListener("pointerdown", (e) => {
+            if (e.target.closest(".product-add")) return;
+            if (e.target.closest("a")) return;
+            isDown = true;
+            startX = e.clientX;
+            startY = e.clientY;
+          });
+
+          card.addEventListener("pointerup", (e) => {
+            if (!isDown) return;
+            isDown = false;
+
+            if (e.target.closest(".product-add")) return;
+            if (e.target.closest("a")) return;
+
+            const dx = Math.abs(e.clientX - startX);
+            const dy = Math.abs(e.clientY - startY);
+
+            // If user dragged to scroll horizontally, do not navigate
+            if (dx > 6 || dy > 6) return;
+
+            const url = card.getAttribute("data-detail-url");
+            if (url) window.location.href = url;
+          });
+
+          card.addEventListener("pointercancel", () => { isDown = false; });
+          card.addEventListener("pointerleave", () => { isDown = false; });
         });
-      });
+      })();
 
       // ✨ Show "Added to cart" tag + nav cart bounce
       function showCartAdded(card){

@@ -145,6 +145,170 @@
         color:#6f5b47;
       }
 
+      /* =========================
+         NEW: TOP ACTION ROW
+         (My Orders button)
+         ========================= */
+      .profile-top-actions{
+        position:relative;
+        z-index:1;
+        display:flex;
+        justify-content:flex-end;
+        align-items:center;
+        gap:10px;
+        margin:0 0 12px;
+      }
+
+      .profile-orders-btn{
+        --pob-ink:#1f140e;
+        --pob-cream:#fbf4e7;
+        --pob-ring:rgba(176,103,61,0.35);
+        --pob-g1:rgba(255,255,255,0.65);
+        --pob-g2:rgba(255,255,255,0.00);
+
+        display:inline-flex;
+        align-items:center;
+        gap:10px;
+        padding:10px 14px;
+        border-radius:999px;
+        text-decoration:none;
+        cursor:pointer;
+
+        background:
+          radial-gradient(120px 60px at 18% 10%, var(--pob-g1), var(--pob-g2) 70%),
+          linear-gradient(180deg, rgba(255,255,255,0.92), rgba(251,244,231,0.92));
+        border:1px solid rgba(31,20,14,0.35);
+        box-shadow:
+          0 12px 26px rgba(32,18,9,0.22),
+          0 0 0 1px rgba(255,255,255,0.55) inset;
+
+        color:var(--pob-ink);
+        font-family:"Fjalla One",sans-serif;
+        font-size:11px;
+        letter-spacing:0.22em;
+        text-transform:uppercase;
+
+        position:relative;
+        overflow:hidden;
+
+        transition:
+          transform 0.18s ease,
+          box-shadow 0.18s ease,
+          border-color 0.18s ease,
+          filter 0.18s ease;
+      }
+
+      .profile-orders-btn::before{
+        content:"";
+        position:absolute;
+        inset:-2px;
+        border-radius:inherit;
+        background:
+          conic-gradient(from 220deg,
+            rgba(176,103,61,0.0),
+            rgba(176,103,61,0.55),
+            rgba(176,103,61,0.0),
+            rgba(255,255,255,0.0));
+        opacity:0.75;
+        filter:blur(0.2px);
+        animation:profile-orders-orbit 7.5s linear infinite;
+        pointer-events:none;
+      }
+
+      .profile-orders-btn::after{
+        content:"";
+        position:absolute;
+        inset:0;
+        border-radius:inherit;
+        background:
+          linear-gradient(115deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.35) 45%, rgba(255,255,255,0.0) 70%);
+        transform:translateX(-120%) skewX(-18deg);
+        opacity:0.9;
+        transition:transform 0.65s ease;
+        pointer-events:none;
+      }
+
+      .profile-orders-ico{
+        width:32px;
+        height:32px;
+        border-radius:999px;
+        display:grid;
+        place-items:center;
+        background:rgba(31,20,14,0.94);
+        color:#fbeee1;
+        border:1px solid rgba(255,255,255,0.16);
+        box-shadow:0 10px 18px rgba(0,0,0,0.28);
+        position:relative;
+        flex-shrink:0;
+      }
+
+      .profile-orders-ico i{
+        font-size:14px;
+        transform:translateY(-0.2px);
+      }
+
+      .profile-orders-pill{
+        display:flex;
+        flex-direction:column;
+        gap:2px;
+        line-height:1.05;
+      }
+      .profile-orders-pill .t1{
+        font-size:11px;
+        letter-spacing:0.22em;
+      }
+      .profile-orders-pill .t2{
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        font-size:11px;
+        letter-spacing:0;
+        text-transform:none;
+        color:rgba(31,20,14,0.62);
+      }
+
+      .profile-orders-btn:hover{
+        transform:translateY(-1px);
+        border-color:rgba(176,103,61,0.55);
+        box-shadow:
+          0 16px 34px rgba(32,18,9,0.26),
+          0 0 0 6px rgba(176,103,61,0.12);
+        filter:brightness(1.02);
+      }
+      .profile-orders-btn:hover::after{
+        transform:translateX(130%) skewX(-18deg);
+      }
+      .profile-orders-btn:active{
+        transform:translateY(1px) scale(0.99);
+        box-shadow:
+          0 10px 22px rgba(32,18,9,0.22);
+      }
+      .profile-orders-btn:focus-visible{
+        outline:none;
+        box-shadow:
+          0 0 0 1px rgba(176,103,61,0.55),
+          0 0 0 6px rgba(176,103,61,0.16),
+          0 16px 34px rgba(32,18,9,0.26);
+      }
+
+      @keyframes profile-orders-orbit{
+        0%{transform:rotate(0deg);}
+        100%{transform:rotate(360deg);}
+      }
+
+      @media (prefers-reduced-motion: reduce){
+        .profile-orders-btn::before{ animation:none; }
+        .profile-orders-btn::after{ transition:none; }
+      }
+      @media (max-width:520px){
+        .profile-top-actions{
+          justify-content:flex-start;
+        }
+        .profile-orders-btn{
+          width:100%;
+          justify-content:space-between;
+          padding:10px 12px;
+        }
+      }
+
       /* FORM */
       .profile-form{
         position:relative;
@@ -445,6 +609,20 @@
 
       <!-- MAIN PROFILE CARD -->
       <div class="profile-card">
+
+        <!-- NEW: My Orders button (top, animated) -->
+        <div class="profile-top-actions">
+          <a href="{{ url_for('my_orders') }}" class="profile-orders-btn" aria-label="My Orders">
+            <span class="profile-orders-ico" aria-hidden="true">
+              <i class="fa-solid fa-bag-shopping"></i>
+            </span>
+            <span class="profile-orders-pill">
+              <span class="t1">My Orders</span>
+              <span class="t2">Track & invoices</span>
+            </span>
+          </a>
+        </div>
+
         <div class="profile-header">
           <div class="profile-avatar-ring">
             <div class="profile-avatar-initials">
@@ -639,6 +817,12 @@
         if (!btn) return;
         btn.classList.add("profile-save-btn--pulse");
         setTimeout(() => btn.classList.remove("profile-save-btn--pulse"), 900);
+
+        // Small: pulse the My Orders button once on load (subtle)
+        const orders = document.querySelector(".profile-orders-btn");
+        if (!orders) return;
+        orders.classList.add("profile-orders-btn--pulse");
+        setTimeout(() => orders.classList.remove("profile-orders-btn--pulse"), 900);
       });
     </script>
 
@@ -650,6 +834,16 @@
       @keyframes profile-save-pulse{
         0%{transform:translateY(0) scale(1);}
         40%{transform:translateY(-1px) scale(1.04);}
+        100%{transform:translateY(0) scale(1);}
+      }
+
+      /* NEW: pulse for orders btn (subtle) */
+      .profile-orders-btn--pulse{
+        animation:profile-orders-pulse 0.9s ease-out;
+      }
+      @keyframes profile-orders-pulse{
+        0%{transform:translateY(0) scale(1);}
+        40%{transform:translateY(-1px) scale(1.02);}
         100%{transform:translateY(0) scale(1);}
       }
     </style>

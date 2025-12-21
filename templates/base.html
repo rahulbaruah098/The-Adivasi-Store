@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>The Adivasi Store</title>
-  <link rel="shortcut icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/png">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='images/logo22.png') }}" type="image/png">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
@@ -136,7 +136,7 @@
     }
 
     .site-logo img {
-      height: 100px;
+      height: 140px;
       width: auto;
       object-fit: contain;
     }
@@ -1044,7 +1044,9 @@
 
     <!-- LOGO -->
     <div class="site-logo">
-      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Brand Logo">
+      <a href="{{ url_for('home') }}" aria-label="Go to Home">
+  <img src="{{ url_for('static', filename='images/logo22.png') }}" alt="Brand Logo">
+</a>
     </div>
 
     <!-- DESKTOP NAV LINKS -->
@@ -1053,6 +1055,7 @@
         <li><a href="/home">Home</a></li>
         <li><a href="/about">WHO ARE WE</a></li>
         <li><a href="/shop">Shop</a></li>
+        <li><a href="/contact">Get In Touch</a></li>
 
         <!-- ACCESSORIES MEGA MENU TRIGGER -->
         <li class="nav-item--accessories">
@@ -1064,6 +1067,8 @@
           <a href="javascript:void(0)" id="nav-categories">Categories</a>
         </li>
       </ul>
+     
+
     </nav>
 
     <!-- NAV ACTIONS -->
@@ -1174,6 +1179,7 @@
           <a href="/shop" class="mobile-menu-link">Shop</a>
           <a href="#accessories" class="mobile-menu-link">Accessories</a>
           <a href="#shop" class="mobile-menu-link">Categories</a>
+          <a href="/contact" class="mobile-menu-link">Get In Touch</a>
         </div>
       </div>
 
@@ -1228,7 +1234,9 @@
   <footer class="site-footer">
     <div class="footer-top">
       <div class="footer-logo">
-        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Brand Footer Logo">
+        <a href="{{ url_for('home') }}" aria-label="Go to Home">
+  <img src="{{ url_for('static', filename='images/logo22.png') }}" alt="Brand Footer Logo">
+</a>
       </div>
 
       <div class="footer-column">

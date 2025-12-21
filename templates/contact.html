@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+{% block content %}
+<main>
+
+  <section class="section contact-page">
+    <style>
+      /* ============================
+         The Adivasi Store – Contact
+         ============================ */
+      .contact-page{
+        min-height:100vh;
+        padding:130px 20px 80px;
+        display:flex;
+        justify-content:center;
+        align-items:flex-start;
+        background:
+          radial-gradient(circle at 12% 0%, #fdf5e9 0, #f3e4d2 32%, #e9dac7 64%, #e1cfbc 100%);
+        color:#22150e;
+        font-family:"Playfair Display", serif;
+        position:relative;
+        overflow:hidden;
+      }
+      .contact-page::before,
+      .contact-page::after{
+        content:"";
+        position:absolute;
+        border-radius:999px;
+        border:1px dashed rgba(124,95,64,0.28);
+        pointer-events:none;
+      }
+      .contact-page::before{
+        width:300px;height:300px;top:-120px;right:-90px;
+      }
+      .contact-page::after{
+        width:360px;height:360px;bottom:-140px;left:-130px;
+      }
+
+      .contact-shell{
+        width:100%;
+        max-width:1040px;
+        position:relative;
+        z-index:1;
+        padding:0 6px;
+      }
+
+      .contact-header{ margin-bottom:18px; }
+      .contact-kicker{
+        font-family:"Fjalla One",sans-serif;
+        font-size:11px;
+        letter-spacing:0.26em;
+        text-transform:uppercase;
+        color:#8a6b46;
+        margin-bottom:6px;
+      }
+      .contact-title{
+        font-size:22px;
+        letter-spacing:0.18em;
+        text-transform:uppercase;
+        margin:0 0 4px;
+      }
+      .contact-sub{
+        margin:0;
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        font-size:12px;
+        color:#6f5b47;
+      }
+
+      .contact-layout{
+        display:flex;
+        gap:26px;
+        margin-top:24px;
+        flex-wrap:wrap;
+      }
+      .contact-col{ flex:1; min-width:260px; }
+
+      .contact-card{
+        background:rgba(248,241,231,0.98);
+        border-radius:20px;
+        border:1px solid rgba(142,112,79,0.45);
+        box-shadow:
+          0 18px 40px rgba(0,0,0,0.28),
+          0 0 0 1px rgba(255,255,255,0.55) inset;
+        padding:18px clamp(16px,3vw,24px) 18px;
+        position:relative;
+        overflow:hidden;
+        animation:contact-card-float 0.9s ease-out;
+        backdrop-filter:blur(6px);
+      }
+      .contact-card::before{
+        content:"";
+        position:absolute;
+        inset:14px 12px;
+        border-radius:16px;
+        border:1px dashed rgba(189,143,90,0.5);
+        pointer-events:none;
+      }
+      .contact-card-inner{ position:relative; z-index:1; }
+
+      .contact-card-title{
+        font-size:14px;
+        text-transform:uppercase;
+        letter-spacing:0.16em;
+        margin:0 0 10px;
+      }
+
+      .contact-form{
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+        margin-top:6px;
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      }
+      .contact-field{ display:flex; flex-direction:column; gap:6px; }
+      .contact-label{
+        font-size:11px;
+        letter-spacing:0.2em;
+        text-transform:uppercase;
+        color:#7d6750;
+        font-family:"Fjalla One",sans-serif;
+      }
+      .contact-input{
+        width:100%;
+        border-radius:999px;
+        border:1px solid rgba(131,106,77,0.55);
+        padding:9px 16px;
+        font-size:13px;
+        background:rgba(255,255,255,0.96);
+        color:#22150e;
+        outline:none;
+        transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+      }
+      .contact-input:focus{
+        border-color:#b0673d;
+        box-shadow:0 0 0 1px rgba(176,103,61,0.5), 0 0 0 5px rgba(176,103,61,0.16);
+        transform:translateY(-1px);
+        background:#fffaf2;
+      }
+      .contact-textarea{
+        border-radius:16px;
+        padding:12px 16px;
+        min-height:120px;
+        resize:vertical;
+      }
+
+      .contact-btn{
+        border:none;
+        border-radius:999px;
+        padding:11px 22px;
+        font-size:10px;
+        letter-spacing:0.22em;
+        text-transform:uppercase;
+        font-family:"Fjalla One",sans-serif;
+        cursor:pointer;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:6px;
+        transition: transform 0.14s ease, box-shadow 0.14s ease, filter 0.14s ease, background 0.18s ease, color 0.18s ease;
+        box-shadow:0 9px 20px rgba(32,18,9,0.38);
+        background:linear-gradient(120deg,#1b130e,#3a2516);
+        color:#fbeee1;
+        border:1px solid rgba(27,19,14,0.9);
+        width:fit-content;
+      }
+      .contact-btn:hover{
+        transform:translateY(-1px);
+        box-shadow:0 12px 26px rgba(32,18,9,0.55);
+        filter:brightness(1.02);
+      }
+      .contact-btn:active{
+        transform:translateY(1px);
+        box-shadow:0 6px 16px rgba(32,18,9,0.45);
+      }
+
+      .contact-info{
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        font-size:12px;
+        color:#5a4d3f;
+        line-height:1.7;
+      }
+      .contact-info strong{
+        font-family:"Fjalla One",sans-serif;
+        letter-spacing:0.12em;
+        text-transform:uppercase;
+        font-size:11px;
+        color:#7d6750;
+      }
+      .contact-info a{
+        color:#7a3a32;
+        text-decoration:underline;
+        text-underline-offset:3px;
+      }
+
+      .map-frame{
+        width:100%;
+        height:320px;
+        border:0;
+        border-radius:16px;
+        box-shadow:0 14px 30px rgba(0,0,0,0.18);
+        margin-top:12px;
+      }
+
+      @keyframes contact-card-float{
+        0%   {opacity:0;transform:translateY(32px) scale(.97) rotate(-0.8deg);}
+        60%  {opacity:1;transform:translateY(-4px) scale(1.01) rotate(0.3deg);}
+        100% {opacity:1;transform:translateY(0) scale(1) rotate(0);}
+      }
+
+      @media (max-width:880px){
+        .contact-page{ padding:120px 14px 70px; }
+        .contact-card{ border-radius:18px; }
+        .contact-card::before{ inset:12px 10px; }
+      }
+      @media (max-width:600px){
+        .contact-page{ padding:110px 10px 60px; }
+        .contact-layout{ gap:18px; }
+        .contact-title{ font-size:20px; letter-spacing:0.16em; }
+        .contact-sub{ font-size:11px; }
+        .contact-btn{ width:100%; }
+        .map-frame{ height:260px; }
+      }
+    </style>
+
+    <div class="contact-shell">
+      <header class="contact-header">
+        <div class="contact-kicker">The Adivasi Store · Get in touch</div>
+        <h1 class="contact-title">Contact Us</h1>
+        <p class="contact-sub">Send us a message — we’ll respond as soon as possible.</p>
+      </header>
+
+      <div class="contact-layout">
+        <!-- LEFT: FORM -->
+        <div class="contact-col">
+          <div class="contact-card">
+            <div class="contact-card-inner">
+              <h3 class="contact-card-title">Send a message</h3>
+
+              <form class="contact-form" method="POST" action="{{ url_for('contact') }}">
+                <div class="contact-field">
+                  <label class="contact-label" for="c-name">Full name</label>
+                  <input id="c-name" class="contact-input" name="name" type="text" placeholder="Your name" required>
+                </div>
+
+                <div class="contact-field">
+                  <label class="contact-label" for="c-email">Email</label>
+                  <input id="c-email" class="contact-input" name="email" type="email" placeholder="you@example.com" required>
+                </div>
+
+                <div class="contact-field">
+                  <label class="contact-label" for="c-phone">Phone (optional)</label>
+                  <input id="c-phone" class="contact-input" name="phone" type="text" placeholder="10-digit mobile number">
+                </div>
+
+                <div class="contact-field">
+                  <label class="contact-label" for="c-subject">Subject (optional)</label>
+                  <input id="c-subject" class="contact-input" name="subject" type="text" placeholder="Order / Product / Support">
+                </div>
+
+                <div class="contact-field">
+                  <label class="contact-label" for="c-message">Message</label>
+                  <textarea id="c-message" class="contact-input contact-textarea" name="message" placeholder="Write your message..." required></textarea>
+                </div>
+
+                <button class="contact-btn" type="submit">Send message</button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: ADDRESS + MAP -->
+        <div class="contact-col">
+          <div class="contact-card">
+            <div class="contact-card-inner">
+              <h3 class="contact-card-title">Our details</h3>
+
+              <div class="contact-info">
+                <p>
+                  <strong>Address</strong><br>
+                  Margherita, Near Divine Renewal Retreat Centre.<br>
+                  PO..PS .. Margherita.
+                </p>
+
+                <p>
+                  <strong>Phone</strong><br>
+                  <a href="tel:7638859829">7638859829</a>
+                </p>
+
+                <p>
+                  <strong>Email</strong><br>
+                  <a href="mailto:theadivasistore@gmail.com">theadivasistore@gmail.com</a>
+                </p>
+
+                <iframe
+                  class="map-frame"
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                  src="https://www.google.com/maps?q=Margherita%20Divine%20Renewal%20Retreat%20Centre&output=embed">
+                </iframe>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </section>
+
+</main>
+{% endblock %}

@@ -1,47 +1,693 @@
 {% extends "base.html" %}
 {% block content %}
 <main>
-  <section class="section" style="padding:130px 20px 80px;">
-    <h1 class="hero-title-main" style="text-transform:uppercase;letter-spacing:0.18em;font-size:22px;">
-      Order #{{ order.id }}
-    </h1>
 
-    <div style="max-width:900px;margin:24px auto 0;">
-      <h3>Customer & Address</h3>
-      <p>
-        {{ order.shipping_name }}<br>
-        {{ order.shipping_phone }}<br>
-        {{ order.shipping_email }}<br>
-        {{ order.shipping_address }}<br>
-        {{ order.shipping_post_office }} – {{ order.shipping_pincode }}
-      </p>
+  <section class="section admin-order-page">
+    <style>
+      /* =========================================================
+         The Adivasi Store – Admin Order Detail (styled)
+         ========================================================= */
+      .admin-order-page{
+        min-height:100vh;
+        padding:130px 20px 80px;
+        display:flex;
+        justify-content:center;
+        align-items:flex-start;
+        background:
+          radial-gradient(circle at 12% 0%, #fdf5e9 0, #f3e4d2 32%, #e9dac7 64%, #e1cfbc 100%);
+        color:#22150e;
+        font-family:"Playfair Display", serif;
+        position:relative;
+        overflow:hidden;
+      }
 
-      <h3>Items</h3>
-      <ul style="list-style:none;padding:0;margin:0;">
-        {% for item in order.items %}
-          <li style="margin-bottom:6px;">
-            {{ item.product_name }} × {{ item.quantity }} – Rs. {{ "%.0f"|format(item.product_price * item.quantity) }}
-          </li>
-        {% endfor %}
-      </ul>
+      /* Ambient rings */
+      .admin-order-page::before,
+      .admin-order-page::after{
+        content:"";
+        position:absolute;
+        border-radius:999px;
+        border:1px dashed rgba(124,95,64,0.28);
+        pointer-events:none;
+      }
+      .admin-order-page::before{
+        width:300px;height:300px;
+        top:-120px;right:-90px;
+      }
+      .admin-order-page::after{
+        width:380px;height:380px;
+        bottom:-150px;left:-140px;
+      }
 
-      <p style="margin-top:10px;font-weight:bold;">Total: Rs. {{ "%.0f"|format(order.total_amount) }}</p>
+      .admin-order-shell{
+        width:100%;
+        max-width:1040px;
+        position:relative;
+        z-index:1;
+        padding:0 6px;
+        animation:ao-shell-in .85s ease-out;
+      }
+      @keyframes ao-shell-in{
+        0%{opacity:0;transform:translateY(26px) scale(.985)}
+        100%{opacity:1;transform:translateY(0) scale(1)}
+      }
 
-      <h3 style="margin-top:18px;">Status & Tracking</h3>
-      <form method="POST">
-        <label>Status</label>
-        <select name="status">
-          {% for s in ["Placed","Packed","Shipped","Delivered","Cancelled"] %}
-            <option value="{{ s }}" {% if s == order.status %}selected{% endif %}>{{ s }}</option>
-          {% endfor %}
-        </select>
+      .admin-order-top{
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap:14px;
+        flex-wrap:wrap;
+        margin-bottom:18px;
+      }
 
-        <label style="margin-top:6px;">Tracking message</label>
-        <input type="text" name="tracking_message" value="{{ order.tracking_message }}" style="width:100%;">
+      .admin-order-kicker{
+        font-family:"Fjalla One",sans-serif;
+        font-size:11px;
+        letter-spacing:0.26em;
+        text-transform:uppercase;
+        color:#8a6b46;
+        margin-bottom:6px;
+      }
 
-        <button type="submit" class="hero-cta" style="margin-top:10px;">Update order</button>
-      </form>
+      .admin-order-title{
+        margin:0 0 4px;
+        font-size:22px;
+        letter-spacing:0.18em;
+        text-transform:uppercase;
+      }
+
+      .admin-order-sub{
+        margin:0;
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        font-size:12px;
+        color:#6f5b47;
+        max-width:62ch;
+      }
+
+      .admin-order-actions{
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+        justify-content:flex-end;
+      }
+      .pill-link{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:8px;
+        padding:7px 14px;
+        border-radius:999px;
+        border:1px solid rgba(31,20,14,0.6);
+        background:rgba(255,255,255,0.38);
+        text-decoration:none;
+        color:#1f140e;
+        font-family:"Fjalla One",sans-serif;
+        font-size:10px;
+        letter-spacing:0.22em;
+        text-transform:uppercase;
+        box-shadow:0 10px 22px rgba(0,0,0,0.10);
+        transition:transform .14s ease, box-shadow .14s ease, background .18s ease, filter .18s ease;
+        backdrop-filter:blur(6px);
+        cursor:pointer;
+      }
+      .pill-link:hover{
+        transform:translateY(-2px);
+        box-shadow:0 14px 26px rgba(0,0,0,0.16);
+        background:rgba(255,255,255,0.58);
+      }
+      .pill-link:active{
+        transform:translateY(1px);
+        box-shadow:0 8px 18px rgba(0,0,0,0.14);
+      }
+      /* ✅ Copy button micro-feedback */
+      .pill-link.pill-copy{
+        position:relative;
+        overflow:hidden;
+      }
+      .pill-link.pill-copy::after{
+        content:"";
+        position:absolute;
+        inset:-40%;
+        background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.55), transparent 55%);
+        opacity:0;
+        transform:translateY(8px);
+        transition:opacity .22s ease, transform .22s ease;
+        pointer-events:none;
+      }
+      .pill-link.pill-copy:hover::after{
+        opacity:.9;
+        transform:translateY(0);
+      }
+      .pill-link.pill-copy.is-copied{
+        background:#1f140e;
+        color:#fff;
+        border-color:rgba(31,20,14,0.9);
+        box-shadow:0 14px 26px rgba(0,0,0,0.22);
+      }
+
+      .admin-order-grid{
+        display:flex;
+        gap:22px;
+        flex-wrap:wrap;
+        margin-top:22px;
+      }
+      .admin-col{
+        flex:1;
+        min-width:280px;
+      }
+
+      .card{
+        background:rgba(248,241,231,0.98);
+        border-radius:20px;
+        border:1px solid rgba(142,112,79,0.45);
+        box-shadow:
+          0 18px 40px rgba(0,0,0,0.26),
+          0 0 0 1px rgba(255,255,255,0.55) inset;
+        padding:18px clamp(16px,3vw,24px) 18px;
+        position:relative;
+        overflow:hidden;
+        backdrop-filter:blur(6px);
+        animation:ao-card-float .9s ease-out;
+      }
+      .card::before{
+        content:"";
+        position:absolute;
+        inset:14px 12px;
+        border-radius:16px;
+        border:1px dashed rgba(189,143,90,0.5);
+        pointer-events:none;
+      }
+      .card-inner{ position:relative; z-index:1; }
+
+      @keyframes ao-card-float{
+        0%{opacity:0;transform:translateY(30px) scale(.975) rotate(-.7deg)}
+        60%{opacity:1;transform:translateY(-4px) scale(1.01) rotate(.25deg)}
+        100%{opacity:1;transform:translateY(0) scale(1) rotate(0)}
+      }
+
+      .card-title{
+        font-size:14px;
+        text-transform:uppercase;
+        letter-spacing:0.16em;
+        margin:0 0 12px;
+      }
+
+      /* Info rows */
+      .info-list{
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        font-size:12px;
+        color:#2b1c12;
+        display:flex;
+        flex-direction:column;
+        gap:10px;
+      }
+      .info-row{
+        display:flex;
+        justify-content:space-between;
+        gap:12px;
+        padding:10px 12px;
+        border-radius:14px;
+        border:1px solid rgba(0,0,0,0.06);
+        background:#fbf5ea;
+        box-shadow:0 10px 22px rgba(0,0,0,0.10);
+      }
+      .info-key{
+        text-transform:uppercase;
+        letter-spacing:0.14em;
+        font-size:10px;
+        color:#7d6750;
+        font-family:"Fjalla One",sans-serif;
+        white-space:nowrap;
+      }
+      .info-val{
+        text-align:right;
+        color:#22150e;
+        word-break:break-word;
+      }
+
+      /* Items list */
+      .items-wrap{
+        border-radius:14px;
+        border:1px solid rgba(0,0,0,0.06);
+        background:#fbf5ea;
+        padding:10px 12px;
+        box-shadow:0 14px 30px rgba(0,0,0,0.12);
+        max-height:420px;
+        overflow:auto;
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      }
+      .item-row{
+        display:flex;
+        gap:12px;
+        padding:10px 0;
+        border-bottom:1px solid rgba(0,0,0,0.04);
+        align-items:flex-start;
+      }
+      .item-row:last-child{border-bottom:none;padding-bottom:0;}
+      .item-thumb{
+        width:60px;height:70px;
+        overflow:hidden;
+        border-radius:10px;
+        box-shadow:0 6px 14px rgba(0,0,0,0.16);
+        flex-shrink:0;
+        background:#d7cbbd;
+      }
+      .item-thumb img{width:100%;height:100%;object-fit:cover;}
+      .item-main{flex:1;font-size:13px;}
+      .item-name{
+        text-transform:uppercase;
+        letter-spacing:0.12em;
+        font-size:12px;
+        font-family:"Playfair Display",serif;
+      }
+      .item-meta{
+        font-size:11px;
+        color:#7a6a55;
+        margin-top:2px;
+      }
+      .item-line{
+        margin-top:4px;
+        font-size:12px;
+        display:flex;
+        justify-content:space-between;
+        gap:8px;
+      }
+      .total-row{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-top:12px;
+        font-size:13px;
+        font-weight:bold;
+      }
+      .total-label{
+        text-transform:uppercase;
+        letter-spacing:0.16em;
+        font-size:11px;
+      }
+
+      /* Form */
+      .form{
+        margin-top:6px;
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      }
+      .field{
+        display:flex;
+        flex-direction:column;
+        gap:6px;
+      }
+      .label{
+        font-size:11px;
+        letter-spacing:0.2em;
+        text-transform:uppercase;
+        color:#7d6750;
+        font-family:"Fjalla One",sans-serif;
+      }
+      .input, .select{
+        width:100%;
+        border-radius:999px;
+        border:1px solid rgba(131,106,77,0.55);
+        padding:9px 16px;
+        font-size:13px;
+        background:rgba(255,255,255,0.96);
+        color:#22150e;
+        outline:none;
+        transition:border-color .18s ease, box-shadow .18s ease, transform .12s ease, background .18s ease;
+      }
+      .input:focus, .select:focus{
+        border-color:#b0673d;
+        box-shadow:0 0 0 1px rgba(176,103,61,0.5), 0 0 0 5px rgba(176,103,61,0.16);
+        background:#fffaf2;
+        transform:translateY(-1px);
+      }
+
+      .update-btn{
+        border:none;
+        border-radius:999px;
+        padding:11px 18px;
+        font-size:10px;
+        letter-spacing:0.22em;
+        text-transform:uppercase;
+        font-family:"Fjalla One",sans-serif;
+        cursor:pointer;
+        background:linear-gradient(120deg,#1b130e,#3a2516);
+        color:#fbeee1;
+        border:1px solid rgba(27,19,14,0.9);
+        box-shadow:0 9px 20px rgba(32,18,9,0.38);
+        transition:transform .14s ease, box-shadow .14s ease, filter .14s ease;
+      }
+      .update-btn:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(32,18,9,0.52);filter:brightness(1.02);}
+      .update-btn:active{transform:translateY(1px);box-shadow:0 6px 16px rgba(32,18,9,0.45);}
+
+      /* Status badge (visual) */
+      .status-badge{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        padding:7px 12px;
+        border-radius:999px;
+        border:1px solid rgba(31,20,14,0.75);
+        background:rgba(255,255,255,0.40);
+        font-family:"Fjalla One",sans-serif;
+        font-size:10px;
+        letter-spacing:0.22em;
+        text-transform:uppercase;
+        box-shadow:0 10px 22px rgba(0,0,0,0.10);
+        backdrop-filter:blur(6px);
+      }
+      .dot{
+        width:8px;height:8px;border-radius:999px;
+        background:#7b3321;
+        box-shadow:0 0 0 4px rgba(123,51,33,0.16);
+        animation:dot-pulse 1.8s ease-in-out infinite;
+      }
+      @keyframes dot-pulse{
+        0%,100%{transform:scale(1);opacity:.95}
+        50%{transform:scale(1.25);opacity:.75}
+      }
+
+      /* ✅ Toast (copy feedback) */
+      .copy-toast{
+        position:fixed;
+        left:50%;
+        bottom:18px;
+        transform:translateX(-50%) translateY(14px);
+        background:rgba(31,20,14,0.92);
+        color:#fff;
+        border:1px solid rgba(255,255,255,0.18);
+        box-shadow:0 18px 38px rgba(0,0,0,0.35);
+        border-radius:999px;
+        padding:10px 14px;
+        font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        font-size:12px;
+        opacity:0;
+        pointer-events:none;
+        transition:opacity .22s ease, transform .22s ease;
+        z-index:9999;
+        display:flex;
+        align-items:center;
+        gap:10px;
+        backdrop-filter:blur(6px);
+      }
+      .copy-toast.show{
+        opacity:1;
+        transform:translateX(-50%) translateY(0);
+      }
+      .copy-toast .mini{
+        width:8px;height:8px;border-radius:999px;
+        background:#f0caa6;
+        box-shadow:0 0 0 4px rgba(240,202,166,0.16);
+      }
+
+      /* Responsive */
+      @media (max-width:880px){
+        .admin-order-page{ padding:120px 14px 70px; }
+        .card{ border-radius:18px; }
+        .card::before{ inset:12px 10px; }
+      }
+      @media (max-width:600px){
+        .admin-order-page{ padding:110px 10px 60px; }
+        .admin-order-title{ font-size:20px; letter-spacing:0.16em; }
+        .items-wrap{ max-height:none; }
+        .admin-order-actions{ width:100%; justify-content:flex-start; }
+      }
+    </style>
+
+    <div class="admin-order-shell">
+      <div class="admin-order-top">
+        <div>
+          <div class="admin-order-kicker">The Adivasi Store · Admin</div>
+          <h1 class="admin-order-title">Order #{{ order.id }}</h1>
+          <p class="admin-order-sub">
+            Review customer details, items, and update delivery status & tracking notes.
+          </p>
+        </div>
+
+        <div class="admin-order-actions">
+          <span class="status-badge">
+            <span class="dot"></span>
+            {{ order.status }}
+          </span>
+          <a class="pill-link" href="{{ url_for('admin_dashboard') }}">Back to dashboard</a>
+        </div>
+      </div>
+
+      <div class="admin-order-grid">
+        <!-- LEFT: Customer & Address -->
+        <div class="admin-col">
+          <div class="card">
+            <div class="card-inner">
+              <h3 class="card-title">Customer & address</h3>
+
+              <div class="info-list">
+                <div class="info-row">
+                  <div class="info-key">Name</div>
+                  <div class="info-val" id="shipName">{{ order.shipping_name or "—" }}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-key">Phone</div>
+                  <div class="info-val" id="shipPhone">{{ order.shipping_phone or "—" }}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-key">Email</div>
+                  <div class="info-val" id="shipEmail">{{ order.shipping_email or "—" }}</div>
+                </div>
+
+                <!-- ✅ Pincode row -->
+                <div class="info-row">
+                  <div class="info-key">Pincode</div>
+                  <div class="info-val" id="shipPin">{{ order.shipping_pincode or "—" }}</div>
+                </div>
+
+                <div class="info-row">
+                  <div class="info-key">Address</div>
+                  <div class="info-val" id="shipAddr">
+                    {{ order.shipping_address or "—" }}<br>
+                    <span id="shipPO">{{ order.shipping_post_office or "" }}</span>{% if order.shipping_pincode %} – <span>{{ order.shipping_pincode }}</span>{% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+                {% if order.shipping_phone %}
+                  <a class="pill-link" href="tel:{{ order.shipping_phone|e }}">Call</a>
+                {% endif %}
+                {% if order.shipping_email %}
+                  <a class="pill-link" href="mailto:{{ order.shipping_email|e }}">Email</a>
+                {% endif %}
+
+                <!-- ✅ NEW: Copy Address button -->
+                <button type="button" class="pill-link pill-copy" id="copyAddressBtn" title="Copy full address for courier">
+                  Copy address
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Items + Total -->
+        <div class="admin-col">
+          <div class="card">
+            <div class="card-inner">
+              <h3 class="card-title">Items</h3>
+
+              <div class="items-wrap">
+                {% for item in order.items %}
+                  <div class="item-row">
+                    {% if item.product_image %}
+                      <div class="item-thumb">
+                        <img src="{{ item.product_image }}" alt="{{ item.product_name }}">
+                      </div>
+                    {% endif %}
+
+                    <div class="item-main">
+                      <div class="item-name">{{ item.product_name }}</div>
+
+                      {% if item.product_size %}
+                        <div class="item-meta">Size: {{ item.product_size }}</div>
+                      {% endif %}
+                      {% if item.product_color %}
+                        <div class="item-meta">Colour: {{ item.product_color }}</div>
+                      {% endif %}
+
+                      <div class="item-line">
+                        <span>Qty: {{ item.quantity }}</span>
+                        <span>Rs. {{ "%.0f"|format(item.product_price * item.quantity) }}</span>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+
+              <div class="total-row">
+                <span class="total-label">Total</span>
+                <span>Rs. {{ "%.0f"|format(order.total_amount) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FULL: Status & Tracking -->
+        <div class="admin-col" style="flex-basis:100%;min-width:280px;">
+          <div class="card">
+            <div class="card-inner">
+              <h3 class="card-title">Status & tracking</h3>
+
+              <form method="POST" class="form" id="orderUpdateForm">
+                <div class="field">
+                  <label class="label" for="status">Status</label>
+                  <select id="status" name="status" class="select">
+                    {% for s in ["Placed","Packed","Shipped","Delivered","Cancelled"] %}
+                      <option value="{{ s }}" {% if s == order.status %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label class="label" for="tracking_message">Tracking message</label>
+                  <input
+                    id="tracking_message"
+                    type="text"
+                    name="tracking_message"
+                    value="{{ order.tracking_message }}"
+                    class="input"
+                    placeholder="Example: Packed and ready for dispatch…"
+                    required
+                  >
+                </div>
+
+                <button type="submit" class="update-btn" id="updateBtn">
+                  Update order
+                </button>
+
+                <div id="saveHint" style="display:none;margin-top:6px;font-size:12px;color:#7a6a55;">
+                  Saving…
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
+
+    <!-- ✅ Copy toast -->
+    <div class="copy-toast" id="copyToast" aria-live="polite" aria-atomic="true">
+      <span class="mini"></span>
+      <span id="copyToastText">Copied</span>
+    </div>
+
+    <script>
+      (function(){
+        // Small UX touch: show "Saving..." hint immediately on submit
+        var form = document.getElementById("orderUpdateForm");
+        var hint = document.getElementById("saveHint");
+        var btn  = document.getElementById("updateBtn");
+        if(form){
+          form.addEventListener("submit", function(){
+            if(hint) hint.style.display = "block";
+            if(btn){
+              btn.style.opacity = "0.85";
+              btn.style.transform = "translateY(0)";
+            }
+          });
+        }
+
+        // Update status badge + dot pulse intensity based on status (visual only)
+        var statusSelect = document.getElementById("status");
+        var badge = document.querySelector(".status-badge");
+        var dot = document.querySelector(".status-badge .dot");
+        if(statusSelect && badge && dot){
+          function applyStatusUI(){
+            var v = statusSelect.value;
+            badge.lastChild.nodeValue = " " + v;
+
+            if(v === "Delivered"){
+              dot.style.boxShadow = "0 0 0 5px rgba(27,120,70,0.14)";
+            }else if(v === "Cancelled"){
+              dot.style.boxShadow = "0 0 0 5px rgba(123,51,33,0.14)";
+            }else if(v === "Shipped"){
+              dot.style.boxShadow = "0 0 0 5px rgba(176,103,61,0.16)";
+            }else{
+              dot.style.boxShadow = "0 0 0 4px rgba(123,51,33,0.16)";
+            }
+          }
+          statusSelect.addEventListener("change", applyStatusUI);
+          applyStatusUI();
+        }
+
+        // ✅ Copy Address (Courier-ready text)
+        function safeText(el){
+          return (el && (el.innerText || el.textContent) || "").replace(/\s+\n/g,"\n").trim();
+        }
+
+        var copyBtn = document.getElementById("copyAddressBtn");
+        var toast = document.getElementById("copyToast");
+        var toastText = document.getElementById("copyToastText");
+
+        function showToast(msg){
+          if(!toast) return;
+          if(toastText) toastText.textContent = msg || "Copied";
+          toast.classList.add("show");
+          setTimeout(function(){ toast.classList.remove("show"); }, 1600);
+        }
+
+        async function copyToClipboard(text){
+          try{
+            if(navigator.clipboard && window.isSecureContext){
+              await navigator.clipboard.writeText(text);
+              return true;
+            }
+          }catch(e){}
+          // fallback
+          try{
+            var ta = document.createElement("textarea");
+            ta.value = text;
+            ta.setAttribute("readonly","");
+            ta.style.position="fixed";
+            ta.style.left="-9999px";
+            document.body.appendChild(ta);
+            ta.select();
+            var ok = document.execCommand("copy");
+            document.body.removeChild(ta);
+            return ok;
+          }catch(e){
+            return false;
+          }
+        }
+
+        if(copyBtn){
+          copyBtn.addEventListener("click", async function(){
+            var name = safeText(document.getElementById("shipName"));
+            var phone = safeText(document.getElementById("shipPhone"));
+            var email = safeText(document.getElementById("shipEmail"));
+            var addr = safeText(document.getElementById("shipAddr"));
+            var pin = safeText(document.getElementById("shipPin"));
+
+            // Courier-friendly single block
+            var block =
+              "Order #{{ order.id }}\n" +
+              "Name: " + (name || "—") + "\n" +
+              "Phone: " + (phone || "—") + "\n" +
+              "Email: " + (email || "—") + "\n" +
+              "Address:\n" + (addr || "—") + "\n" +
+              "Pincode: " + (pin || "—");
+
+            var ok = await copyToClipboard(block);
+
+            copyBtn.classList.add("is-copied");
+            setTimeout(function(){ copyBtn.classList.remove("is-copied"); }, 900);
+
+            showToast(ok ? "Address copied" : "Copy failed");
+          });
+        }
+      })();
+    </script>
+
   </section>
 </main>
 {% endblock %}
