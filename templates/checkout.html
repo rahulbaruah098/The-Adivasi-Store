@@ -49,9 +49,7 @@
         padding:0 6px;
       }
 
-      .checkout-header{
-        margin-bottom:18px;
-      }
+      .checkout-header{ margin-bottom:18px; }
       .checkout-kicker{
         font-family:"Fjalla One",sans-serif;
         font-size:11px;
@@ -79,11 +77,7 @@
         margin-top:24px;
         flex-wrap:wrap;
       }
-
-      .checkout-col{
-        flex:1;
-        min-width:260px;
-      }
+      .checkout-col{ flex:1; min-width:260px; }
 
       .checkout-card{
         background:rgba(248,241,231,0.98);
@@ -106,11 +100,7 @@
         border:1px dashed rgba(189,143,90,0.5);
         pointer-events:none;
       }
-      .checkout-card-inner{
-        position:relative;
-        z-index:1;
-      }
-
+      .checkout-card-inner{ position:relative; z-index:1; }
       .checkout-card-title{
         font-size:14px;
         text-transform:uppercase;
@@ -125,11 +115,7 @@
         gap:12px;
         margin-top:4px;
       }
-      .checkout-field{
-        display:flex;
-        flex-direction:column;
-        gap:6px;
-      }
+      .checkout-field{ display:flex; flex-direction:column; gap:6px; }
       .checkout-label{
         font-size:11px;
         letter-spacing:0.2em;
@@ -137,9 +123,7 @@
         color:#7d6750;
         font-family:"Fjalla One",sans-serif;
       }
-      .checkout-input-wrap{
-        position:relative;
-      }
+      .checkout-input-wrap{ position:relative; }
       .checkout-input{
         width:100%;
         border-radius:999px;
@@ -156,9 +140,7 @@
           background 0.18s ease,
           transform 0.12s ease;
       }
-      .checkout-input::placeholder{
-        color:rgba(125,105,82,0.7);
-      }
+      .checkout-input::placeholder{ color:rgba(125,105,82,0.7); }
       .checkout-input:focus{
         border-color:#b0673d;
         box-shadow:
@@ -195,11 +177,7 @@
           background 0.18s ease,
           color 0.18s ease;
         box-shadow:0 9px 20px rgba(32,18,9,0.38);
-      }
-      .checkout-pay-btn--cod{
-        background:#fbf4e7;
-        color:#1f140e;
-        border:1px solid rgba(31,20,14,0.85);
+        width:100%;
       }
       .checkout-pay-btn--online{
         background:linear-gradient(120deg,#1b130e,#3a2516);
@@ -221,6 +199,25 @@
         font-size:11px;
         font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
         color:#7a6a55;
+      }
+
+      /* Fallback CTA shown if popup didn't open */
+      .checkout-fallback{
+        margin-top:10px;
+        display:none;
+      }
+      .checkout-fallback.show{ display:block; }
+      .checkout-fallback button{
+        width:100%;
+        border-radius:999px;
+        padding:10px 18px;
+        border:1px dashed rgba(27,19,14,0.65);
+        background:rgba(255,255,255,0.75);
+        font-family:"Fjalla One",sans-serif;
+        font-size:10px;
+        letter-spacing:0.2em;
+        text-transform:uppercase;
+        cursor:pointer;
       }
 
       /* ORDER SUMMARY */
@@ -259,10 +256,7 @@
         height:100%;
         object-fit:cover;
       }
-      .checkout-summary-main{
-        flex:1;
-        font-size:13px;
-      }
+      .checkout-summary-main{ flex:1; font-size:13px; }
       .checkout-summary-name{
         text-transform:uppercase;
         letter-spacing:0.12em;
@@ -297,27 +291,23 @@
         font-size:11px;
       }
 
-      /* Animations */
       @keyframes checkout-card-float{
         0%   {opacity:0;transform:translateY(32px) scale(.97) rotate(-0.8deg);}
         60%  {opacity:1;transform:translateY(-4px) scale(1.01) rotate(0.3deg);}
         100% {opacity:1;transform:translateY(0) scale(1) rotate(0);}
       }
 
-      /* Responsive */
       @media (max-width:880px){
         .checkout-page{ padding:120px 14px 70px; }
         .checkout-card{ border-radius:18px; padding-inline:18px; }
         .checkout-card::before{ inset:12px 10px; }
       }
-
       @media (max-width:600px){
         .checkout-page{ padding:110px 10px 60px; }
         .checkout-layout{ gap:18px; }
         .checkout-summary-list{ max-height:none; }
         .checkout-title{ font-size:20px; letter-spacing:0.16em; }
         .checkout-sub{ font-size:11px; }
-        .checkout-pay-btn{ width:100%; justify-content:center; }
       }
     </style>
 
@@ -326,7 +316,7 @@
         <div class="checkout-kicker">The Adivasi Store · Checkout</div>
         <h1 class="checkout-title">Checkout</h1>
         <p class="checkout-sub">
-          Confirm your shipping details and choose how you’d like to pay for your handwoven picks.
+          Confirm your shipping details and pay securely via Razorpay.
         </p>
       </header>
 
@@ -337,7 +327,7 @@
             <div class="checkout-card-inner">
               <h3 class="checkout-card-title">Shipping details</h3>
 
-              <form method="POST" class="checkout-form">
+              <form method="POST" class="checkout-form" id="checkoutForm">
                 <div class="checkout-field">
                   <label class="checkout-label" for="name">Full name</label>
                   <div class="checkout-input-wrap">
@@ -369,30 +359,32 @@
                 <div class="checkout-field">
                   <label class="checkout-label" for="nearest_post_office">Nearest Post Office</label>
                   <div class="checkout-input-wrap">
-                    <input id="nearest_post_office" type="text" name="nearest_post_office" class="checkout-input" placeholder="Example: Chhimphei PO" value="{{ user.nearest_post_office or '' }}" required>
+                    <input id="nearest_post_office" type="text" name="nearest_post_office" class="checkout-input" placeholder="Example: Dharapur PO" value="{{ user.nearest_post_office or '' }}" required>
                   </div>
                 </div>
 
                 <div class="checkout-field">
                   <label class="checkout-label" for="pincode">Pincode</label>
                   <div class="checkout-input-wrap">
-                    <input id="pincode" type="text" name="pincode" class="checkout-input" placeholder="e.g. 781 XXX" value="{{ user.pincode or '' }}" required>
+                    <input id="pincode" type="text" name="pincode" class="checkout-input" placeholder="e.g. 781XXX" value="{{ user.pincode or '' }}" required>
                   </div>
                 </div>
 
-                <div class="checkout-actions">
-                  <button type="submit" name="payment_mode" value="cod" class="checkout-pay-btn checkout-pay-btn--cod">
-                    Place order (Cash / manual payment)
-                  </button>
+                <!-- Always submit online payment only -->
+                <input type="hidden" name="payment_mode" value="online">
 
-                  <button type="submit" name="payment_mode" value="online" class="checkout-pay-btn checkout-pay-btn--online">
+                <div class="checkout-actions">
+                  <button type="submit" class="checkout-pay-btn checkout-pay-btn--online" id="payOnlineBtn">
                     Pay Online (Razorpay)
                   </button>
                 </div>
               </form>
 
               {% if razorpay_order_id %}
-                <p class="checkout-razor-hint">Redirecting to secure Razorpay payment…</p>
+                <p class="checkout-razor-hint" id="razorHint">Opening secure Razorpay payment…</p>
+                <div class="checkout-fallback" id="razorFallback">
+                  <button type="button" id="continuePaymentBtn">Continue to payment</button>
+                </div>
               {% endif %}
             </div>
           </div>
@@ -404,7 +396,6 @@
             <div class="checkout-card-inner">
               <h3 class="checkout-card-title">Order summary</h3>
 
-              {# ✅ FIX: namespace accumulator (Jinja scoping issue) #}
               {% set ns = namespace(subtotal=0) %}
 
               <div class="checkout-summary-list">
@@ -455,55 +446,78 @@
       <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
       <script>
         (function () {
-          var options = {
-            key: "{{ razorpay_key_id }}",
-            amount: {{ razorpay_amount_paise|int }},
-            currency: "INR",
-            name: "The Adivasi Store",
-            description: "Order #{{ order_id }}",
-            order_id: "{{ razorpay_order_id }}",
-            prefill: {
-              name: "{{ shipping_name|default(user.name)|e }}",
-              email: "{{ shipping_email|default(user.email)|e }}",
-              contact: "{{ shipping_phone|default(user.phone or '')|e }}"
-            },
-            theme: { color: "#7b3321" },
-            handler: function (response) {
-              fetch("{{ url_for('razorpay_verify') }}", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  order_id: {{ order_id|tojson }},
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_signature: response.razorpay_signature
-                })
-              })
-              .then(function (res) { return res.json(); })
-              .then(function (data) {
-                if (data && data.ok) {
-                  // ✅ NEW: Redirect to the new success page
-                  var oid = data.order_id || {{ order_id|tojson }};
-                  window.location.href = "/order-success/" + oid;
-                } else {
-                  alert("Payment captured but verification failed. If money was deducted, please contact support with your Order ID.");
-                  window.location.href = "{{ url_for('checkout') }}";
+          function openRazorpay(){
+            try{
+              var options = {
+                key: "{{ razorpay_key_id }}",
+                amount: {{ razorpay_amount_paise|int }},
+                currency: "INR",
+                name: "The Adivasi Store",
+                description: "Order #{{ order_id }}",
+                order_id: "{{ razorpay_order_id }}",
+                prefill: {
+                  name: "{{ shipping_name|default(user.name)|e }}",
+                  email: "{{ shipping_email|default(user.email)|e }}",
+                  contact: "{{ shipping_phone|default(user.phone or '')|e }}"
+                },
+                theme: { color: "#7b3321" },
+                handler: function (response) {
+                  fetch("{{ url_for('razorpay_verify') }}", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      order_id: {{ order_id|tojson }},
+                      razorpay_payment_id: response.razorpay_payment_id,
+                      razorpay_order_id: response.razorpay_order_id,
+                      razorpay_signature: response.razorpay_signature
+                    })
+                  })
+                  .then(function (res) { return res.json(); })
+                  .then(function (data) {
+                    if (data && data.ok) {
+                      var oid = data.order_id || {{ order_id|tojson }};
+                      window.location.href = "/order-success/" + oid;
+                    } else {
+                      alert("Payment captured but verification failed. If money was deducted, please contact support with your Order ID.");
+                      window.location.href = "{{ url_for('checkout') }}";
+                    }
+                  })
+                  .catch(function () {
+                    alert("Payment verification error. If amount was deducted, please contact support.");
+                    window.location.href = "{{ url_for('checkout') }}";
+                  });
+                },
+                modal: {
+                  ondismiss: function () {
+                    window.location.href = "{{ url_for('checkout') }}";
+                  }
                 }
-              })
-              .catch(function () {
-                alert("Payment verification error. If amount was deducted, please contact support.");
-                window.location.href = "{{ url_for('checkout') }}";
-              });
-            },
-            modal: {
-              ondismiss: function () {
-                window.location.href = "{{ url_for('checkout') }}";
-              }
-            }
-          };
+              };
 
-          var rzp = new Razorpay(options);
-          rzp.open();
+              var rzp = new Razorpay(options);
+              rzp.open();
+
+              // if popup didn't open (blocked/timing), show fallback CTA
+              setTimeout(function(){
+                var fb = document.getElementById("razorFallback");
+                if(fb) fb.classList.add("show");
+              }, 1200);
+
+              var btn = document.getElementById("continuePaymentBtn");
+              if(btn){
+                btn.onclick = function(){ rzp.open(); };
+              }
+            }catch(err){
+              console.error("Razorpay open error:", err);
+              var fb2 = document.getElementById("razorFallback");
+              if(fb2) fb2.classList.add("show");
+            }
+          }
+
+          // ✅ Important fix: open AFTER window load so Razorpay is fully available
+          window.addEventListener("load", function(){
+            setTimeout(openRazorpay, 250);
+          });
         })();
       </script>
     {% endif %}

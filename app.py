@@ -34,8 +34,8 @@ app.config["MAIL_PASSWORD"] = "YOUR_GMAIL_APP_PASSWORD_HERE"  # use env ideally
 ADMIN_EMAIL = "theadivasistore@gmail.com"
 
 # Razorpay (fill with your real keys)
-app.config["RAZORPAY_KEY_ID"] = "YOUR_RAZORPAY_KEY_ID"
-app.config["RAZORPAY_KEY_SECRET"] = "YOUR_RAZORPAY_KEY_SECRET"
+app.config["RAZORPAY_KEY_ID"] = "rzp_live_Rpr7NCGKEWF1zH"
+app.config["RAZORPAY_KEY_SECRET"] = "pfVOqcaOxlya6baESuZwxbzs"
 
 db = SQLAlchemy(app)
 
