@@ -22,28 +22,10 @@
         overflow: hidden;
       }
 
-      .auth-page::before,
-      .auth-page::after {
-        content: "";
-        position: absolute;
-        border-radius: 999px;
-        border: 1px dashed rgba(120, 92, 60, 0.3);
-        pointer-events: none;
-      }
-
-      .auth-page::before {
-        width: 260px;
-        height: 260px;
-        top: -80px;
-        right: -60px;
-      }
-
-      .auth-page::after {
-        width: 320px;
-        height: 320px;
-        bottom: -120px;
-        left: -100px;
-      }
+      /* ❌ REMOVED (as requested): the half-circle dashed designs
+         .auth-page::before / .auth-page::after
+         that were showing on right-top and left-bottom
+      */
 
       /* ✅ SAME background texture/art used in login (woven + ambient + grain) */
       .auth-ambient{

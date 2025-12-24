@@ -295,7 +295,7 @@
     }
 
     .nav-cart::after {
-      content: "{{ cart_count }}";
+      content: attr(data-count);
       position: absolute;
       top: -8px;
       right: -9px;
@@ -375,14 +375,19 @@
     .mega-link-list {
       list-style: none;
       font-size: 14px;
+      column-count: 2;                /* UPDATED: looks nicer with long list */
+      column-gap: 22px;               /* UPDATED */
+      max-width: 420px;               /* UPDATED */
     }
 
-    .mega-link-list li + li {
-      margin-top: 5px;
+    .mega-link-list li {
+      break-inside: avoid;
+      padding: 2px 0;
     }
 
     .mega-link-list a {
       position: relative;
+      display: inline-block;
     }
 
     .mega-link-list a::after {
@@ -559,6 +564,27 @@
       font-size: 14px;
     }
 
+    /* UPDATED: nicer “Accessories” list layout on mobile */
+    .mobile-accessories-grid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 14px;
+      padding-top: 10px;
+    }
+    .mobile-accessories-grid .mobile-menu-link{
+      display:block;
+      padding: 8px 10px;
+      border: 1px solid rgba(23,19,15,0.14);
+      background: #fbf5ea;
+      border-radius: 12px;
+      text-align: left;
+      font-size: 13px;
+      line-height: 1.2;
+    }
+    .mobile-accessories-grid .mobile-menu-link:active{
+      transform: translateY(1px);
+    }
+
     /* ---------------- HERO ---------------- */
 
     .hero {
@@ -618,6 +644,14 @@
       font-family: "Fjalla One", sans-serif;
       letter-spacing: 0.23em;
       font-size: 13px;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+
+    .hero-kicker-1 {
+      font-family: "Fjalla One", sans-serif;
+      letter-spacing: 0.23em;
+      font-size: 30px;
       text-transform: uppercase;
       margin-bottom: 18px;
     }
@@ -810,10 +844,11 @@
 
     .footer-logo {
       margin-right: 40px;
+      min-width: 240px; /* UPDATED: stable column */
     }
 
     .footer-logo img {
-      height: 130px;
+      height: 150px;
       width: auto;
       object-fit: contain;
     }
@@ -834,9 +869,29 @@
       margin-top: 6px;
     }
 
+    /* Address under logo (footer) */
+    .footer-address {
+      margin-top: 10px;
+      font-style: italic;
+      color: rgba(23,19,15,0.82);
+      line-height: 1.6;
+      max-width: 320px; /* UPDATED */
+    }
+
+    /* Contact block extra lines */
+    .footer-contact-extra {
+      margin-top: 10px;
+      padding-top: 10px;                  /* UPDATED */
+      border-top: 1px solid var(--border-soft); /* UPDATED */
+      max-width: 260px;                   /* UPDATED */
+    }
+    .footer-contact-extra li {
+      margin-top: 6px;
+    }
+
     .footer-newsletter {
       flex: 1;
-      min-width: 240px;
+      min-width: 260px; /* UPDATED */
     }
 
     .footer-newsletter-input {
@@ -875,6 +930,7 @@
 
     .footer-socials {
       display: flex;
+      flex-wrap: wrap;  /* UPDATED */
       gap: 12px;
       font-size: 18px;
       margin-top: 8px;
@@ -924,7 +980,7 @@
 
     .footer-bottom {
       display: flex;
-      justify-content: space-between;
+      justify-content: center; /* center the copyright line */
       align-items: center;
       font-size: 13px;
       border-top: 1px solid var(--border-soft);
@@ -932,12 +988,11 @@
       margin-top: 20px;
       flex-wrap: wrap;
       gap: 10px;
+      text-align: center;
     }
 
     .footer-meta-row {
-      display: flex;
-      gap: 30px;
-      flex-wrap: wrap;
+      display: none; /* hide/remove delivery country + language row */
     }
 
     /* ---------------- RESPONSIVE ---------------- */
@@ -1010,6 +1065,14 @@
       .category-row-two {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
+
+      /* UPDATED: footer stacks nicely on mobile */
+      .footer-top{
+        gap: 36px;
+      }
+      .footer-logo{
+        margin-right: 0;
+      }
     }
 
     @media (max-width: 600px) {
@@ -1026,9 +1089,149 @@
         padding-right: 18px;
       }
 
-      .footer-logo {
-        margin-right: 0;
+      /* UPDATED: accessories links become 1-col on very small screens */
+      .mobile-accessories-grid{
+        grid-template-columns: 1fr;
       }
+    }
+
+    /* ================= PRODUCT GRID (INTEGRATED) ================= */
+
+    .product-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+      gap:28px;
+    }
+
+    .product-card{
+      background:#fbf5ea;
+      border-radius:14px;
+      box-shadow:var(--shadow-card);
+      overflow:hidden;
+      transition:transform .25s ease, box-shadow .25s ease;
+    }
+
+    .product-card:hover{
+      transform:translateY(-6px);
+      box-shadow:var(--shadow-soft);
+    }
+
+    .product-image-wrap{
+      position:relative;
+      overflow:hidden;
+    }
+
+    .product-image-wrap img{
+      width:100%;
+      aspect-ratio:3/4;
+      object-fit:cover;
+    }
+
+    .view-btn,
+    .cart-btn{
+      position:absolute;
+      bottom:12px;
+      border:none;
+      border-radius:999px;
+      padding:8px 14px;
+      font-family:"Fjalla One",sans-serif;
+      font-size:12px;
+      letter-spacing:.14em;
+      cursor:pointer;
+    }
+
+    .view-btn{
+      left:12px;
+      background:rgba(0,0,0,.65);
+      color:#fff;
+    }
+
+    .cart-btn{
+      right:12px;
+      background:var(--accent);
+      color:#fff;
+      animation:cart-breathe 3s ease-in-out infinite;
+    }
+
+    .cart-btn.added{
+      animation:cart-pop .45s ease;
+    }
+
+    @keyframes cart-pop{
+      0%{transform:scale(1)}
+      50%{transform:scale(1.35)}
+      100%{transform:scale(1)}
+    }
+
+    @keyframes cart-breathe{
+      0%,100%{transform:scale(1)}
+      50%{transform:scale(1.08)}
+    }
+
+    .product-info{
+      padding:14px;
+      text-align:center;
+    }
+
+    .product-info h4{
+      font-size:15px;
+      margin-bottom:6px;
+    }
+
+    .product-info .price{
+      font-family:"Fjalla One",sans-serif;
+      letter-spacing:.14em;
+      font-size:13px;
+    }
+
+    .size-select{
+      margin-top:10px;
+      width:100%;
+      padding:6px;
+      border:1px solid var(--border-soft);
+      background:#fff;
+    }
+
+    /* ================= TOAST ================= */
+
+    .cart-toast{
+      position:fixed;
+      bottom:24px;
+      left:50%;
+      transform:translateX(-50%);
+      background:var(--ink);
+      color:#fff;
+      padding:10px 18px;
+      border-radius:999px;
+      font-family:"Fjalla One",sans-serif;
+      letter-spacing:.14em;
+      z-index:9999;
+      animation:toast-in .35s ease;
+    }
+
+    @keyframes toast-in{
+      from{opacity:0;transform:translate(-50%,20px)}
+      to{opacity:1;transform:translate(-50%,0)}
+    }
+
+    /* ================= IMAGE VIEW MODAL ================= */
+
+    .product-modal{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.8);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+    }
+
+    .product-modal.show{display:flex}
+
+    .product-modal img{
+      max-width:90vw;
+      max-height:80vh;
+      border-radius:18px;
     }
   </style>
 </head>
@@ -1045,8 +1248,8 @@
     <!-- LOGO -->
     <div class="site-logo">
       <a href="{{ url_for('home') }}" aria-label="Go to Home">
-  <img src="{{ url_for('static', filename='images/logo22.png') }}" alt="Brand Logo">
-</a>
+        <img src="{{ url_for('static', filename='images/logo22.png') }}" alt="Brand Logo">
+      </a>
     </div>
 
     <!-- DESKTOP NAV LINKS -->
@@ -1067,8 +1270,6 @@
           <a href="javascript:void(0)" id="nav-categories">Categories</a>
         </li>
       </ul>
-     
-
     </nav>
 
     <!-- NAV ACTIONS -->
@@ -1083,7 +1284,7 @@
         <input type="text" placeholder="Search the shop…" id="search-input">
       </div>
 
-      <div class="nav-cart" title="Cart">
+      <div class="nav-cart" title="Cart" data-count="{{ cart_count }}">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M8 9c0-2.2 1.8-4 4-4s4 1.8 4 4"></path>
           <path d="M7 9h10l-1 9H8L7 9z"></path>
@@ -1133,14 +1334,22 @@
     </div>
   </section>
 
-  <!-- DESKTOP MEGA MENU – ACCESSORIES -->
+  <!-- DESKTOP MEGA MENU – ACCESSORIES (UPDATED ITEMS ONLY) -->
   <section class="mega-menu" id="mega-menu-accessories" aria-label="Accessories mega menu">
     <div>
       <div class="mega-left-title">Accessories</div>
       <ul class="mega-link-list">
-        <li><a href="#">Sitapaati</a></li>
-        <li><a href="#">Hashli</a></li>
+        <li><a href="#">Saree</a></li>
+        <li><a href="#">Bandi</a></li>
+        <li><a href="#">Bags</a></li>
+        <li><a href="#">Gamosa</a></li>
+        <li><a href="#">Shawl</a></li>
+        <li><a href="#">Kurta Pyjama for Kids</a></li>
+        <li><a href="#">Dhoti for kids</a></li>
+        <li><a href="#">Sitapati</a></li>
+        <li><a href="#">Jhumka</a></li>
         <li><a href="#">Chandrahaar</a></li>
+        <li><a href="#">Hashli</a></li>
         <li><a href="#">Baju</a></li>
         <li><a href="#">Khongso</a></li>
         <li><a href="#">Poyori</a></li>
@@ -1150,15 +1359,15 @@
     <div class="mega-grid">
       <article class="mega-card mega-acc-1">
         <div class="mega-card-image"></div>
-        <div class="mega-card-label">Sitapaati</div>
+        <div class="mega-card-label">Saree · Bandi · Bags</div>
       </article>
       <article class="mega-card mega-acc-2">
         <div class="mega-card-image"></div>
-        <div class="mega-card-label">Hashli &amp; Chandrahaar</div>
+        <div class="mega-card-label">Gamosa · Shawl · Kids</div>
       </article>
       <article class="mega-card mega-acc-3">
         <div class="mega-card-image"></div>
-        <div class="mega-card-label">Baju · Khongso · Poyori</div>
+        <div class="mega-card-label">Sitapati · Jhumka · More</div>
       </article>
     </div>
   </section>
@@ -1177,9 +1386,33 @@
           <a href="/home" class="mobile-menu-link">Home</a>
           <a href="/about" class="mobile-menu-link">Who Are We</a>
           <a href="/shop" class="mobile-menu-link">Shop</a>
-          <a href="#accessories" class="mobile-menu-link">Accessories</a>
-          <a href="#shop" class="mobile-menu-link">Categories</a>
           <a href="/contact" class="mobile-menu-link">Get In Touch</a>
+        </div>
+      </div>
+
+      <!-- UPDATED: Accessories section added to mobile overlay with new links -->
+      <div class="mobile-menu-group">
+        <button class="mobile-menu-group-header" type="button">
+          <span>Accessories</span>
+          <span class="mobile-chevron"></span>
+        </button>
+        <div class="mobile-menu-group-panel">
+          <div class="mobile-accessories-grid">
+            <a href="#accessories" class="mobile-menu-link">Saree</a>
+            <a href="#accessories" class="mobile-menu-link">Bandi</a>
+            <a href="#accessories" class="mobile-menu-link">Bags</a>
+            <a href="#accessories" class="mobile-menu-link">Gamosa</a>
+            <a href="#accessories" class="mobile-menu-link">Shawl</a>
+            <a href="#accessories" class="mobile-menu-link">Kurta Pyjama for Kids</a>
+            <a href="#accessories" class="mobile-menu-link">Dhoti for kids</a>
+            <a href="#accessories" class="mobile-menu-link">Sitapati</a>
+            <a href="#accessories" class="mobile-menu-link">Jhumka</a>
+            <a href="#accessories" class="mobile-menu-link">Chandrahaar</a>
+            <a href="#accessories" class="mobile-menu-link">Hashli</a>
+            <a href="#accessories" class="mobile-menu-link">Baju</a>
+            <a href="#accessories" class="mobile-menu-link">Khongso</a>
+            <a href="#accessories" class="mobile-menu-link">Poyori</a>
+          </div>
         </div>
       </div>
 
@@ -1228,6 +1461,11 @@
     </nav>
   </div>
 
+  <!-- PRODUCT IMAGE MODAL -->
+  <div class="product-modal" id="productModal" onclick="closeProductModal()">
+    <img id="modalImg">
+  </div>
+
   {% block content %}{% endblock %}
 
   <!-- FOOTER -->
@@ -1235,22 +1473,33 @@
     <div class="footer-top">
       <div class="footer-logo">
         <a href="{{ url_for('home') }}" aria-label="Go to Home">
-  <img src="{{ url_for('static', filename='images/logo22.png') }}" alt="Brand Footer Logo">
-</a>
+          <img src="{{ url_for('static', filename='images/logo22.png') }}" alt="Brand Footer Logo">
+        </a>
+
+        <div class="footer-address">
+          <em>
+            Address<br>
+            Margherita, Near Divine Renewal Retreat Centre.<br>
+            PO..PS .. Margherita.
+          </em>
+        </div>
       </div>
 
       <div class="footer-column">
         <div class="footer-column-title">Need Help?</div>
         <ul>
           <li><a href="{{ url_for('my_orders') }}">Track my order</a></li>
-          <li><a href="#">Start a return</a></li>
         </ul>
+
         <br>
+
         <div class="footer-column-title">Contact</div>
         <ul>
           <li><a href="mailto:theadivasistore@gmail.com">theadivasistore@gmail.com</a></li>
-          <li><a href="#">WhatsApp</a></li>
-          <li><a href="#">Instagram</a></li>
+        </ul>
+
+        <ul class="footer-contact-extra">
+          <li><a href="tel:7638859829">7638859829</a></li>
         </ul>
       </div>
 
@@ -1288,10 +1537,6 @@
     </div>
 
     <div class="footer-bottom">
-      <div class="footer-meta-row">
-        <span>Change your delivery country? India</span>
-        <span>Change language: English</span>
-      </div>
       <span>&copy; 2025 The Adivasi Store · powered by Rahul Baruah </span>
     </div>
   </footer>
@@ -1468,6 +1713,47 @@
         navCart.classList.remove("nav-cart--added");
       }, 800);
       {% endif %}
+    }
+
+    function addToCartAnimated(btn,id,name,price,image,size=""){
+      btn.classList.add("added");
+
+      fetch("/cart/add",{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "X-Requested-With":"XMLHttpRequest"
+        },
+        body:JSON.stringify({
+          product_id:id,
+          name:name,
+          price:price,
+          image:image,
+          size:size
+        })
+      })
+      .then(r=>r.json())
+      .then(()=>{
+        showToast("Added to cart");
+        btn.classList.remove("added");
+      });
+    }
+
+    function showToast(msg){
+      const t=document.createElement("div");
+      t.className="cart-toast";
+      t.innerText=msg;
+      document.body.appendChild(t);
+      setTimeout(()=>t.remove(),1600);
+    }
+
+    /* ========== IMAGE VIEW MODAL ========== */
+    function openProductModal(img){
+      document.getElementById("modalImg").src=img;
+      document.getElementById("productModal").classList.add("show");
+    }
+    function closeProductModal(){
+      document.getElementById("productModal").classList.remove("show");
     }
   </script>
 </body>

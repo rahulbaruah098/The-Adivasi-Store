@@ -1,3 +1,5 @@
+import os
+import uuid
 from flask import (
     Flask, render_template, request, redirect,
     url_for, flash, session, jsonify, abort
@@ -8,6 +10,7 @@ from flask_login import (
     login_required, current_user
 )
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from datetime import datetime
 import smtplib
 from email.mime.text import MIMEText
@@ -19,23 +22,79 @@ app = Flask(__name__)
 # CONFIG
 # ----------------------------
 # ⚠️ SECURITY: put real values in environment variables in production
-app.config["SECRET_KEY"] = "change-this-secret-key"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///adivasi_store.db"
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "change-this-secret-key")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///adivasi_store.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Gmail SMTP (use app password)
-app.config["MAIL_SERVER"] = "smtp.gmail.com"
-app.config["MAIL_PORT"] = 587
-app.config["MAIL_USE_TLS"] = True
-app.config["MAIL_USERNAME"] = "theadivasistore@gmail.com"
-app.config["MAIL_PASSWORD"] = "YOUR_GMAIL_APP_PASSWORD_HERE"  # use env ideally
+app.config["MAIL_SERVER"] = os.environ.get("MAIL_SERVER", "smtp.gmail.com")
+app.config["MAIL_PORT"] = int(os.environ.get("MAIL_PORT", "587"))
+app.config["MAIL_USE_TLS"] = os.environ.get("MAIL_USE_TLS", "true").lower() == "true"
+app.config["MAIL_USERNAME"] = os.environ.get("MAIL_USERNAME", "theadivasistore@gmail.com")
+app.config["MAIL_PASSWORD"] = os.environ.get("MAIL_PASSWORD", "YOUR_GMAIL_APP_PASSWORD_HERE")  # set in env
 
 # Admin email constant
-ADMIN_EMAIL = "theadivasistore@gmail.com"
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "theadivasistore@gmail.com")
 
-# Razorpay (fill with your real keys)
-app.config["RAZORPAY_KEY_ID"] = "rzp_live_Rpr7NCGKEWF1zH"
-app.config["RAZORPAY_KEY_SECRET"] = "pfVOqcaOxlya6baESuZwxbzs"
+# Razorpay (fill with your real keys via env)
+app.config["RAZORPAY_KEY_ID"] = os.environ.get("RAZORPAY_KEY_ID", "rzp_live_Rpr7NCGKEWF1zH")
+app.config["RAZORPAY_KEY_SECRET"] = os.environ.get("RAZORPAY_KEY_SECRET", "pfVOqcaOxlya6baESuZwxbzs")
+
+# ----------------------------
+# UPLOADS (Product Images)
+# ----------------------------
+# Store product images at: /static/uploads/products/
+UPLOAD_FOLDER = os.path.join(app.root_path, "static", "uploads", "products")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024  # 8MB
+
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+
+
+def allowed_file(filename: str) -> bool:
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+# ✅ Must match your mega-menu labels exactly
+ACCESSORY_CATEGORIES = [
+    "Saree",
+    "Bandi",
+    "Bags",
+    "Gamosa",
+    "Shawl",
+    "Kurta Pyjama for Kids",
+    "Dhoti for kids",
+    "Sitapati",
+    "Jhumka",
+    "Chandrahaar",
+    "Hashli",
+    "Baju",
+    "Khongso",
+    "Poyori",
+]
+
+
+def save_product_image(file_storage):
+    """
+    Save upload to static/uploads/products/
+    Return a public URL like: /static/uploads/products/<filename>
+    """
+    if not file_storage or not getattr(file_storage, "filename", ""):
+        return ""
+
+    filename = secure_filename(file_storage.filename)
+    if not filename or not allowed_file(filename):
+        return ""
+
+    ext = filename.rsplit(".", 1)[1].lower()
+    new_name = f"prod_{uuid.uuid4().hex}.{ext}"
+    abs_path = os.path.join(app.config["UPLOAD_FOLDER"], new_name)
+    file_storage.save(abs_path)
+
+    return f"/static/uploads/products/{new_name}"
+
 
 db = SQLAlchemy(app)
 
@@ -49,7 +108,8 @@ razorpay_client = razorpay.Client(auth=(
 ))
 
 # --------------------------------------------------------------------
-# PRODUCT CATALOG
+# PRODUCT CATALOG (Legacy static catalog)
+# NOTE: We'll gradually move to DB Products for admin-managed inventory.
 # --------------------------------------------------------------------
 PRODUCT_CATALOG = {
     "gamusa-border-cotton-saree": {
@@ -113,7 +173,7 @@ PRODUCT_CATALOG = {
         "price": 990,
         "category": "T-shirt",
         "image": "https://images.pexels.com/photos/7691052/pexels-photo-7691052.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "hover_image": "https://images.pexels.com/photos/7691057/pexels-photo-7691057.jpeg?auto=compress&cs=tinysrgb&w=800",
+        "hover_image": "https://images.pexels.com/photos/7691057/pexels-photo-3738080.jpeg?auto=compress&cs=tinysrgb&w=800",
         "colors": ["Charcoal", "White"],
         "sizes": ["S", "M", "L", "XL"],
         "description": "Everyday tee with a woven chest panel inspired by Adivasi patterns."
@@ -253,6 +313,32 @@ class CartItem(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+# ✅ NEW/UPDATED: Product model (Admin-managed products + stock + image upload)
+class Product(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    name = db.Column(db.String(200), nullable=False)
+
+    # Optional slug (safe even if you don't use it yet)
+    slug = db.Column(db.String(260), unique=True, nullable=True)
+
+    price = db.Column(db.Float, nullable=False, default=0)
+    stock = db.Column(db.Integer, nullable=False, default=0)
+
+    # Must match your mega-menu labels like "Saree", "Bandi", "Bags", etc.
+    category = db.Column(db.String(120), nullable=False, index=True)
+
+    description = db.Column(db.Text, default="")
+    sizes = db.Column(db.String(200), default="")   # "S,M,L"
+    colors = db.Column(db.String(200), default="")  # "Red,Black"
+
+    image_url = db.Column(db.String(500), default="")  # "/static/uploads/products/xxx.jpg"
+
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
@@ -288,7 +374,6 @@ class OrderItem(db.Model):
     quantity = db.Column(db.Integer, default=1)
 
 
-# ✅ NEW: Contact messages model (shown in Admin)
 class ContactMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -343,7 +428,8 @@ def send_email(to_email, subject, body):
         msg["To"] = to_email
 
         with smtplib.SMTP(app.config["MAIL_SERVER"], app.config["MAIL_PORT"]) as server:
-            server.starttls()
+            if app.config["MAIL_USE_TLS"]:
+                server.starttls()
             server.login(app.config["MAIL_USERNAME"], app.config["MAIL_PASSWORD"])
             server.send_message(msg)
     except Exception as e:
@@ -460,6 +546,26 @@ def redirect_admin_if_needed():
     return None
 
 
+def _gen_slug_from_name(name: str) -> str:
+    # lightweight slug (no extra deps)
+    import re
+    s = (name or "").strip().lower()
+    s = re.sub(r"[^a-z0-9]+", "-", s).strip("-")
+    return s or uuid.uuid4().hex
+
+
+def ensure_product_slug(p: Product):
+    if p.slug:
+        return
+    base = _gen_slug_from_name(p.name)
+    candidate = base
+    i = 2
+    while Product.query.filter(Product.slug == candidate, Product.id != p.id).first():
+        candidate = f"{base}-{i}"
+        i += 1
+    p.slug = candidate
+
+
 # ----------------------------
 # BASIC PAGES
 # ----------------------------
@@ -488,7 +594,9 @@ def shop():
     return render_template("shop.html")
 
 
-# ✅ NEW: CONTACT PAGE (GET + POST)
+# ----------------------------
+# CONTACT PAGE (GET + POST)
+# ----------------------------
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
     redirect_resp = redirect_admin_if_needed()
@@ -523,7 +631,9 @@ def contact():
     return render_template("contact.html")
 
 
-# Universal product detail endpoint (GET shows page, POST adds to cart)
+# ----------------------------
+# PRODUCT DETAIL (Legacy static catalog)
+# ----------------------------
 @app.route("/product/<product_id>", methods=["GET", "POST"])
 def product_detail(product_id):
     redirect_resp = redirect_admin_if_needed()
@@ -761,6 +871,7 @@ def add_to_cart():
         size = request.args.get("size", "")
         color = request.args.get("color", "")
 
+    # Legacy fallback from catalog if missing fields
     if product_id and (not name or not price or not image):
         catalog_item = PRODUCT_CATALOG.get(product_id)
         if catalog_item:
@@ -853,9 +964,6 @@ def remove_cart_item(item_id):
 # ----------------------------
 # CHECKOUT (COD + RAZORPAY)
 # ----------------------------
-# ----------------------------
-# CHECKOUT (COD + RAZORPAY)
-# ----------------------------
 @app.route("/checkout", methods=["GET", "POST"])
 @login_required
 def checkout():
@@ -872,7 +980,6 @@ def checkout():
     if request.method == "POST":
         payment_mode = request.form.get("payment_mode", "cod")
 
-        # ✅ Use checkout form values first, else fallback to profile values
         shipping_name = (request.form.get("name") or "").strip() or (current_user.name or "")
         shipping_email = (request.form.get("email") or "").strip() or (current_user.email or "")
         shipping_phone = (request.form.get("phone") or "").strip() or (current_user.phone or "")
@@ -895,7 +1002,7 @@ def checkout():
                 shipping_phone=shipping_phone,
                 shipping_address=shipping_address,
                 shipping_post_office=shipping_post_office,
-                shipping_pincode=shipping_pincode,  # ✅ will now come from profile if missing in form
+                shipping_pincode=shipping_pincode,
             )
             db.session.add(order)
             db.session.flush()
@@ -917,7 +1024,7 @@ def checkout():
             db.session.commit()
 
             send_order_confirmation_email(order)
-            send_new_order_admin_email(order)  # ✅ admin email already contains pincode
+            send_new_order_admin_email(order)
 
             flash("Order placed successfully (Cash/manual).", "success")
             return redirect(url_for("order_success", order_id=order.id))
@@ -934,7 +1041,7 @@ def checkout():
             shipping_phone=shipping_phone,
             shipping_address=shipping_address,
             shipping_post_office=shipping_post_office,
-            shipping_pincode=shipping_pincode,  # ✅ will now come from profile if missing in form
+            shipping_pincode=shipping_pincode,
         )
         db.session.add(order)
         db.session.flush()
@@ -958,7 +1065,7 @@ def checkout():
                 "notes": {
                     "local_order_id": str(order.id),
                     "customer_email": shipping_email or "",
-                    "customer_pincode": shipping_pincode or "",  # ✅ optional: keep pincode in Razorpay notes too
+                    "customer_pincode": shipping_pincode or "",
                 },
             })
             order.razorpay_order_id = rp_order["id"]
@@ -985,7 +1092,6 @@ def checkout():
         )
 
     return render_template("checkout.html", items=items, user=current_user, total=total)
-
 
 
 # ----------------------------
@@ -1064,7 +1170,7 @@ def order_success(order_id):
 
 
 # ----------------------------
-# MY ORDERS (kept)
+# MY ORDERS
 # ----------------------------
 @app.route("/my-orders")
 @login_required
@@ -1086,9 +1192,11 @@ def admin_dashboard():
     total_revenue = sum(o.total_amount for o in orders)
     live_orders = [o for o in orders if o.status not in ("Delivered", "Cancelled")]
 
-    # ✅ NEW: load contact messages for admin
     contact_messages = ContactMessage.query.order_by(ContactMessage.created_at.desc()).all()
     new_contact_count = ContactMessage.query.filter_by(status="New").count()
+
+    # ✅ NEW: Products for admin dashboard tab
+    products = Product.query.order_by(Product.created_at.desc()).all()
 
     return render_template(
         "admin_dashboard.html",
@@ -1097,11 +1205,14 @@ def admin_dashboard():
         live_orders=live_orders,
         admin_user=current_user,
         contact_messages=contact_messages,
-        new_contact_count=new_contact_count
+        new_contact_count=new_contact_count,
+
+        # NEW
+        products=products,
+        categories=ACCESSORY_CATEGORIES,
     )
 
 
-# ✅ NEW: admin mark contact message as Read
 @app.route("/admin/contact/<int:msg_id>/mark-read", methods=["POST"])
 @admin_required
 def admin_mark_contact_read(msg_id):
@@ -1131,6 +1242,140 @@ def admin_order_detail(order_id):
         return redirect(url_for("admin_order_detail", order_id=order.id))
 
     return render_template("admin_order_detail.html", order=order)
+
+
+# ----------------------------
+# ADMIN PRODUCTS (CRUD)
+# These are the routes your updated admin_dashboard.html will call.
+# ----------------------------
+@app.route("/admin/products/create", methods=["POST"])
+@admin_required
+def admin_create_product():
+    name = (request.form.get("name") or "").strip()
+    category = (request.form.get("category") or "").strip()
+    price = request.form.get("price", type=float) or 0
+    stock = request.form.get("stock", type=int) or 0
+    sizes = (request.form.get("sizes") or "").strip()
+    colors = (request.form.get("colors") or "").strip()
+    description = (request.form.get("description") or "").strip()
+
+    if not name or not category:
+        flash("Name and Category are required.", "error")
+        return redirect(url_for("admin_dashboard"))
+
+    if category not in ACCESSORY_CATEGORIES:
+        flash("Invalid category selected.", "error")
+        return redirect(url_for("admin_dashboard"))
+
+    image_file = request.files.get("image")
+    image_url = save_product_image(image_file)
+    if not image_url:
+        flash("Please upload a valid image (png/jpg/jpeg/webp).", "error")
+        return redirect(url_for("admin_dashboard"))
+
+    p = Product(
+        name=name,
+        category=category,
+        price=float(price or 0),
+        stock=int(stock or 0),
+        sizes=sizes,
+        colors=colors,
+        description=description,
+        image_url=image_url,
+        is_active=True,
+    )
+    db.session.add(p)
+    db.session.flush()
+
+    # Optional slug
+    ensure_product_slug(p)
+
+    db.session.commit()
+    flash("Product added successfully.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/products/<int:product_id>/toggle", methods=["POST"])
+@admin_required
+def admin_toggle_product(product_id):
+    p = Product.query.get_or_404(product_id)
+    p.is_active = not p.is_active
+    db.session.commit()
+    flash("Product status updated.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/products/<int:product_id>/delete", methods=["POST"])
+@admin_required
+def admin_delete_product(product_id):
+    p = Product.query.get_or_404(product_id)
+
+    # optional: delete file from disk
+    try:
+        if p.image_url and p.image_url.startswith("/static/uploads/products/"):
+            fname = p.image_url.split("/")[-1]
+            fpath = os.path.join(app.config["UPLOAD_FOLDER"], fname)
+            if os.path.exists(fpath):
+                os.remove(fpath)
+    except Exception as e:
+        print("Image delete error:", e)
+
+    db.session.delete(p)
+    db.session.commit()
+    flash("Product deleted.", "info")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/products/<int:product_id>/edit", methods=["GET", "POST"])
+@admin_required
+def admin_edit_product(product_id):
+    p = Product.query.get_or_404(product_id)
+
+    if request.method == "POST":
+        name = (request.form.get("name") or "").strip()
+        category = (request.form.get("category") or "").strip()
+        price = request.form.get("price", type=float) or 0
+        stock = request.form.get("stock", type=int) or 0
+        sizes = (request.form.get("sizes") or "").strip()
+        colors = (request.form.get("colors") or "").strip()
+        description = (request.form.get("description") or "").strip()
+
+        if not name or not category:
+            flash("Name and Category are required.", "error")
+            return redirect(url_for("admin_edit_product", product_id=p.id))
+
+        if category not in ACCESSORY_CATEGORIES:
+            flash("Invalid category selected.", "error")
+            return redirect(url_for("admin_edit_product", product_id=p.id))
+
+        p.name = name
+        p.category = category
+        p.price = float(price or 0)
+        p.stock = int(stock or 0)
+        p.sizes = sizes
+        p.colors = colors
+        p.description = description
+
+        # new image optional
+        image_file = request.files.get("image")
+        if image_file and image_file.filename:
+            new_url = save_product_image(image_file)
+            if not new_url:
+                flash("Invalid image. Allowed: png/jpg/jpeg/webp", "error")
+                return redirect(url_for("admin_edit_product", product_id=p.id))
+            p.image_url = new_url
+
+        ensure_product_slug(p)
+
+        db.session.commit()
+        flash("Product updated successfully.", "success")
+        return redirect(url_for("admin_dashboard"))
+
+    return render_template(
+        "admin_product_edit.html",
+        p=p,
+        categories=ACCESSORY_CATEGORIES
+    )
 
 
 # ----------------------------

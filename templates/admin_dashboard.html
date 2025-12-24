@@ -5,6 +5,7 @@
     <style>
       /* ==============================
          Admin Dashboard — Classic Pro
+         + Products (NEW)
          Scoped to this template only
          ============================== */
 
@@ -36,26 +37,6 @@
         color: var(--ink);
         position: relative;
         overflow: hidden;
-      }
-
-      /* soft bubbles */
-      .admin-wrap::before,
-      .admin-wrap::after{
-        content:"";
-        position:absolute;
-        border-radius:999px;
-        border:1px dashed rgba(124,95,64,0.28);
-        pointer-events:none;
-      }
-      .admin-wrap::before{
-        width:320px;height:320px;
-        top:-120px;right:-90px;
-        opacity:.9;
-      }
-      .admin-wrap::after{
-        width:240px;height:240px;
-        bottom:-120px;left:-90px;
-        opacity:.65;
       }
 
       .admin-container{
@@ -251,12 +232,8 @@
         padding: 14px;
       }
 
-      .panel{
-        display:none;
-      }
-      .panel.active{
-        display:block;
-      }
+      .panel{ display:none; }
+      .panel.active{ display:block; }
 
       /* Toolbar */
       .toolbar{
@@ -444,10 +421,20 @@
         color: var(--ink);
         background: rgba(255,250,242,0.75);
         transition: transform .15s ease, background .15s ease;
+        cursor:pointer;
       }
       .cta:hover{
         transform: translateY(-1px);
         background: rgba(255,250,242,0.95);
+      }
+
+      .cta.primary{
+        border-color: rgba(43,108,176,0.38);
+        background: rgba(43,108,176,0.10);
+      }
+      .cta.danger{
+        border-color: rgba(197,48,48,0.35);
+        background: rgba(197,48,48,0.08);
       }
 
       .empty{
@@ -458,15 +445,103 @@
         background: rgba(255,255,255,0.35);
       }
 
+      /* ------------------------------
+         PRODUCTS (NEW)
+      ------------------------------ */
+      .grid2{
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+
+      .form-grid{
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 12px;
+      }
+      .fg{
+        display:flex;
+        flex-direction:column;
+        gap: 7px;
+      }
+      .fg label{
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .14em;
+        color: rgba(34,21,14,0.78);
+      }
+      .fg input, .fg textarea, .fg select{
+        width:100%;
+        border: 1px solid rgba(0,0,0,0.18);
+        border-radius: 12px;
+        padding: 10px 12px;
+        background: rgba(255,255,255,0.65);
+        color: var(--ink);
+        outline:none;
+        font-size: 13px;
+      }
+      .fg textarea{
+        min-height: 110px;
+        resize: vertical;
+        line-height: 1.6;
+      }
+      .fg input:focus, .fg textarea:focus, .fg select:focus{
+        box-shadow: var(--focus);
+        border-color: rgba(43,108,176,0.35);
+      }
+      .full{ grid-column: 1 / -1; }
+
+      .preview{
+        display:flex;
+        gap:12px;
+        align-items:flex-start;
+        padding: 12px;
+        border-radius: 14px;
+        border: 1px dashed rgba(0,0,0,0.18);
+        background: rgba(255,255,255,0.35);
+        margin-top: 12px;
+      }
+      .preview .ph{
+        width: 84px;
+        height: 96px;
+        border-radius: 14px;
+        overflow:hidden;
+        border: 1px solid rgba(0,0,0,0.10);
+        background: rgba(255,255,255,0.55);
+        box-shadow: 0 10px 18px rgba(0,0,0,0.12);
+        flex-shrink: 0;
+      }
+      .preview .ph img{
+        width:100%;
+        height:100%;
+        object-fit: cover;
+        display:block;
+      }
+      .preview .meta{
+        flex:1;
+        font-size: 12px;
+        color: rgba(34,21,14,0.88);
+        line-height: 1.7;
+      }
+      .hint{
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 8px;
+        line-height: 1.65;
+      }
+
       /* Responsive */
       @media (max-width: 980px){
         .kpi{ grid-column: span 6; }
         .field input{ min-width: 180px; }
+        .grid2{ grid-template-columns: 1fr; }
       }
       @media (max-width: 640px){
         .kpi{ grid-column: span 12; }
         .field{ width: 100%; }
         .field input{ width: 100%; min-width: 0; }
+        .form-grid{ grid-template-columns: 1fr; }
       }
     </style>
 
@@ -475,14 +550,14 @@
         <div>
           <h1 class="admin-title">Store Admin Panel</h1>
           <div class="admin-sub">
-            Manage orders, customer messages, and quick actions — all in one place.
+            Manage orders, products, customer messages, and quick actions — all in one place.
           </div>
         </div>
 
         <div class="admin-actions">
-          <a class="pill-link" href="{{ url_for('admin_profile') }}">
-            Admin Profile
-          </a>
+          <a class="pill-link" href="{{ url_for('admin_profile') }}">Admin Profile</a>
+          <!-- NEW: quick jump to Products tab -->
+          <button class="pill-btn" type="button" id="jumpProducts">Products</button>
         </div>
       </div>
 
@@ -517,6 +592,11 @@
         <div class="tabbar" role="tablist" aria-label="Admin sheets">
           <button class="tab-btn" role="tab" aria-selected="true" data-tab="orders">
             Orders <span class="tabcount">{{ orders|length if orders else 0 }}</span>
+          </button>
+
+          <!-- NEW TAB -->
+          <button class="tab-btn" role="tab" aria-selected="false" data-tab="products">
+            Products <span class="tabcount">{{ products|length if products else 0 }}</span>
           </button>
 
           <button class="tab-btn" role="tab" aria-selected="false" data-tab="messages">
@@ -559,7 +639,6 @@
             {% if orders %}
               <div id="ordersList">
                 {% for o in orders %}
-                  {# searchable text pack #}
                   {% set o_search = (
                     (o.id|string) ~ " " ~
                     (o.shipping_name or "") ~ " " ~
@@ -654,6 +733,232 @@
             {% else %}
               <div class="empty">No orders yet.</div>
             {% endif %}
+          </div>
+
+          <!-- ======================
+               PRODUCTS PANEL (NEW)
+               ====================== -->
+          <div class="panel" id="panel-products" role="tabpanel">
+            <div class="toolbar">
+              <div class="left">
+                <div class="field">
+                  <span style="font-size:12px;opacity:.7;">🔎</span>
+                  <input id="prodSearch" type="text" placeholder="Search products by name, category, price…">
+                </div>
+
+                <div class="field">
+                  <span style="font-size:12px;opacity:.7;">Category</span>
+                  <select id="prodCategoryFilter">
+                    <option value="">All</option>
+                    {% for c in categories or [] %}
+                      <option value="{{ c }}">{{ c }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="field">
+                  <span style="font-size:12px;opacity:.7;">Status</span>
+                  <select id="prodStatusFilter">
+                    <option value="">All</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                    <option value="Out">Out of stock</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="right">
+                <button class="pill-btn" type="button" id="toggleAddProduct">Add product</button>
+              </div>
+            </div>
+
+            <div class="grid2">
+              <!-- Add Product -->
+              <div class="card" id="addProductCard" style="display:none;">
+                <div class="cardhead">
+                  <div>
+                    <div class="titleline">Add new product</div>
+                    <div class="subline">Upload image + set category, stock, price & details.</div>
+                  </div>
+                  <div class="rightmeta">
+                    <button class="cta" type="button" id="closeAddProduct">Close</button>
+                  </div>
+                </div>
+
+                <div class="divider">
+                  <!-- IMPORTANT: needs an /admin/products/create route in app.py -->
+                  <form method="POST" action="{{ url_for('admin_create_product') }}" enctype="multipart/form-data" id="productForm">
+                    <div class="form-grid">
+                      <div class="fg">
+                        <label>Product name</label>
+                        <input name="name" required placeholder="Eg. Gamusa Saree (Red Border)">
+                      </div>
+
+                      <div class="fg">
+                        <label>Category</label>
+                        <select name="category" required>
+                          <option value="" disabled selected>Select category</option>
+                          {% for c in categories or [] %}
+                            <option value="{{ c }}">{{ c }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+
+                      <div class="fg">
+                        <label>Price (Rs.)</label>
+                        <input name="price" type="number" min="0" step="1" required placeholder="Eg. 2490">
+                      </div>
+
+                      <div class="fg">
+                        <label>Stock</label>
+                        <input name="stock" type="number" min="0" step="1" required placeholder="Eg. 20">
+                      </div>
+
+                      <div class="fg">
+                        <label>Sizes (comma separated)</label>
+                        <input name="sizes" placeholder="Eg. S,M,L,XL (or Free Size)">
+                      </div>
+
+                      <div class="fg">
+                        <label>Colours (comma separated)</label>
+                        <input name="colors" placeholder="Eg. Red,Black">
+                      </div>
+
+                      <div class="fg full">
+                        <label>Description</label>
+                        <textarea name="description" placeholder="Write product details (material, care, notes)…"></textarea>
+                      </div>
+
+                      <div class="fg full">
+                        <label>Image (upload from phone / PC)</label>
+                        <input name="image" type="file" accept="image/*" required id="prodImage">
+                        <div class="hint">
+                          Tip: use JPG/PNG/WEBP. After save, this image will be used in category pages & product detail page.
+                        </div>
+
+                        <div class="preview" id="prodPreview" style="display:none;">
+                          <div class="ph"><img id="prodPreviewImg" alt="Preview"></div>
+                          <div class="meta" id="prodPreviewMeta"></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+                      <button class="cta primary" type="submit">Save product</button>
+                      <button class="cta" type="reset" id="resetProdForm">Reset</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+              <!-- Products list -->
+              <div class="card">
+                <div class="cardhead">
+                  <div>
+                    <div class="titleline">Products</div>
+                    <div class="subline">All admin-added products (DB). These will be used across your category pages.</div>
+                  </div>
+                  <div class="rightmeta">
+                    <div class="subline">Total: {{ products|length if products else 0 }}</div>
+                  </div>
+                </div>
+
+                <div class="divider">
+                  {% if products %}
+                    <div id="prodList">
+                      {% for p in products %}
+                        {% set p_status = "Active" if p.is_active else "Inactive" %}
+                        {% set stock_state = "Out" if (p.stock or 0) <= 0 else "In" %}
+                        {% set p_search = (
+                          (p.name or "") ~ " " ~
+                          (p.category or "") ~ " " ~
+                          (p.price|string) ~ " " ~
+                          (p.stock|string) ~ " " ~
+                          (p_status) ~ " " ~
+                          (stock_state)
+                        ) %}
+
+                        <div class="card prod-card"
+                             style="margin-bottom:12px;"
+                             data-search="{{ p_search|lower }}"
+                             data-category="{{ p.category }}"
+                             data-status="{{ p_status }}"
+                             data-stock="{{ stock_state }}">
+                          <div class="cardhead">
+                            <div style="display:flex;gap:12px;align-items:flex-start;">
+                              <div class="thumb" style="width:72px;height:82px;">
+                                {% if p.image_url %}
+                                  <img src="{{ p.image_url }}" alt="{{ p.name }}">
+                                {% else %}
+                                  <img src="https://via.placeholder.com/300x400?text=No+Image" alt="No image">
+                                {% endif %}
+                              </div>
+
+                              <div>
+                                <div class="titleline">{{ p.name }}</div>
+                                <div class="subline">
+                                  {{ p.category }} · Rs. {{ "%.0f"|format(p.price or 0) }} · Stock: {{ p.stock or 0 }}
+                                  {% if not p.is_active %}
+                                    <span class="badge">Inactive</span>
+                                  {% elif (p.stock or 0) <= 0 %}
+                                    <span class="badge">Out of stock</span>
+                                  {% endif %}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div class="rightmeta">
+                              <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
+                                <!-- Needs route in app.py -->
+                                <a class="cta" href="{{ url_for('admin_edit_product', product_id=p.id) }}">Edit</a>
+
+                                <!-- Toggle active -->
+                                <form method="POST" action="{{ url_for('admin_toggle_product', product_id=p.id) }}" style="display:inline;">
+                                  <button type="submit" class="cta">
+                                    {% if p.is_active %}Deactivate{% else %}Activate{% endif %}
+                                  </button>
+                                </form>
+
+                                <!-- Delete -->
+                                <form method="POST" action="{{ url_for('admin_delete_product', product_id=p.id) }}"
+                                      style="display:inline;"
+                                      onsubmit="return confirm('Delete this product? This cannot be undone.');">
+                                  <button type="submit" class="cta danger">Delete</button>
+                                </form>
+                              </div>
+                            </div>
+                          </div>
+
+                          {% if p.description or p.sizes or p.colors %}
+                            <div class="divider" style="margin-top:10px;">
+                              <details open>
+                                <summary style="cursor:pointer;user-select:none;list-style:none;">
+                                  <span style="text-transform:uppercase;letter-spacing:.14em;font-size:11px;">
+                                    Details — click to toggle
+                                  </span>
+                                </summary>
+
+                                <div style="margin-top:10px;font-size:12px;line-height:1.75;color:rgba(34,21,14,0.92);">
+                                  {% if p.description %}<div><strong>Description:</strong> {{ p.description }}</div>{% endif %}
+                                  {% if p.sizes %}<div style="margin-top:6px;"><strong>Sizes:</strong> {{ p.sizes }}</div>{% endif %}
+                                  {% if p.colors %}<div style="margin-top:6px;"><strong>Colours:</strong> {{ p.colors }}</div>{% endif %}
+                                </div>
+                              </details>
+                            </div>
+                          {% endif %}
+                        </div>
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    <div class="empty">No products added yet. Click “Add product”.</div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="hint">
+              Note: The menu links (Saree, Bandi, Bags, etc.) will work best when your Product categories use the exact same names.
+            </div>
           </div>
 
           <!-- ======================
@@ -779,6 +1084,7 @@
         const tabBtns = Array.from(tabsRoot.querySelectorAll(".tab-btn"));
         const panels = {
           orders: document.getElementById("panel-orders"),
+          products: document.getElementById("panel-products"),
           messages: document.getElementById("panel-messages"),
         };
 
@@ -791,13 +1097,10 @@
             if(!panels[k]) return;
             panels[k].classList.toggle("active", k === tab);
           });
-          // optional: remember last tab
           try{ localStorage.setItem("admin_active_tab", tab); }catch(e){}
         }
 
-        tabBtns.forEach(btn => {
-          btn.addEventListener("click", () => activate(btn.dataset.tab));
-        });
+        tabBtns.forEach(btn => btn.addEventListener("click", () => activate(btn.dataset.tab)));
 
         // restore last tab
         try{
@@ -805,11 +1108,14 @@
           if(last && panels[last]) activate(last);
         }catch(e){}
 
+        // quick jump
+        document.getElementById("jumpProducts")?.addEventListener("click", () => activate("products"));
+
         // -------------------------
         // Helpers: filter list
         // -------------------------
         function wireSearchAndFilter(opts){
-          const {searchInput, statusSelect, listRoot, cardSelector} = opts;
+          const {searchInput, statusSelect, listRoot, cardSelector, extraApply} = opts;
           if(!listRoot) return;
 
           function apply(){
@@ -822,7 +1128,13 @@
               const cst = (card.getAttribute("data-status") || "");
               const okQ = !q || hay.includes(q);
               const okS = !st || cst === st;
-              card.style.display = (okQ && okS) ? "" : "none";
+
+              let okE = true;
+              if(typeof extraApply === "function"){
+                okE = extraApply(card);
+              }
+
+              card.style.display = (okQ && okS && okE) ? "" : "none";
             });
           }
 
@@ -847,6 +1159,45 @@
           cardSelector: ".msg-card"
         });
 
+        // Products filter (NEW)
+        (function(){
+          const listRoot = document.getElementById("prodList");
+          if(!listRoot) return;
+
+          const searchInput = document.getElementById("prodSearch");
+          const catSelect = document.getElementById("prodCategoryFilter");
+          const statusSelect = document.getElementById("prodStatusFilter");
+
+          function apply(){
+            const q = (searchInput?.value || "").trim().toLowerCase();
+            const cat = (catSelect?.value || "").trim();
+            const st = (statusSelect?.value || "").trim(); // Active / Inactive / Out
+
+            const cards = Array.from(listRoot.querySelectorAll(".prod-card"));
+            cards.forEach(card => {
+              const hay = (card.getAttribute("data-search") || "");
+              const ccat = (card.getAttribute("data-category") || "");
+              const cst = (card.getAttribute("data-status") || "");
+              const cstock = (card.getAttribute("data-stock") || "In");
+
+              const okQ = !q || hay.includes(q);
+              const okC = !cat || ccat === cat;
+
+              let okS = true;
+              if(st === "Active") okS = (cst === "Active");
+              else if(st === "Inactive") okS = (cst === "Inactive");
+              else if(st === "Out") okS = (cstock === "Out");
+
+              card.style.display = (okQ && okC && okS) ? "" : "none";
+            });
+          }
+
+          searchInput?.addEventListener("input", apply);
+          catSelect?.addEventListener("change", apply);
+          statusSelect?.addEventListener("change", apply);
+          apply();
+        })();
+
         // -------------------------
         // Expand/Collapse details
         // -------------------------
@@ -868,6 +1219,54 @@
         document.getElementById("expandAllMsgs")?.addEventListener("click", () => {
           setDetailsOpen(document.getElementById("panel-messages"), "details.msg-body", true);
         });
+
+        // -------------------------
+        // Add Product Card toggle + image preview
+        // -------------------------
+        const addCard = document.getElementById("addProductCard");
+        const toggleBtn = document.getElementById("toggleAddProduct");
+        const closeBtn = document.getElementById("closeAddProduct");
+        const imgInput = document.getElementById("prodImage");
+
+        const preview = document.getElementById("prodPreview");
+        const previewImg = document.getElementById("prodPreviewImg");
+        const previewMeta = document.getElementById("prodPreviewMeta");
+
+        function closeAdd(){
+          if(addCard) addCard.style.display = "none";
+        }
+
+        toggleBtn?.addEventListener("click", () => {
+          if(!addCard) return;
+          const isOpen = addCard.style.display !== "none";
+          addCard.style.display = isOpen ? "none" : "";
+          if(!isOpen){
+            addCard.scrollIntoView({behavior:"smooth", block:"start"});
+          }
+        });
+        closeBtn?.addEventListener("click", closeAdd);
+
+        imgInput?.addEventListener("change", (e) => {
+          const f = e.target.files && e.target.files[0];
+          if(!f){ preview.style.display = "none"; return; }
+
+          const url = URL.createObjectURL(f);
+          previewImg.src = url;
+          preview.style.display = "";
+
+          const sizeKb = Math.round((f.size || 0) / 1024);
+          previewMeta.innerHTML =
+            "<div style='text-transform:uppercase;letter-spacing:.14em;font-size:11px;margin-bottom:6px;'>Image selected</div>" +
+            "<div><strong>Name:</strong> " + (f.name || "-") + "</div>" +
+            "<div><strong>Size:</strong> " + sizeKb + " KB</div>" +
+            "<div><strong>Type:</strong> " + (f.type || "-") + "</div>";
+        });
+
+        document.getElementById("resetProdForm")?.addEventListener("click", () => {
+          if(preview) preview.style.display = "none";
+          if(previewImg) previewImg.removeAttribute("src");
+        });
+
       })();
     </script>
   </section>

@@ -20,26 +20,11 @@
         position:relative;
         overflow:hidden;
       }
-      .profile-page::before,
-      .profile-page::after{
-        content:"";
-        position:absolute;
-        border-radius:999px;
-        border:1px dashed rgba(124,95,64,0.28);
-        pointer-events:none;
-      }
-      .profile-page::before{
-        width:280px;
-        height:280px;
-        top:-110px;
-        right:-80px;
-      }
-      .profile-page::after{
-        width:340px;
-        height:340px;
-        bottom:-130px;
-        left:-120px;
-      }
+
+      /* ❌ REMOVED (as requested): the top-right and bottom-left dashed circle designs
+         .profile-page::before,
+         .profile-page::after
+      */
 
       .profile-shell{
         width:100%;
@@ -720,7 +705,7 @@
                 type="text"
                 name="nearest_post_office"
                 class="profile-input"
-                placeholder="Example: Chhimphei PO"
+                placeholder="Example: Margherita PO"
                 value="{{ current_user.nearest_post_office or '' }}"
               >
             </div>

@@ -6,7 +6,8 @@
     <section class="hero" id="hero" data-parallax>
       <div class="hero-inner">
         <div class="hero-kicker">Traditional Shop</div>
-        <div class="hero-title-main">Crafted in Culture</div>
+        <div class="hero-title-main">The ADIVASI STORE</div>
+        <div class="hero-kicker-1">Crafted in Culture</div>
         <p class="hero-subtitle">
           Traditional Adivasi weaves, soft as memory and vibrant as our roots, handcrafted with care and culture—designed to be worn, cherished and passed on through generations.
         </p>
@@ -15,43 +16,89 @@
     </section>
 
     <!-- CATEGORY GRID -->
-    <section class="section" id="shop">
-      <div class="category-grid">
-        <article class="category-card cat-newin">
-          <div class="category-label">New In</div>
-        </article>
-        <article class="category-card cat-leather">
-          <div class="category-label">Leather Goods</div>
-        </article>
-        <article class="category-card cat-knitwear">
-          <div class="category-label">Knitwear</div>
-        </article>
-        <article class="category-card cat-shoes">
-          <div class="category-label">Shoes</div>
-        </article>
-        <article class="category-card cat-coats">
-          <div class="category-label">Coats</div>
-        </article>
-      </div>
+<section class="section" id="shop">
+  <div class="category-grid">
 
-      <div class="category-row-two" id="accessories">
-        <article class="category-card cat-tops">
-          <div class="category-label">Tops</div>
-        </article>
-        <article class="category-card cat-fragrance">
-          <div class="category-label">Fragrance</div>
-        </article>
-        <article class="category-card cat-dresses">
-          <div class="category-label">Dresses</div>
-        </article>
-        <article class="category-card cat-jewelry">
-          <div class="category-label">Jewelry</div>
-        </article>
-        <article class="category-card cat-trousers">
-          <div class="category-label">Trousers &amp; Jumpsuits</div>
-        </article>
-      </div>
-    </section>
+    <div class="category-card cat-newin">
+      <img src="/static/images/categories/saree.jpg" alt="Saree">
+      <div class="category-label">Saree</div>
+    </div>
+
+    <div class="category-card cat-leather">
+      <img src="/static/images/categories/bandi.jpg" alt="Bandi">
+      <div class="category-label">Bandi</div>
+    </div>
+
+    <div class="category-card cat-knitwear">
+      <img src="/static/images/categories/bags.jpg" alt="Bags">
+      <div class="category-label">Bags</div>
+    </div>
+
+    <div class="category-card cat-shoes">
+      <img src="/static/images/categories/gamosa.jpg" alt="Gamosa">
+      <div class="category-label">Gamosa</div>
+    </div>
+
+    <div class="category-card cat-coats">
+      <img src="/static/images/categories/shawl.jpg" alt="Shawl">
+      <div class="category-label">Shawl</div>
+    </div>
+
+  </div>
+
+  <div class="category-row-two" id="accessories">
+
+    <div class="category-card cat-tops">
+      <img src="/static/images/categories/kids-kurta.jpg" alt="Kurta Pyjama for Kids">
+      <div class="category-label">Kurta Pyjama for Kids</div>
+    </div>
+
+    <div class="category-card cat-fragrance">
+      <img src="/static/images/categories/kids-dhoti.jpg" alt="Dhoti for kids">
+      <div class="category-label">Dhoti for kids</div>
+    </div>
+
+    <div class="category-card cat-dresses">
+      <img src="/static/images/categories/sitapati.jpg" alt="Sitapati">
+      <div class="category-label">Sitapati</div>
+    </div>
+
+    <div class="category-card cat-jewelry">
+      <img src="/static/images/categories/jhumka.jpg" alt="Jhumka">
+      <div class="category-label">Jhumka</div>
+    </div>
+
+    <div class="category-card cat-trousers">
+      <img src="/static/images/categories/chandrahaar.jpg" alt="Chandrahaar">
+      <div class="category-label">Chandrahaar</div>
+    </div>
+
+    <div class="category-card cat-trousers">
+      <img src="/static/images/categories/hashli.jpg" alt="Hashli">
+      <div class="category-label">Hashli</div>
+    </div>
+
+    <div class="category-card cat-trousers">
+      <img src="/static/images/categories/baju.jpg" alt="Baju">
+      <div class="category-label">Baju</div>
+    </div>
+
+    <div class="category-card cat-trousers">
+      <img src="/static/images/categories/khongso.jpg" alt="Khongso">
+      <div class="category-label">Khongso</div>
+    </div>
+
+    <div class="category-card cat-trousers">
+      <img src="/static/images/categories/poyori.jpg" alt="Poyori">
+      <div class="category-label">Poyori</div>
+    </div>
+
+  </div>
+</section>
+
+
+
+
 
 
     <!-- ===== PRODUCT STRIP SECTION (women/men/kids) ===== -->
@@ -71,7 +118,7 @@
       margin:0 auto;
     }
 
-    /* Tabs (Women / Men / Kids) */
+    /* Tabs (Women / Men / Kids / Ornaments) */
     #adivasi-product-strip .aps-tabs{
       display:flex;
       gap:28px;
@@ -324,6 +371,7 @@
       <button class="aps-tab aps-tab--active" data-gender="women">Women</button>
       <button class="aps-tab" data-gender="men">Men</button>
       <button class="aps-tab" data-gender="kids">Kids</button>
+      <button class="aps-tab" data-gender="ornaments">Ornaments</button>
     </div>
 
     <div class="aps-grid">
@@ -459,6 +507,48 @@
         price: "2,700.00",
         img: "",
         imgHover: ""
+      },
+
+      /* ORNAMENTS */
+      {
+        id: 13,
+        productId: "brass-choker-tribal-curve",
+        gender: "ornaments",
+        name: "BRASS CHOKER",
+        subtitle: "TRIBAL CURVE",
+        price: "1,900.00",
+        img: "",
+        imgHover: ""
+      },
+      {
+        id: 14,
+        productId: "handmade-silver-earrings-spiral",
+        gender: "ornaments",
+        name: "HANDMADE SILVER EARRINGS",
+        subtitle: "SPIRAL",
+        price: "1,250.00",
+        img: "",
+        imgHover: ""
+      },
+      {
+        id: 15,
+        productId: "beaded-necklace-earth-tones",
+        gender: "ornaments",
+        name: "BEADED NECKLACE",
+        subtitle: "EARTH TONES",
+        price: "1,650.00",
+        img: "",
+        imgHover: ""
+      },
+      {
+        id: 16,
+        productId: "tribal-bangle-set-copper",
+        gender: "ornaments",
+        name: "TRIBAL BANGLE SET",
+        subtitle: "COPPER",
+        price: "2,100.00",
+        img: "",
+        imgHover: ""
       }
     ];
 
@@ -576,6 +666,7 @@
     });
   </script>
 </section>
+
 
 
     <section id="adivasi-social-posts">
@@ -1093,30 +1184,45 @@
     </section>
 
     <!-- BENEFITS -->
-    <section class="benefits">
-      <div class="benefits-inner">
-        <div class="benefit-block">
-          <h3>XXXX XXXXXXX</h3>
-          <p>
-            Complimentary delivery on all orders over your local threshold.
-            Returns accepted within our extended holiday period.
-          </p>
-        </div>
-        <div class="benefit-block">
-          <h3>XXXX XXXXX</h3>
-          <p>
-            Enjoy easy, prepaid returns from a selection of partner countries.
-            Check full details in your order confirmation.
-          </p>
-        </div>
-        <div class="benefit-block">
-          <h3>Secure Payment</h3>
-          <p>
-            Pay safely with major credit cards and trusted payment providers
-            through encrypted checkout.
-          </p>
-        </div>
-      </div>
-    </section>
+<section class="benefits">
+  <div class="benefits-inner">
+    <div class="benefit-block">
+      <h3>Secure Payment</h3>
+      <p>
+        “Shop with confidence. Secure checkout guaranteed.”<br>
+        “Your payment info is safe with us.”<br>
+        “Encrypted &amp; trusted payment processing.”
+      </p>
+    </div>
+
+    <div class="benefit-block">
+      <h3>Fast Shipping</h3>
+      <p>
+        “Quick delivery. Because you’re busy.”<br>
+        “Fast, tracked shipping on all orders.”<br>
+        “Get it sooner. Express shipping options.”
+      </p>
+    </div>
+
+    <div class="benefit-block">
+      <h3>Customer Support</h3>
+      <p>
+        “We’ve got you. 24/7 support.”<br>
+        “Help anytime. Reach out, we’re here.”<br>
+        “Your questions answered, fast.”
+      </p>
+    </div>
+
+    <div class="benefit-block">
+      <h3>Quality Promise</h3>
+      <p>
+        “Crafted with care. Quality you can trust.”<br>
+        “Authentic products. Guaranteed.”<br>
+        “Only the best. Promise.”
+      </p>
+    </div>
+  </div>
+</section>
+
   </main>
 {% endblock %}

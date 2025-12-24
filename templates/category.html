@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+<main>
+  <section style="padding:130px 20px 80px; background: radial-gradient(circle at 12% 0%, #fff6ea 0, #f3e4d2 32%, #ead9c6 64%, #e1cfbc 100%); min-height:100vh;">
+    <div style="max-width:1120px;margin:0 auto;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;">
+        <div>
+          <h1 style="margin:0;font-size:22px;text-transform:uppercase;letter-spacing:.18em;color:#22150e;">
+            {{ category_name }}
+          </h1>
+          <div style="margin-top:8px;font-size:12px;color:rgba(34,21,14,0.62);letter-spacing:.06em;">
+            Browse products added from Admin Panel.
+          </div>
+        </div>
+
+        <a href="{{ url_for('shop') }}"
+           style="display:inline-flex;align-items:center;justify-content:center;padding:9px 14px;border-radius:999px;border:1px solid rgba(0,0,0,0.22);background:rgba(255,250,242,0.65);text-decoration:none;color:#22150e;font-size:11px;text-transform:uppercase;letter-spacing:.16em;">
+          Back to shop
+        </a>
+      </div>
+
+      <div style="margin-top:18px;display:grid;grid-template-columns:repeat(12,1fr);gap:14px;">
+        {% if products and products|length > 0 %}
+          {% for p in products %}
+            <a href="{{ url_for('db_product_detail', product_id=p.id) }}"
+               style="grid-column:span 3; text-decoration:none; color:#22150e;">
+              <div style="border-radius:16px;border:1px solid rgba(0,0,0,0.08);background:#fbf5ea;box-shadow:0 10px 22px rgba(0,0,0,0.10);overflow:hidden;">
+                <div style="height:220px;background:rgba(255,255,255,0.55);">
+                  {% if p.image_url %}
+                    <img src="{{ p.image_url }}" alt="{{ p.name }}"
+                         style="width:100%;height:100%;object-fit:cover;display:block;">
+                  {% endif %}
+                </div>
+                <div style="padding:14px 14px;">
+                  <div style="font-size:12px;text-transform:uppercase;letter-spacing:.12em;">
+                    {{ p.name }}
+                  </div>
+                  <div style="margin-top:8px;display:flex;justify-content:space-between;gap:10px;font-size:12px;color:rgba(34,21,14,0.85);">
+                    <span>Rs. {{ "%.0f"|format(p.price) }}</span>
+                    <span style="color:rgba(34,21,14,0.62);">
+                      {% if p.stock > 0 %}Stock: {{ p.stock }}{% else %}Out of stock{% endif %}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </a>
+          {% endfor %}
+        {% else %}
+          <div style="grid-column:span 12;padding:18px;border-radius:14px;border:1px dashed rgba(0,0,0,0.18);background:rgba(255,255,255,0.35);color:rgba(34,21,14,0.62);">
+            No products found in this category yet.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <style>
+    @media (max-width: 980px){
+      a[style*="grid-column:span 3"]{ grid-column: span 6 !important; }
+    }
+    @media (max-width: 640px){
+      a[style*="grid-column:span 3"]{ grid-column: span 12 !important; }
+    }
+  </style>
+</main>
+{% endblock %}

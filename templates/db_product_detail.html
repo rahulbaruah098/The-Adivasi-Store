@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block content %}
+<main>
+  <section style="padding:130px 20px 80px; background: radial-gradient(circle at 12% 0%, #fff6ea 0, #f3e4d2 32%, #ead9c6 64%, #e1cfbc 100%); min-height:100vh;">
+    <div style="max-width:980px;margin:0 auto;">
+      <a href="{{ url_for('category_page', category_name=product.category) }}"
+         style="display:inline-flex;align-items:center;gap:10px;margin-bottom:14px;padding:9px 14px;border-radius:999px;border:1px solid rgba(0,0,0,0.22);background:rgba(255,250,242,0.65);text-decoration:none;color:#22150e;font-size:11px;text-transform:uppercase;letter-spacing:.16em;">
+        ← Back to {{ product.category }}
+      </a>
+
+      <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:14px;">
+        <div style="grid-column:span 6;border-radius:16px;border:1px solid rgba(0,0,0,0.08);background:#fbf5ea;box-shadow:0 10px 22px rgba(0,0,0,0.10);overflow:hidden;">
+          <div style="height:520px;background:rgba(255,255,255,0.55);">
+            {% if product.image_url %}
+              <img src="{{ product.image_url }}" alt="{{ product.name }}"
+                   style="width:100%;height:100%;object-fit:cover;display:block;">
+            {% endif %}
+          </div>
+        </div>
+
+        <div style="grid-column:span 6;border-radius:16px;border:1px solid rgba(0,0,0,0.08);background:#fbf5ea;box-shadow:0 10px 22px rgba(0,0,0,0.10);padding:18px;">
+          <div style="font-size:12px;text-transform:uppercase;letter-spacing:.16em;color:rgba(34,21,14,0.62);">
+            {{ product.category }}
+          </div>
+
+          <h1 style="margin:10px 0 0;font-size:22px;text-transform:uppercase;letter-spacing:.14em;color:#22150e;line-height:1.25;">
+            {{ product.name }}
+          </h1>
+
+          <div style="margin-top:10px;font-size:14px;color:rgba(34,21,14,0.9);">
+            <strong>Rs. {{ "%.0f"|format(product.price) }}</strong>
+            <span style="margin-left:10px;font-size:12px;color:rgba(34,21,14,0.62);">
+              {% if product.stock > 0 %}Stock: {{ product.stock }}{% else %}Out of stock{% endif %}
+            </span>
+          </div>
+
+          {% if product.description %}
+            <div style="margin-top:12px;font-size:12px;line-height:1.8;color:rgba(34,21,14,0.82);">
+              {{ product.description }}
+            </div>
+          {% endif %}
+
+          <form method="POST" style="margin-top:14px;">
+            {% if product.sizes and product.sizes|length > 0 %}
+              <label style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:rgba(34,21,14,0.72);margin-top:10px;">
+                Size
+              </label>
+              <select name="size"
+                      style="width:100%;margin-top:8px;padding:10px 12px;border-radius:999px;border:1px solid rgba(0,0,0,0.16);background:rgba(255,255,255,0.55);">
+                <option value="">Select size</option>
+                {% for s in product.sizes %}
+                  <option value="{{ s }}">{{ s }}</option>
+                {% endfor %}
+              </select>
+            {% endif %}
+
+            {% if product.colors and product.colors|length > 0 %}
+              <label style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:rgba(34,21,14,0.72);margin-top:10px;">
+                Colour
+              </label>
+              <select name="color"
+                      style="width:100%;margin-top:8px;padding:10px 12px;border-radius:999px;border:1px solid rgba(0,0,0,0.16);background:rgba(255,255,255,0.55);">
+                <option value="">Select colour</option>
+                {% for c in product.colors %}
+                  <option value="{{ c }}">{{ c }}</option>
+                {% endfor %}
+              </select>
+            {% endif %}
+
+            <button type="submit"
+                    {% if product.stock <= 0 %}disabled{% endif %}
+                    style="margin-top:14px;width:100%;padding:12px 14px;border-radius:999px;border:1px solid rgba(0,0,0,0.30);background:rgba(255,250,242,0.75);cursor:pointer;text-transform:uppercase;letter-spacing:.16em;font-size:11px;">
+              {% if product.stock > 0 %}Add to cart{% else %}Out of stock{% endif %}
+            </button>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    @media (max-width: 980px){
+      div[style*="grid-column:span 6"]{ grid-column: span 12 !important; }
+      div[style*="height:520px"]{ height: 380px !important; }
+    }
+  </style>
+</main>
+{% endblock %}
