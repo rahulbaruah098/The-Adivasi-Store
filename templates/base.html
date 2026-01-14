@@ -927,6 +927,48 @@
       max-height:80vh;
       border-radius:18px;
     }
+
+    .funky-link {
+  position: relative;
+  color: #ff7a18;
+  text-decoration: none;
+  font-weight: 600;
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}
+
+/* Animated underline */
+.funky-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, #ff7a18, #ffd200);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s ease;
+}
+
+/* Hover effect */
+.funky-link:hover::after {
+  transform: scaleX(1);
+}
+
+.funky-link:hover {
+  color: #ffd200;
+}
+
+/* Soft glow animation so users notice on scroll */
+@keyframes pulseGlow {
+  0%, 100% {
+    text-shadow: 0 0 0 rgba(255, 122, 24, 0);
+  }
+  50% {
+    text-shadow: 0 0 8px rgba(255, 122, 24, 0.6);
+  }
+}
+
   </style>
 </head>
 
@@ -1108,7 +1150,16 @@
     </div>
 
     <div class="footer-bottom">
-      <span>&copy; 2025 The Adivasi Store · powered by Rahul Baruah </span>
+      <span>
+  &copy; 2025 The Adivasi Store · powered by 
+  <a href="https://techeaseconsulting.com/" 
+     target="_blank" 
+     rel="noopener noreferrer"
+     class="funky-link">
+    TechEase Consulting
+  </a>
+</span>
+
     </div>
   </footer>
 
@@ -1157,6 +1208,416 @@
     document.addEventListener("click", (e) => {
       if (!searchContainer.contains(e.target)) deactivateSearch();
     });
+        /* ============================
+       SEARCH (NEW)
+       - No permanent filtering on refresh
+       - Typing shows an overlay dropdown
+       - Clicking a product opens its product page
+       - "View all results" jumps to /shop and does a ONE-TIME filter (then clears)
+       ============================ */
+
+    // Catalog for overlay search (shop products + key categories)
+    const TAS_SEARCH_CATALOG = [
+  {id:`cat-saree`,name:`Saree`,category:`Category`,price:``,img:``,url:`/shop`},
+  {id:`cat-bandi`,name:`Bandi`,category:`Category`,price:``,img:``,url:`/shop`},
+  {id:`cat-bags`,name:`Bags`,category:`Category`,price:``,img:``,url:`/shop`},
+  {id:`cat-gamosa`,name:`Gamosa`,category:`Category`,price:``,img:``,url:`/shop`},
+  {id:`cat-shawl`,name:`Shawl`,category:`Category`,price:``,img:``,url:`/shop`},
+  {id:`cat-kurta-pyjama`,name:`Kurta Pyjama`,category:`Category`,price:``,img:``,url:`/shop`},
+  {id:`cat-chandrahaar`,name:`Chandrahaar`,category:`Category`,price:``,img:``,url:`/shop`},
+  {id:`cat-hashli`,name:`Hashli`,category:`Category`,price:``,img:``,url:`/shop`},
+  {id:`cat-baju`,name:`Baju`,category:`Category`,price:``,img:``,url:`/shop`},
+  {id:`gamusa-border-cotton-saree`,name:`Gamusa border cotton saree`,category:`Handloom Saree`,price:`2490`,img:`static/images/IMG_0583.JPG`,url:`{{ url_for('product_detail', product_id='gamusa-border-cotton-saree') }}`},
+  {id:`tribal-motif-wool-stole`,name:`Tribal motif wool stole`,category:`Stole`,price:`1890`,img:`static/images/IMG_0389.JPG`,url:`{{ url_for('product_detail', product_id='tribal-motif-wool-stole') }}`},
+  {id:`evening-wrap-red-selvedge`,name:`Evening wrap with red selvedge`,category:`Shawl`,price:`2190`,img:`static/images/IMG_0419.JPG`,url:`{{ url_for('product_detail', product_id='evening-wrap-red-selvedge') }}`},
+  {id:`festive-mekhela-chador-set`,name:`Festive mekhela chador set`,category:`Set`,price:`3290`,img:`static/images/IMG_0428.JPG`,url:`{{ url_for('product_detail', product_id='festive-mekhela-chador-set') }}`},
+  {id:`handloom-border-shirt`,name:`Handloom cotton shirt with border`,category:`Shirt`,price:`1790`,img:`static/images/IMG_0533.JPG`,url:`{{ url_for('product_detail', product_id='handloom-border-shirt') }}`},
+  {id:`bordered-chest-panel-tee`,name:`Bordered chest panel tee`,category:`T-shirt`,price:`990`,img:`static/images/IMG_0558.JPG`,url:`{{ url_for('product_detail', product_id='bordered-chest-panel-tee') }}`},
+  {id:`layered-jacket-tribal-trim`,name:`Layered jacket with tribal trim`,category:`Jacket`,price:`2490`,img:`static/images/IMG_0549.JPG`,url:`{{ url_for('product_detail', product_id='layered-jacket-tribal-trim') }}`},
+  {id:`kids-festive-kurta-set`,name:`Kids festive kurta set`,category:`Kurta`,price:`1290`,img:`static/images/adivasi/kids1.jpg`,url:`{{ url_for('product_detail', product_id='kids-festive-kurta-set') }}`},
+  {id:`multi-strand-bead-neckpiece`,name:`Multi-strand bead neckpiece`,category:`Neckpiece`,price:`1490`,img:`data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23d7cbbd'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='28'>Coming Soon</text></svg>`,url:`{{ url_for('product_detail', product_id='multi-strand-bead-neckpiece') }}`},
+  {id:`brass-hoop-earrings`,name:`Brass hoop earrings`,category:`Earrings`,price:`790`,img:`data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23d7cbbd'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='28'>Coming Soon</text></svg>`,url:`{{ url_for('product_detail', product_id='brass-hoop-earrings') }}`},
+  {id:`handloom-weave-belt`,name:`Handloom weave belt`,category:`Belt`,price:`690`,img:`data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23d7cbbd'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='28'>Coming Soon</text></svg>`,url:`{{ url_for('product_detail', product_id='handloom-weave-belt') }}`},
+  {id:`accessory-saree`,name:`Saree`,category:`Saree`,price:`0`,img:`data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23d7cbbd'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='28'>Saree</text></svg>`,url:`{{ url_for('product_detail', product_id='accessory-saree') }}`},
+  {id:`accessory-bandi`,name:`Bandi`,category:`Bandi`,price:`0`,img:`data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23d7cbbd'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='28'>Bandi</text></svg>`,url:`{{ url_for('product_detail', product_id='accessory-bandi') }}`},
+  {id:`accessory-bags`,name:`Bags`,category:`Bags`,price:`0`,img:`data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23d7cbbd'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='28'>Bags</text></svg>`,url:`{{ url_for('product_detail', product_id='accessory-bags') }}`},
+  {id:`accessory-gamosa`,name:`Gamosa`,category:`Gamosa`,price:`0`,img:`data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23d7cbbd'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='28'>Gamosa</text></svg>`,url:`{{ url_for('product_detail', product_id='accessory-gamosa') }}`},
+  {id:`accessory-shawl`,name:`Shawl`,category:`Shawl`,price:`0`,img:`data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23d7cbbd'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='28'>Shawl</text></svg>`,url:`{{ url_for('product_detail', product_id='accessory-shawl') }}`},
+  {id:`kids-kurta-pyjama`,name:`Kurta Pyjama for kids`,category:`Kids Wear`,price:`0`,img:`data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23d7cbbd'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='24'>Kurta Pyjama (Kids)</text></svg>`,url:`{{ url_for('product_detail', product_id='kids-kurta-pyjama') }}`},
+  {id:`kids-dhoti`,name:`Dhoti for kids`,category:`Kids Wear`,price:`0`,img:`data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23d7cbbd'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='26'>Dhoti (Kids)</text></svg>`,url:`{{ url_for('product_detail', product_id='kids-dhoti') }}`},
+  {id:`sitapati`,name:`Sitapati`,category:`Accessory`,price:`0`,img:`data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23d7cbbd'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='28'>Sitapati</text></svg>`,url:`{{ url_for('product_detail', product_id='sitapati') }}`},
+  {id:`jhumka`,name:`Jhumka`,category:`Jewellery`,price:`0`,img:`data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23d7cbbd'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='28'>Jhumka</text></svg>`,url:`{{ url_for('product_detail', product_id='jhumka') }}`},
+  {id:`chandrahaar`,name:`Chandrahaar`,category:`Jewellery`,price:`0`,img:`data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23d7cbbd'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='24'>Chandrahaar</text></svg>`,url:`{{ url_for('product_detail', product_id='chandrahaar') }}`},
+  {id:`hashli`,name:`Hashli`,category:`Jewellery`,price:`0`,img:`data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23d7cbbd'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='28'>Hashli</text></svg>`,url:`{{ url_for('product_detail', product_id='hashli') }}`},
+  {id:`baju`,name:`Baju`,category:`Jewellery`,price:`0`,img:`data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23d7cbbd'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='28'>Baju</text></svg>`,url:`{{ url_for('product_detail', product_id='baju') }}`},
+  {id:`khongso`,name:`Khongso`,category:`Jewellery`,price:`0`,img:`data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23d7cbbd'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='28'>Khongso</text></svg>`,url:`{{ url_for('product_detail', product_id='khongso') }}`},
+  {id:`poyori`,name:`Poyori`,category:`Jewellery`,price:`0`,img:`data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23d7cbbd'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='28'>Poyori</text></svg>`,url:`{{ url_for('product_detail', product_id='poyori') }}`}
+];
+
+    // Build overlay UI once
+    function ensureSearchOverlay(){
+      if(document.getElementById("tas-search-overlay")) return;
+      const overlay = document.createElement("div");
+      overlay.id = "tas-search-overlay";
+      overlay.innerHTML = `
+        <div class="tas-so-backdrop"></div>
+        <div class="tas-so-panel" role="dialog" aria-modal="true" aria-label="Search results">
+          <div class="tas-so-head">
+            <div class="tas-so-title">Search results</div>
+            <button class="tas-so-close" type="button" aria-label="Close search">×</button>
+          </div>
+          <div class="tas-so-body">
+            <div class="tas-so-hint">Type to search products (e.g., Saree, Gamosa, Baju...)</div>
+            <div class="tas-so-list" role="list"></div>
+            <div class="tas-so-foot">
+              <button class="tas-so-all" type="button">View all results</button>
+              <div class="tas-so-count" aria-live="polite"></div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+
+      const style = document.createElement("style");
+      style.id = "tas-search-overlay-style";
+      style.textContent = `
+        #tas-search-overlay{ position:fixed; inset:0; z-index:999999; display:none; }
+        #tas-search-overlay.is-open{ display:block; }
+        #tas-search-overlay .tas-so-backdrop{
+          position:absolute; inset:0;
+          background:rgba(0,0,0,.45);
+          backdrop-filter: blur(6px);
+        }
+        #tas-search-overlay .tas-so-panel{
+          position:relative;
+          width:min(920px, calc(100vw - 28px));
+          margin: 92px auto 0;
+          border-radius: 22px;
+          border: 1px solid rgba(60,38,22,.22);
+          background: rgba(244,236,224,.97);
+          box-shadow: 0 26px 70px rgba(0,0,0,.45);
+          overflow:hidden;
+          transform: translateY(12px) scale(.99);
+          opacity: 0;
+          transition: transform .22s ease, opacity .22s ease;
+        }
+        #tas-search-overlay.is-open .tas-so-panel{ transform:none; opacity:1; }
+        #tas-search-overlay .tas-so-head{
+          display:flex; align-items:center; justify-content:space-between;
+          padding: 14px 16px;
+          background: linear-gradient(135deg, rgba(27,19,14,.07), rgba(176,103,61,.12));
+          border-bottom: 1px solid rgba(60,38,22,.16);
+        }
+        #tas-search-overlay .tas-so-title{
+          font-family:"Fjalla One", sans-serif;
+          letter-spacing:.14em;
+          text-transform:uppercase;
+          font-size: 12px;
+          color: #22150e;
+        }
+        #tas-search-overlay .tas-so-close{
+          width:36px; height:36px;
+          border-radius:999px;
+          border:1px solid rgba(60,38,22,.22);
+          background: rgba(255,255,255,.72);
+          cursor:pointer;
+          font-size: 20px;
+          line-height: 1;
+        }
+        #tas-search-overlay .tas-so-body{ padding: 14px 16px 16px; }
+        #tas-search-overlay .tas-so-hint{
+          font-size:12px;
+          color: rgba(34,21,14,.65);
+          margin-bottom: 10px;
+        }
+        #tas-search-overlay .tas-so-list{
+          display:grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 10px;
+          max-height: min(62vh, 520px);
+          overflow:auto;
+          padding-right: 2px;
+        }
+        @media (max-width:860px){
+          #tas-search-overlay .tas-so-panel{ margin-top: 84px; }
+          #tas-search-overlay .tas-so-list{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width:520px){
+          #tas-search-overlay .tas-so-panel{ margin-top: 78px; }
+          #tas-search-overlay .tas-so-list{ grid-template-columns: 1fr; }
+        }
+        #tas-search-overlay .tas-so-item{
+          display:flex; gap: 10px;
+          padding: 10px 10px;
+          border-radius: 16px;
+          border: 1px solid rgba(60,38,22,.18);
+          background: rgba(255,255,255,.62);
+          cursor:pointer;
+          text-decoration:none;
+          color: inherit;
+          transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+        }
+        #tas-search-overlay .tas-so-item:hover{
+          transform: translateY(-1px);
+          background: rgba(255,255,255,.86);
+          box-shadow: 0 12px 22px rgba(0,0,0,.18);
+        }
+        #tas-search-overlay .tas-so-thumb{
+          width: 54px; height: 54px;
+          border-radius: 14px;
+          overflow:hidden;
+          border: 1px solid rgba(60,38,22,.16);
+          background: rgba(215,203,189,.8);
+          flex: 0 0 54px;
+        }
+        #tas-search-overlay .tas-so-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+        #tas-search-overlay .tas-so-meta{ min-width:0; display:flex; flex-direction:column; gap: 4px; }
+        #tas-search-overlay .tas-so-name{
+          font-family:"Fjalla One", sans-serif;
+          letter-spacing:.10em;
+          text-transform:uppercase;
+          font-size: 12px;
+          line-height: 1.2;
+          color:#22150e;
+          white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        }
+        #tas-search-overlay .tas-so-sub{
+          font-size: 11px;
+          color: rgba(34,21,14,.62);
+          white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        }
+        #tas-search-overlay .tas-so-foot{
+          display:flex; align-items:center; justify-content:space-between;
+          gap: 10px;
+          padding-top: 12px;
+        }
+        #tas-search-overlay .tas-so-all{
+          padding: 10px 14px;
+          border-radius: 999px;
+          border: 1px solid rgba(60,38,22,.26);
+          background: rgba(27,19,14,.92);
+          color: #fff;
+          font-family:"Fjalla One", sans-serif;
+          letter-spacing:.14em;
+          text-transform:uppercase;
+          font-size: 11px;
+          cursor:pointer;
+        }
+        #tas-search-overlay .tas-so-count{
+          font-size: 12px;
+          color: rgba(34,21,14,.7);
+        }
+        body.tas-no-scroll{ overflow:hidden; }
+      `;
+      document.head.appendChild(style);
+
+      // close handling
+      overlay.querySelector(".tas-so-close").addEventListener("click", closeSearchOverlay);
+      overlay.querySelector(".tas-so-backdrop").addEventListener("click", closeSearchOverlay);
+      document.addEventListener("keydown", (e)=>{ if(e.key === "Escape") closeSearchOverlay(); });
+    }
+
+    function openSearchOverlay(){
+      ensureSearchOverlay();
+      document.getElementById("tas-search-overlay").classList.add("is-open");
+      document.body.classList.add("tas-no-scroll");
+    }
+    function closeSearchOverlay(){
+      const o = document.getElementById("tas-search-overlay");
+      if(o) o.classList.remove("is-open");
+      document.body.classList.remove("tas-no-scroll");
+    }
+
+    function norm(s){ return (s||"").toString().trim().toLowerCase(); }
+
+    function renderSearchResults(query){
+      const q = norm(query);
+      const overlay = document.getElementById("tas-search-overlay");
+      if(!overlay) return;
+
+      const list = overlay.querySelector(".tas-so-list");
+      const count = overlay.querySelector(".tas-so-count");
+      list.innerHTML = "";
+
+      if(!q){
+        count.textContent = "";
+        return;
+      }
+
+      const results = TAS_SEARCH_CATALOG.filter(item=>{
+        const hay = (norm(item.name) + " " + norm(item.category) + " " + norm(item.id));
+        return hay.includes(q);
+      }).slice(0, 24);
+
+      results.forEach(item=>{
+        const a = document.createElement("a");
+        a.className = "tas-so-item";
+        a.setAttribute("role", "listitem");
+        // categories: just go to shop
+        const url = item.url || "/shop";
+        a.href = url;
+
+        // thumb
+        const thumb = document.createElement("div");
+        thumb.className = "tas-so-thumb";
+        if(item.img){
+          const img = document.createElement("img");
+          const src = item.img.startsWith("static/") ? ("/" + item.img) : item.img;
+          img.src = src;
+          img.alt = item.name || "Product";
+          thumb.appendChild(img);
+        }
+        a.appendChild(thumb);
+
+        const meta = document.createElement("div");
+        meta.className = "tas-so-meta";
+        const name = document.createElement("div");
+        name.className = "tas-so-name";
+        name.textContent = item.name || "Product";
+        const sub = document.createElement("div");
+        sub.className = "tas-so-sub";
+        const priceText = item.price ? (" · Rs. " + item.price) : "";
+        sub.textContent = (item.category || "Product") + priceText;
+        meta.appendChild(name);
+        meta.appendChild(sub);
+        a.appendChild(meta);
+
+        // If product has a real url_for link, let it navigate.
+        // If not (or it's a category), fall back to one-time filter on /shop.
+        a.addEventListener("click", (e)=>{
+          // If it's a category or missing url, do one-time shop filter
+          const isCategory = (norm(item.category) === "category");
+          if(isCategory || !item.url){
+            e.preventDefault();
+            sessionStorage.setItem("tas_shop_filter_once", item.name);
+            window.location.href = "/shop";
+          }else{
+            closeSearchOverlay();
+          }
+        });
+
+        list.appendChild(a);
+      });
+
+      count.textContent = results.length ? `${results.length} result${results.length===1?"":"s"} shown` : `No results`;
+    }
+
+    // Use "View all results" to jump to /shop and do ONE-TIME filtering
+    function hookViewAllButton(){
+      const overlay = document.getElementById("tas-search-overlay");
+      if(!overlay) return;
+      const btn = overlay.querySelector(".tas-so-all");
+      if(!btn) return;
+      btn.addEventListener("click", ()=>{
+        const q = searchInput.value.trim();
+        if(!q) return;
+        sessionStorage.setItem("tas_shop_filter_once", q);
+        window.location.href = "/shop";
+      });
+    }
+
+    // One-time filter on /shop (clears automatically; refresh shows all)
+    function applyShopFilterOnce(){
+      const q = sessionStorage.getItem("tas_shop_filter_once");
+      if(!q) return;
+      sessionStorage.removeItem("tas_shop_filter_once");
+
+      if(!(location.pathname === "/shop" || location.pathname.endsWith("/shop"))) return;
+
+      const cards = Array.from(document.querySelectorAll(".product-card"));
+      if(!cards.length) return;
+
+      const needle = norm(q);
+      let shown = 0;
+      cards.forEach(card=>{
+        const text = norm(card.innerText || card.textContent || "");
+        const match = text.includes(needle);
+        card.style.display = match ? "" : "none";
+        if(match) shown++;
+      });
+
+      // Banner + "Clear"
+      let banner = document.getElementById("tasSearchBanner");
+      if(!banner){
+        banner = document.createElement("div");
+        banner.id = "tasSearchBanner";
+        banner.style.position = "sticky";
+        banner.style.top = "88px";
+        banner.style.zIndex = "30";
+        banner.style.margin = "12px 60px";
+        banner.style.padding = "10px 14px";
+        banner.style.borderRadius = "999px";
+        banner.style.background = "rgba(27,19,14,0.92)";
+        banner.style.color = "#fff";
+        banner.style.display = "flex";
+        banner.style.alignItems = "center";
+        banner.style.justifyContent = "space-between";
+        banner.style.gap = "12px";
+        banner.style.fontFamily = '"Fjalla One", sans-serif';
+        banner.style.letterSpacing = ".14em";
+        banner.style.textTransform = "uppercase";
+        banner.style.fontSize = "11px";
+        banner.innerHTML = `<span id="tasSearchBannerText"></span>
+          <button id="tasSearchBannerClear" type="button" style="
+            padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.35);
+            background:rgba(255,255,255,.12);color:#fff;cursor:pointer;
+            font-family:'Fjalla One',sans-serif;letter-spacing:.14em;text-transform:uppercase;font-size:10px;
+          ">Clear</button>`;
+        document.body.appendChild(banner);
+        banner.querySelector("#tasSearchBannerClear").addEventListener("click", ()=>{
+          cards.forEach(c=>c.style.display="");
+          banner.remove();
+        });
+      }
+      banner.querySelector("#tasSearchBannerText").textContent =
+        shown ? `Showing ${shown} result${shown===1?"":"s"} for "${q}"` : `No products found for "${q}"`;
+    }
+
+    // Replace old enter-search behavior:
+    // - typing shows overlay
+    // - Enter runs one-time shop filter
+    ensureSearchOverlay();
+    hookViewAllButton();
+
+    searchInput.addEventListener("input", ()=>{
+      const val = searchInput.value.trim();
+      if(!val){
+        closeSearchOverlay();
+        return;
+      }
+      openSearchOverlay();
+      renderSearchResults(val);
+      hookViewAllButton();
+    });
+
+    // Enter key => go to shop one-time results
+    searchInput.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter"){
+        e.preventDefault();
+        const q = searchInput.value.trim();
+        if(!q) return;
+        closeSearchOverlay();
+        sessionStorage.setItem("tas_shop_filter_once", q);
+        window.location.href = "/shop";
+      }
+    });
+
+    // When search expands, do not instantly open overlay until user types
+    searchButton.addEventListener("click", ()=>{
+      // overlay only when input has text
+      const q = searchInput.value.trim();
+      if(q){
+        openSearchOverlay();
+        renderSearchResults(q);
+        hookViewAllButton();
+      }else{
+        closeSearchOverlay();
+      }
+    });
+
+    // On page load: apply one-time filter only if set
+    window.addEventListener("DOMContentLoaded", applyShopFilterOnce);
+
 
     // Mobile menu
     const hamburger = document.getElementById("nav-hamburger");

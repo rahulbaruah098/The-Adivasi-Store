@@ -31,12 +31,12 @@ app.config["MAIL_SERVER"] = os.environ.get("MAIL_SERVER", "smtp.gmail.com")
 app.config["MAIL_PORT"] = int(os.environ.get("MAIL_PORT", "587"))
 app.config["MAIL_USE_TLS"] = os.environ.get("MAIL_USE_TLS", "true").lower() == "true"
 app.config["MAIL_USERNAME"] = os.environ.get("MAIL_USERNAME", "theadivasistore@gmail.com")
-app.config["MAIL_PASSWORD"] = os.environ.get("MAIL_PASSWORD", "YOUR_GMAIL_APP_PASSWORD_HERE")  # set in env
+app.config["MAIL_PASSWORD"] = os.environ.get("MAIL_PASSWORD", "ismd ozfs mnwg wkfk")  # set in env
 
 # Admin email constant
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "theadivasistore@gmail.com")
 
-# Razorpay (fill with your real keys via env)
+# Razorpay (⚠️ set real keys via env; do NOT hardcode live keys)
 app.config["RAZORPAY_KEY_ID"] = os.environ.get("RAZORPAY_KEY_ID", "rzp_live_Rpr7NCGKEWF1zH")
 app.config["RAZORPAY_KEY_SECRET"] = os.environ.get("RAZORPAY_KEY_SECRET", "pfVOqcaOxlya6baESuZwxbzs")
 
@@ -567,6 +567,38 @@ def ensure_product_slug(p: Product):
 
 
 # ----------------------------
+# ✅ HELPERS FOR PRODUCT VIEW (DB + CATALOG)
+# ----------------------------
+def _split_csv(text: str):
+    """Convert 'S,M,L' => ['S','M','L'] safely."""
+    if not text:
+        return []
+    return [x.strip() for x in text.split(",") if x.strip()]
+
+
+def _product_to_template_dict(p: Product) -> dict:
+    """
+    Convert DB Product -> dict structure that your product_detail.html expects.
+    Your template uses:
+      product.image, product.hover_image, product.colors (list), product.sizes (list)
+    """
+    return {
+        "id": str(p.slug or p.id),               # use slug in URL when available
+        "name": p.name,
+        "price": float(p.price or 0),
+        "category": p.category,
+        "image": p.image_url or "",
+        "hover_image": "",                      # you can add a DB column later if needed
+        "colors": _split_csv(p.colors),
+        "sizes": _split_csv(p.sizes),
+        "description": p.description or "",
+        "_source": "db",
+        "_db_id": p.id,
+        "_slug": p.slug,
+    }
+
+
+# ----------------------------
 # BASIC PAGES
 # ----------------------------
 @app.route("/")
@@ -586,12 +618,27 @@ def about():
     return render_template("about.html")
 
 
+# ✅ UPDATED SHOP: send products to template (DB + catalog)
 @app.route("/shop")
 def shop():
     redirect_resp = redirect_admin_if_needed()
     if redirect_resp:
         return redirect_resp
-    return render_template("shop.html")
+
+    # DB products (admin-managed)
+    db_products = Product.query.filter_by(is_active=True).order_by(Product.created_at.desc()).all()
+    db_products_for_ui = [_product_to_template_dict(p) for p in db_products]
+
+    # Legacy catalog products
+    catalog_products_for_ui = list(PRODUCT_CATALOG.values())
+
+    # Send BOTH to template (backward compatible)
+    return render_template(
+        "shop.html",
+        products=db_products_for_ui,          # unified list (DB first)
+        products_db=db_products_for_ui,
+        products_catalog=catalog_products_for_ui
+    )
 
 
 # ----------------------------
@@ -632,7 +679,7 @@ def contact():
 
 
 # ----------------------------
-# PRODUCT DETAIL (Legacy static catalog)
+# ✅ PRODUCT DETAIL (DB + Legacy catalog) — FIXED WRONG PRODUCT OPENING
 # ----------------------------
 @app.route("/product/<product_id>", methods=["GET", "POST"])
 def product_detail(product_id):
@@ -640,10 +687,27 @@ def product_detail(product_id):
     if redirect_resp:
         return redirect_resp
 
-    product = PRODUCT_CATALOG.get(product_id)
-    if not product:
-        abort(404)
+    product_for_template = None
 
+    # 1) Try DB product by slug
+    db_product = None
+    if product_id:
+        db_product = Product.query.filter_by(slug=product_id, is_active=True).first()
+
+    # 2) If numeric, try DB by id
+    if not db_product and str(product_id).isdigit():
+        db_product = Product.query.filter_by(id=int(product_id), is_active=True).first()
+
+    if db_product:
+        product_for_template = _product_to_template_dict(db_product)
+    else:
+        # 3) Fallback to legacy catalog
+        catalog_item = PRODUCT_CATALOG.get(product_id)
+        if not catalog_item:
+            abort(404)
+        product_for_template = catalog_item
+
+    # POST => add to cart
     if request.method == "POST":
         if not current_user.is_authenticated:
             flash("Please log in to add items to your cart.", "info")
@@ -655,9 +719,13 @@ def product_detail(product_id):
         selected_size = request.form.get("size") or ""
         selected_color = request.form.get("color") or ""
 
+        pname = product_for_template.get("name")
+        pprice = product_for_template.get("price", 0)
+        pimage = product_for_template.get("image", "")
+
         existing = CartItem.query.filter_by(
             user_id=current_user.id,
-            product_name=product["name"],
+            product_name=pname,
             product_size=selected_size,
             product_color=selected_color
         ).first()
@@ -667,9 +735,9 @@ def product_detail(product_id):
         else:
             item = CartItem(
                 user_id=current_user.id,
-                product_name=product["name"],
-                product_price=product["price"],
-                product_image=product["image"],
+                product_name=pname,
+                product_price=float(pprice or 0),
+                product_image=pimage,
                 product_size=selected_size,
                 product_color=selected_color
             )
@@ -680,7 +748,20 @@ def product_detail(product_id):
         flash("Item added to cart.", "success")
         return redirect(url_for("cart"))
 
-    return render_template("product_detail.html", product=product)
+    
+    # Allow shop (and other pages) to override images via query string so the detail page
+    # can show the EXACT card image the user clicked (useful when multiple cards share a slug).
+    override_img = request.args.get("img") or request.args.get("image")
+    override_hover = request.args.get("hover") or request.args.get("hover_image")
+    if override_img or override_hover:
+        # ensure we don't mutate the catalog dict
+        product_for_template = dict(product_for_template)
+        if override_img:
+            product_for_template["image"] = override_img
+        if override_hover:
+            product_for_template["hover_image"] = override_hover
+
+    return render_template("product_detail.html", product=product_for_template)
 
 
 # ----------------------------

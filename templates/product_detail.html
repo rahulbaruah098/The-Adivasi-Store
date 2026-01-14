@@ -3,15 +3,26 @@
 {% block content %}
 <main>
   <section class="section" style="padding:130px 20px 80px;background:#f4ece0;">
+    {# image override via query params from shop quick view #}
+    {% set main_img = request.args.get("img", product.image) %}
+    {% set hover_img = request.args.get("hover", product.hover_image) %}
+    {# If img/hover are passed as relative paths like "static/Images/..",
+       make them absolute so they don't become /product/static/... #}
+    {% if main_img and not main_img.startswith("http") and not main_img.startswith("/") %}
+      {% set main_img = "/" ~ main_img %}
+    {% endif %}
+    {% if hover_img and not hover_img.startswith("http") and not hover_img.startswith("/") %}
+      {% set hover_img = "/" ~ hover_img %}
+    {% endif %}
     <div style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr);gap:40px;align-items:flex-start;">
       <!-- LEFT: big image -->
       <div style="position:relative;">
         <div style="border-radius:24px;overflow:hidden;box-shadow:0 26px 48px rgba(0,0,0,0.32);background:#d3c6b6;">
-          <img src="{{ product.image }}" alt="{{ product.name }}" style="width:100%;display:block;object-fit:cover;max-height:600px;">
+          <img src="{{ main_img }}" alt="{{ product.name }}" style="width:100%;display:block;object-fit:cover;max-height:600px;">
         </div>
-        {% if product.hover_image %}
+        {% if hover_img %}
         <div style="position:absolute;right:18px;bottom:18px;width:86px;height:86px;border-radius:18px;overflow:hidden;border:2px solid rgba(255,255,255,0.9);box-shadow:0 16px 30px rgba(0,0,0,0.35);background:#e0d5c9;">
-          <img src="{{ product.hover_image }}" alt="{{ product.name }} detail" style="width:100%;height:100%;object-fit:cover;">
+          <img src="{{ hover_img }}" alt="{{ product.name }} detail" style="width:100%;height:100%;object-fit:cover;">
         </div>
         {% endif %}
       </div>
@@ -35,7 +46,13 @@
           </span>
         </div>
 
-        <form method="POST" style="display:flex;flex-direction:column;gap:18px;max-width:360px;">
+        <!-- ✅ ACTION + PRODUCT ID ADDED (NO DESIGN CHANGE) -->
+        <form method="POST"
+              action="{{ url_for('product_detail', product_id=product.id) }}"
+              style="display:flex;flex-direction:column;gap:18px;max-width:360px;">
+
+          <input type="hidden" name="product_id" value="{{ product.id }}">
+
           {% if product.colors %}
           <div>
             <div style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:6px;color:#7a6651;">Colour</div>
@@ -84,7 +101,7 @@
       </div>
     </div>
 
-    <!-- Funky added-to-cart overlay -->
+    <!-- Funky added-to-cart overlay (UNCHANGED) -->
     <div id="pd-toast" style="
       position:fixed;
       left:50%;
@@ -111,7 +128,6 @@
     </div>
 
     <script>
-      // Turn pill labels into visually "selected" states
       (function(){
         document.querySelectorAll('form input[type="radio"]').forEach(inp => {
           inp.addEventListener("change", () => {
@@ -124,14 +140,12 @@
           });
         });
 
-        // initialise defaults
         document.querySelectorAll('form input[type="radio"]:checked').forEach(el => {
           const pill = el.parentElement.querySelector("span");
           pill.style.background = "#21120b";
           pill.style.color = "#fff7ea";
         });
 
-        // small toast before redirect (visual only, submission still goes through)
         const btn = document.getElementById("pd-add-btn");
         const toast = document.getElementById("pd-toast");
         if(btn && toast){
