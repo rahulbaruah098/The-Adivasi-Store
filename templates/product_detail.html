@@ -3,105 +3,224 @@
 {% block content %}
 <main>
   <section class="section" style="padding:130px 20px 80px;background:#f4ece0;">
-    {# image override via query params from shop quick view #}
+
+    {# ============================================================
+       IMAGE OVERRIDE via query params from shop quick view
+       ============================================================ #}
     {% set main_img = request.args.get("img", product.image) %}
     {% set hover_img = request.args.get("hover", product.hover_image) %}
-    {# If img/hover are passed as relative paths like "static/Images/..",
-       make them absolute so they don't become /product/static/... #}
+
+    {# Make relative paths absolute so they don't become /product/static/... #}
     {% if main_img and not main_img.startswith("http") and not main_img.startswith("/") %}
       {% set main_img = "/" ~ main_img %}
     {% endif %}
     {% if hover_img and not hover_img.startswith("http") and not hover_img.startswith("/") %}
       {% set hover_img = "/" ~ hover_img %}
     {% endif %}
-    <div style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr);gap:40px;align-items:flex-start;">
-      <!-- LEFT: big image -->
-      <div style="position:relative;">
-        <div style="border-radius:24px;overflow:hidden;box-shadow:0 26px 48px rgba(0,0,0,0.32);background:#d3c6b6;">
-          <img src="{{ main_img }}" alt="{{ product.name }}" style="width:100%;display:block;object-fit:cover;max-height:600px;">
-        </div>
-        {% if hover_img %}
-        <div style="position:absolute;right:18px;bottom:18px;width:86px;height:86px;border-radius:18px;overflow:hidden;border:2px solid rgba(255,255,255,0.9);box-shadow:0 16px 30px rgba(0,0,0,0.35);background:#e0d5c9;">
-          <img src="{{ hover_img }}" alt="{{ product.name }} detail" style="width:100%;height:100%;object-fit:cover;">
-        </div>
-        {% endif %}
+
+    {# ============================================================
+       DYNAMIC BREADCRUMBS (safe fallbacks, no backend changes needed)
+       Shop → Section → Category
+       ============================================================ #}
+    {% set crumb_section_label = "Shop" %}
+    {% set crumb_section_anchor = "" %}
+
+    {# Prefer explicit catalog fields if you have them #}
+    {% set _aud = (product.get("audience") or "")|lower %}
+    {% set _typ = (product.get("type") or "")|lower %}
+    {% set _menu = (product.get("menu_category") or "")|lower %}
+
+    {# Determine which row in shop.html #}
+    {% if _typ == "jewellery" or _menu == "ornaments" %}
+      {% set crumb_section_label = "Ornaments" %}
+      {% set crumb_section_anchor = "#ornaments-row" %}
+    {% elif _typ == "accessory" or _menu == "accessories" %}
+      {% set crumb_section_label = "Accessories" %}
+      {% set crumb_section_anchor = "#accessories-row" %}
+    {% elif _aud == "women" %}
+      {% set crumb_section_label = "Women" %}
+      {% set crumb_section_anchor = "#women-row" %}
+    {% elif _aud == "men" %}
+      {% set crumb_section_label = "Men" %}
+      {% set crumb_section_anchor = "#men-row" %}
+    {% elif _aud == "kids" %}
+      {% set crumb_section_label = "Kids" %}
+      {% set crumb_section_anchor = "#kids-row" %}
+    {% else %}
+      {% set crumb_section_label = "Shop" %}
+      {% set crumb_section_anchor = "" %}
+    {% endif %}
+
+    {% set crumb_category_label = product.get("category") or product.get("category_label") or product.get("menu_category") or "Product" %}
+
+    <div style="max-width:1100px;margin:0 auto;">
+      <!-- Breadcrumbs -->
+      <div style="margin:0 0 18px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-family:'Fjalla One',sans-serif;font-size:12px;letter-spacing:0.20em;text-transform:uppercase;color:#8a6b46;">
+        <a href="{{ url_for('shop') }}" style="color:#8a6b46;text-decoration:none;border-bottom:1px solid rgba(138,107,70,0.35);padding-bottom:2px;">Shop</a>
+        <span style="opacity:.7;">›</span>
+        <a href="{{ url_for('shop') }}{{ crumb_section_anchor }}" style="color:#8a6b46;text-decoration:none;border-bottom:1px solid rgba(138,107,70,0.35);padding-bottom:2px;">
+          {{ crumb_section_label }}
+        </a>
+        <span style="opacity:.7;">›</span>
+        <span style="color:#6b5a48;letter-spacing:0.14em;">{{ crumb_category_label }}</span>
       </div>
 
-      <!-- RIGHT: info + add to cart -->
-      <div>
-        <div style="font-family:'Fjalla One',sans-serif;font-size:11px;letter-spacing:0.24em;text-transform:uppercase;color:#8a6b46;margin-bottom:10px;">
-          {{ product.category }}
-        </div>
-        <h1 class="hero-title-main" style="font-size:26px;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:10px;">
-          {{ product.name }}
-        </h1>
-        <div style="font-size:14px;color:#6b5a48;max-width:420px;margin-bottom:18px;">
-          {{ product.description }}
-        </div>
+      <div style="display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr);gap:40px;align-items:flex-start;">
 
-        <div style="font-size:15px;margin-bottom:24px;">
-          <span style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;margin-right:4px;">Rs.</span>
-          <span style="font-size:20px;font-weight:600;">
-            {{ "%.0f"|format(product.price) }}
-          </span>
-        </div>
-
-        <!-- ✅ ACTION + PRODUCT ID ADDED (NO DESIGN CHANGE) -->
-        <form method="POST"
-              action="{{ url_for('product_detail', product_id=product.id) }}"
-              style="display:flex;flex-direction:column;gap:18px;max-width:360px;">
-
-          <input type="hidden" name="product_id" value="{{ product.id }}">
-
-          {% if product.colors %}
-          <div>
-            <div style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:6px;color:#7a6651;">Colour</div>
-            <div style="display:flex;flex-wrap:wrap;gap:8px;">
-              {% for c in product.colors %}
-                <label style="cursor:pointer;">
-                  <input type="radio" name="color" value="{{ c }}" {% if loop.first %}checked{% endif %} style="display:none;">
-                  <span style="display:inline-flex;align-items:center;justify-content:center;padding:6px 14px;border-radius:999px;border:1px solid rgba(53,35,20,0.6);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;background:#fdf7ee;transition:background 0.18s ease,transform 0.18s ease;">
-                    {{ c }}
-                  </span>
-                </label>
-              {% endfor %}
-            </div>
+        <!-- LEFT: big image + “see photos” thumbnails -->
+        <div style="position:relative;">
+          <div style="border-radius:24px;overflow:hidden;box-shadow:0 26px 48px rgba(0,0,0,0.32);background:#d3c6b6;">
+            <img id="pd-main-img" src="{{ main_img }}" alt="{{ product.name }}"
+                 style="width:100%;display:block;object-fit:cover;max-height:600px;">
           </div>
+
+          {# Build gallery list safely from either product.images OR existing image fields #}
+          {% set gallery = [] %}
+          {% if product.get("images") %}
+            {% set pimgs = product.get("images") %}
+            {% if pimgs.get("primary") %}{% set _ = gallery.append(pimgs.get("primary")) %}{% endif %}
+            {% if pimgs.get("hover") %}{% set _ = gallery.append(pimgs.get("hover")) %}{% endif %}
+            {% for g in pimgs.get("gallery", []) %}
+              {% if g %}{% set _ = gallery.append(g) %}{% endif %}
+            {% endfor %}
+          {% else %}
+            {% if main_img %}{% set _ = gallery.append(main_img) %}{% endif %}
+            {% if hover_img %}{% set _ = gallery.append(hover_img) %}{% endif %}
           {% endif %}
 
-          {% if product.sizes %}
-          <div>
-            <div style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:6px;color:#7a6651;">Size</div>
-            <div style="display:flex;flex-wrap:wrap;gap:8px;">
-              {% for s in product.sizes %}
-                <label style="cursor:pointer;">
-                  <input type="radio" name="size" value="{{ s }}" {% if loop.first %}checked{% endif %} style="display:none;">
-                  <span style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:32px;border-radius:999px;border:1px solid rgba(53,35,20,0.6);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;background:#fff7ed;transition:background 0.18s ease,transform 0.18s ease;">
-                    {{ s }}
-                  </span>
-                </label>
+          {% if gallery|length > 1 %}
+            <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+              {% for g in gallery %}
+                <button type="button"
+                        onclick="window.__pdSetMain('{{ g }}')"
+                        style="border:none;background:none;padding:0;cursor:pointer;">
+                  <img src="{{ g }}" alt="{{ product.name }} thumbnail"
+                       style="width:70px;height:70px;object-fit:cover;border-radius:14px;border:2px solid rgba(33,18,11,0.20);box-shadow:0 8px 16px rgba(0,0,0,0.18);">
+                </button>
               {% endfor %}
             </div>
-          </div>
           {% endif %}
 
-          <button type="submit"
-                  id="pd-add-btn"
-                  style="margin-top:4px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 28px;border-radius:999px;border:1px solid rgba(27,14,6,0.9);background:#21120b;color:#fff;text-transform:uppercase;letter-spacing:0.22em;font-size:11px;font-family:'Fjalla One',sans-serif;cursor:pointer;box-shadow:0 14px 26px rgba(0,0,0,0.4);transition:transform 0.18s ease,box-shadow 0.18s ease,background 0.18s ease;">
-            <span>Add to cart</span>
-            <span style="display:inline-flex;width:18px;height:18px;border-radius:50%;border:1px solid rgba(255,255,255,0.8);align-items:center;justify-content:center;">
-              <span style="width:8px;height:8px;border-radius:1px;border:1px solid rgba(255,255,255,0.85);"></span>
+          {# optional: small hover preview badge (kept, but now not required) #}
+          {% if hover_img %}
+          <div style="position:absolute;right:18px;bottom:18px;width:86px;height:86px;border-radius:18px;overflow:hidden;border:2px solid rgba(255,255,255,0.9);box-shadow:0 16px 30px rgba(0,0,0,0.35);background:#e0d5c9;">
+            <img src="{{ hover_img }}" alt="{{ product.name }} detail" style="width:100%;height:100%;object-fit:cover;">
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- RIGHT: info + add to cart -->
+        <div>
+          <!-- Category -->
+          <div style="font-family:'Fjalla One',sans-serif;font-size:12px;letter-spacing:0.24em;text-transform:uppercase;color:#8a6b46;margin-bottom:10px;">
+            {{ crumb_category_label }}
+          </div>
+
+          <!-- ID line -->
+          <div style="font-family:'Fjalla One',sans-serif;font-size:12px;letter-spacing:0.20em;text-transform:uppercase;color:#6b5a48;margin-bottom:10px;">
+            ID: {{ product.id }}
+          </div>
+
+          <!-- Name -->
+          <h1 class="hero-title-main" style="font-size:28px;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:10px;">
+            {{ product.name }}
+          </h1>
+
+          <!-- Description (fallback copy) -->
+          <div style="font-size:15px;color:#6b5a48;max-width:440px;margin-bottom:18px;line-height:1.6;">
+            {{ product.description or "A handpicked piece inspired by Adivasi motifs and everyday heirloom craft." }}
+          </div>
+
+          <!-- Price -->
+          <div style="font-size:16px;margin-bottom:18px;">
+            <span style="font-size:12px;letter-spacing:0.18em;text-transform:uppercase;margin-right:6px;color:#6b5a48;">Rs.</span>
+            <span style="font-size:22px;font-weight:600;color:#21120b;">
+              {{ "%.0f"|format(product.price or 0) }}
             </span>
-          </button>
-        </form>
+          </div>
 
-        <div style="margin-top:20px;font-size:11px;color:#7a6a55;">
-          Free size guidance & care instructions shared over WhatsApp after order confirmation.
+          {# Optional “Only X left” hint (won’t break if stock not present) #}
+          {% if product.get("stock") is not none %}
+            {% if product.stock|int > 0 and product.stock|int <= 10 %}
+              <div style="margin:-6px 0 18px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#8a6b46;font-family:'Fjalla One',sans-serif;">
+                Only {{ product.stock }} left
+              </div>
+            {% endif %}
+          {% endif %}
+
+          <!-- ✅ ACTION -->
+          <form method="POST"
+                action="{{ url_for('product_detail', product_id=product.id) }}"
+                style="display:flex;flex-direction:column;gap:18px;max-width:380px;">
+
+            <input type="hidden" name="product_id" value="{{ product.id }}">
+
+            {% if product.colors %}
+              <div>
+                <div style="font-size:12px;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:8px;color:#7a6651;font-family:'Fjalla One',sans-serif;">Colour</div>
+                <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                  {% for c in product.colors %}
+                    <label style="cursor:pointer;">
+                      <input type="radio" name="color" value="{{ c }}" {% if loop.first %}checked{% endif %} style="display:none;">
+                      <span style="display:inline-flex;align-items:center;justify-content:center;padding:7px 16px;border-radius:999px;border:1px solid rgba(53,35,20,0.6);font-size:12px;letter-spacing:0.18em;text-transform:uppercase;background:#fdf7ee;transition:background 0.18s ease,transform 0.18s ease;">
+                        {{ c }}
+                      </span>
+                    </label>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+
+            {% if product.sizes %}
+              <div>
+                <div style="font-size:12px;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:8px;color:#7a6651;font-family:'Fjalla One',sans-serif;">Size</div>
+                <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                  {% for s in product.sizes %}
+                    <label style="cursor:pointer;">
+                      <input type="radio" name="size" value="{{ s }}" {% if loop.first %}checked{% endif %} style="display:none;">
+                      <span style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:34px;border-radius:999px;border:1px solid rgba(53,35,20,0.6);font-size:12px;letter-spacing:0.16em;text-transform:uppercase;background:#fff7ed;transition:background 0.18s ease,transform 0.18s ease;">
+                        {{ s }}
+                      </span>
+                    </label>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+
+            <button type="submit"
+                    id="pd-add-btn"
+                    style="margin-top:4px;display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:12px 30px;border-radius:999px;border:1px solid rgba(27,14,6,0.9);background:#21120b;color:#fff;text-transform:uppercase;letter-spacing:0.22em;font-size:12px;font-family:'Fjalla One',sans-serif;cursor:pointer;box-shadow:0 14px 26px rgba(0,0,0,0.4);transition:transform 0.18s ease,box-shadow 0.18s ease,background 0.18s ease;">
+              <span>Add to cart</span>
+              <span style="display:inline-flex;width:18px;height:18px;border-radius:50%;border:1px solid rgba(255,255,255,0.8);align-items:center;justify-content:center;">
+                <span style="width:8px;height:8px;border-radius:1px;border:1px solid rgba(255,255,255,0.85);"></span>
+              </span>
+            </button>
+          </form>
+
+          <!-- Trust row -->
+          <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:10px;">
+            <span style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(33,18,11,0.20);background:#fff7ed;font-family:'Fjalla One',sans-serif;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#21120b;">
+              Handloom Inspired
+            </span>
+            <span style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(33,18,11,0.20);background:#fff7ed;font-family:'Fjalla One',sans-serif;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#21120b;">
+              Secure Checkout
+            </span>
+            <span style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(33,18,11,0.20);background:#fff7ed;font-family:'Fjalla One',sans-serif;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#21120b;">
+              WhatsApp Support
+            </span>
+          </div>
+
+          <div style="margin-top:18px;font-size:12px;color:#7a6a55;line-height:1.6;">
+            Free size guidance &amp; care instructions shared over WhatsApp after order confirmation.
+          </div>
         </div>
       </div>
+
+      <!-- Recently viewed placeholder (safe; only shows if JS injects) -->
+      <div id="pd-recently-viewed" style="margin-top:34px;"></div>
     </div>
 
-    <!-- Funky added-to-cart overlay (UNCHANGED) -->
+    <!-- Funky added-to-cart overlay (kept) -->
     <div id="pd-toast" style="
       position:fixed;
       left:50%;
@@ -129,6 +248,13 @@
 
     <script>
       (function(){
+        // Thumbnail click handler (safe)
+        window.__pdSetMain = function(src){
+          var img = document.getElementById("pd-main-img");
+          if(img && src){ img.src = src; }
+        };
+
+        // Radio pills styling (kept, with your design)
         document.querySelectorAll('form input[type="radio"]').forEach(inp => {
           inp.addEventListener("change", () => {
             const name = inp.name;
@@ -146,6 +272,7 @@
           pill.style.color = "#fff7ea";
         });
 
+        // Toast (kept)
         const btn = document.getElementById("pd-add-btn");
         const toast = document.getElementById("pd-toast");
         if(btn && toast){
@@ -163,8 +290,64 @@
             }, 900);
           });
         }
+
+        // ============================================================
+        // Recently viewed (localStorage) - SAFE, won't break anything
+        // ============================================================
+        try {
+          const key = "pd_recently_viewed";
+          const current = {
+            id: "{{ product.id|e }}",
+            name: "{{ (product.name or '')|e }}",
+            price: "{{ (product.price or 0)|e }}",
+            img: "{{ (main_img or '')|e }}",
+            url: "{{ url_for('product_detail', product_id=product.id) }}"
+          };
+
+          let list = JSON.parse(localStorage.getItem(key) || "[]");
+          list = list.filter(x => x && x.id && x.id !== current.id);
+          list.unshift(current);
+          list = list.slice(0, 6);
+          localStorage.setItem(key, JSON.stringify(list));
+
+          // Render strip
+          const mount = document.getElementById("pd-recently-viewed");
+          if(mount){
+            const others = list.filter(x => x.id !== current.id);
+            if(others.length){
+              let html = '';
+              html += '<div style="font-family:\'Fjalla One\',sans-serif;font-size:12px;letter-spacing:0.20em;text-transform:uppercase;color:#8a6b46;margin-bottom:14px;">Recently viewed</div>';
+              html += '<div style="display:flex;gap:14px;flex-wrap:wrap;">';
+              others.forEach(p => {
+                html += `
+                  <a href="${p.url}" style="text-decoration:none;color:inherit;">
+                    <div style="width:150px;border-radius:18px;overflow:hidden;background:#e8dccf;box-shadow:0 12px 24px rgba(0,0,0,0.18);border:1px solid rgba(33,18,11,0.15);">
+                      <div style="height:160px;background:#d3c6b6;">
+                        <img src="${p.img}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
+                      </div>
+                      <div style="padding:10px 12px;background:#fff7ed;">
+                        <div style="font-family:\'Fjalla One\',sans-serif;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#21120b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                          ${p.name}
+                        </div>
+                        <div style="margin-top:6px;font-size:12px;color:#6b5a48;">
+                          <span style="font-family:\'Fjalla One\',sans-serif;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;">Rs.</span>
+                          <span style="font-weight:600;"> ${Number(p.price || 0).toFixed(0)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </a>
+                `;
+              });
+              html += '</div>';
+              mount.innerHTML = html;
+            }
+          }
+        } catch(e) {
+          // no-op (safe)
+        }
       })();
     </script>
+
   </section>
 </main>
 {% endblock %}

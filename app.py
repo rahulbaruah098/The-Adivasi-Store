@@ -2,7 +2,7 @@ import os
 import uuid
 from flask import (
     Flask, render_template, request, redirect,
-    url_for, flash, session, jsonify, abort
+    url_for, flash, session, jsonify, abort,request
 )
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import (
@@ -15,6 +15,16 @@ from datetime import datetime
 import smtplib
 from email.mime.text import MIMEText
 import razorpay  # Razorpay client
+from product_catalogs import (
+    ALL_PRODUCTS,
+    SHOP_CATALOGS,
+    ACCESSORY_CATEGORIES,
+    WOMEN_PRODUCTS,
+    MEN_PRODUCTS,
+    KIDS_PRODUCTS,
+    ORNAMENT_PRODUCTS
+)
+
 
 app = Flask(__name__)
 
@@ -57,23 +67,7 @@ def allowed_file(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-# ✅ Must match your mega-menu labels exactly
-ACCESSORY_CATEGORIES = [
-    "Saree",
-    "Bandi",
-    "Bags",
-    "Gamosa",
-    "Shawl",
-    "Kurta Pyjama for Kids",
-    "Dhoti for kids",
-    "Sitapati",
-    "Jhumka",
-    "Chandrahaar",
-    "Hashli",
-    "Baju",
-    "Khongso",
-    "Poyori",
-]
+
 
 
 def save_product_image(file_storage):
@@ -111,162 +105,7 @@ razorpay_client = razorpay.Client(auth=(
 # PRODUCT CATALOG (Legacy static catalog)
 # NOTE: We'll gradually move to DB Products for admin-managed inventory.
 # --------------------------------------------------------------------
-PRODUCT_CATALOG = {
-    "gamusa-border-cotton-saree": {
-        "id": "gamusa-border-cotton-saree",
-        "name": "Gamusa Border Cotton Saree",
-        "price": 2490,
-        "category": "Handloom Saree",
-        "image": "https://images.pexels.com/photos/3738080/pexels-photo-3738080.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "hover_image": "https://images.pexels.com/photos/3738082/pexels-photo-3738082.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "colors": ["Red", "Black"],
-        "sizes": ["Free Size"],
-        "description": "Soft handloom cotton saree with traditional gamusa border, perfect for everyday wear and gatherings."
-    },
-    "tribal-motif-wool-stole": {
-        "id": "tribal-motif-wool-stole",
-        "name": "Tribal Motif Wool Stole",
-        "price": 1890,
-        "category": "Stole",
-        "image": "https://images.pexels.com/photos/6311661/pexels-photo-6311661.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "hover_image": "https://images.pexels.com/photos/6311656/pexels-photo-6311656.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "colors": ["Rust", "Charcoal"],
-        "sizes": ["Free Size"],
-        "description": "Warm wool stole with subtle tribal motifs and a soft handfeel."
-    },
-    "evening-wrap-red-selvedge": {
-        "id": "evening-wrap-red-selvedge",
-        "name": "Evening Wrap with Red Selvedge",
-        "price": 2190,
-        "category": "Shawl",
-        "image": "https://images.pexels.com/photos/3738081/pexels-photo-3738081.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "hover_image": "https://images.pexels.com/photos/3738083/pexels-photo-3738083.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "colors": ["Ivory", "Deep Red"],
-        "sizes": ["Free Size"],
-        "description": "Lightweight evening shawl with a bold red selvedge detail."
-    },
-    "festive-mekhela-chador-set": {
-        "id": "festive-mekhela-chador-set",
-        "name": "Festive Mekhela Chador Set",
-        "price": 3290,
-        "category": "Set",
-        "image": "https://images.pexels.com/photos/7691083/pexels-photo-7691083.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "hover_image": "https://images.pexels.com/photos/7691052/pexels-photo-7691052.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "colors": ["Maroon", "Gold"],
-        "sizes": ["Free Size"],
-        "description": "Handwoven festive mekhela chador set inspired by traditional motifs."
-    },
-    "handloom-border-shirt": {
-        "id": "handloom-border-shirt",
-        "name": "Handloom Cotton Shirt with Border",
-        "price": 1790,
-        "category": "Shirt",
-        "image": "https://images.pexels.com/photos/7691146/pexels-photo-7691146.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "hover_image": "https://images.pexels.com/photos/7691043/pexels-photo-7691043.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "colors": ["Indigo", "Off-white"],
-        "sizes": ["S", "M", "L", "XL"],
-        "description": "Relaxed-fit cotton shirt with subtle handloom border on cuffs and placket."
-    },
-    "bordered-chest-panel-tee": {
-        "id": "bordered-chest-panel-tee",
-        "name": "Bordered Chest Panel Tee",
-        "price": 990,
-        "category": "T-shirt",
-        "image": "https://images.pexels.com/photos/7691052/pexels-photo-7691052.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "hover_image": "https://images.pexels.com/photos/7691057/pexels-photo-3738080.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "colors": ["Charcoal", "White"],
-        "sizes": ["S", "M", "L", "XL"],
-        "description": "Everyday tee with a woven chest panel inspired by Adivasi patterns."
-    },
-    "layered-jacket-tribal-trim": {
-        "id": "layered-jacket-tribal-trim",
-        "name": "Layered Jacket with Tribal Trim",
-        "price": 2490,
-        "category": "Jacket",
-        "image": "https://images.pexels.com/photos/3738080/pexels-photo-3738080.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "hover_image": "https://images.pexels.com/photos/3738081/pexels-photo-3738081.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "colors": ["Earth Brown", "Forest Green"],
-        "sizes": ["S", "M", "L"],
-        "description": "Layered jacket with subtle woven trims along collar and front."
-    },
-    "mini-handwoven-jacket": {
-        "id": "mini-handwoven-jacket",
-        "name": "Mini Handwoven Jacket",
-        "price": 1590,
-        "category": "Kids · Jacket",
-        "image": "https://images.pexels.com/photos/3662879/pexels-photo-3662879.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "hover_image": "https://images.pexels.com/photos/3662822/pexels-photo-3662822.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "colors": ["Bright Red", "Mustard"],
-        "sizes": ["2-3Y", "4-5Y", "6-7Y"],
-        "description": "Soft kids’ jacket with bright handwoven panels."
-    },
-    "kids-festive-kurta-set": {
-        "id": "kids-festive-kurta-set",
-        "name": "Kids Festive Kurta Set",
-        "price": 1290,
-        "category": "Kids · Kurta Set",
-        "image": "https://images.pexels.com/photos/3661391/pexels-photo-3661391.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "hover_image": "https://images.pexels.com/photos/3661392/pexels-photo-3661392.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "colors": ["Marigold", "Green"],
-        "sizes": ["2-3Y", "4-5Y", "6-7Y"],
-        "description": "Festive kurta set with bright woven yoke and comfy fit."
-    },
-    "multi-strand-bead-neckpiece": {
-        "id": "multi-strand-bead-neckpiece",
-        "name": "Multi-strand Bead Neckpiece",
-        "price": 1490,
-        "category": "Neckpiece",
-        "image": "https://images.pexels.com/photos/1158438/pexels-photo-1158438.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "hover_image": "https://images.pexels.com/photos/1158434/pexels-photo-1158434.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "colors": ["Classic Red", "Mixed Beads"],
-        "sizes": ["Free Size"],
-        "description": "Layered bead necklace inspired by traditional Adivasi jewellery."
-    },
-    "brass-hoop-earrings": {
-        "id": "brass-hoop-earrings",
-        "name": "Brass Hoop Earrings",
-        "price": 790,
-        "category": "Earrings",
-        "image": "https://images.pexels.com/photos/1158436/pexels-photo-1158436.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "hover_image": "https://images.pexels.com/photos/1158435/pexels-photo-1158435.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "colors": ["Antique Brass"],
-        "sizes": ["Free Size"],
-        "description": "Round brass hoops with a warm, antique finish."
-    },
-    "gamusa-panel-sling-bag": {
-        "id": "gamusa-panel-sling-bag",
-        "name": "Gamusa Panel Sling Bag",
-        "price": 1990,
-        "category": "Sling Bag",
-        "image": "https://images.pexels.com/photos/8148578/pexels-photo-8148578.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "hover_image": "https://images.pexels.com/photos/8148577/pexels-photo-8148577.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "colors": ["Off-white & Red"],
-        "sizes": ["One Size"],
-        "description": "Everyday sling bag with a gamusa-inspired front panel."
-    },
-    "handloom-market-tote": {
-        "id": "handloom-market-tote",
-        "name": "Handloom Market Tote",
-        "price": 1590,
-        "category": "Tote",
-        "image": "https://images.pexels.com/photos/6476584/pexels-photo-6476584.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "hover_image": "https://images.pexels.com/photos/6476582/pexels-photo-6476582.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "colors": ["Natural", "Brick Red"],
-        "sizes": ["One Size"],
-        "description": "Sturdy tote with handloom panel – perfect for haat and city runs."
-    },
-    "handloom-weave-belt": {
-        "id": "handloom-weave-belt",
-        "name": "Handloom Weave Belt",
-        "price": 690,
-        "category": "Belt",
-        "image": "https://images.pexels.com/photos/7691083/pexels-photo-7691083.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "hover_image": "https://images.pexels.com/photos/7691048/pexels-photo-7691048.jpeg?auto=compress&cs=tinysrgb&w=800",
-        "colors": ["Rust", "Black"],
-        "sizes": ["S", "M", "L"],
-        "description": "Slim belt with a handloom insert to lift any outfit."
-    },
-}
+
 
 # ----------------------------
 # MODELS
@@ -618,28 +457,20 @@ def about():
     return render_template("about.html")
 
 
-# ✅ UPDATED SHOP: send products to template (DB + catalog)
+# ----------------------------
+# ✅ UPDATED SHOP — SINGLE SOURCE OF TRUTH (PRODUCT_CATALOG)
+# ----------------------------
 @app.route("/shop")
 def shop():
     redirect_resp = redirect_admin_if_needed()
     if redirect_resp:
         return redirect_resp
 
-    # DB products (admin-managed)
-    db_products = Product.query.filter_by(is_active=True).order_by(Product.created_at.desc()).all()
-    db_products_for_ui = [_product_to_template_dict(p) for p in db_products]
-
-    # Legacy catalog products
-    catalog_products_for_ui = list(PRODUCT_CATALOG.values())
-
-    # Send BOTH to template (backward compatible)
     return render_template(
         "shop.html",
-        products=db_products_for_ui,          # unified list (DB first)
-        products_db=db_products_for_ui,
-        products_catalog=catalog_products_for_ui
+        catalogs=SHOP_CATALOGS,
+        accessory_categories=ACCESSORY_CATEGORIES,
     )
-
 
 # ----------------------------
 # CONTACT PAGE (GET + POST)
@@ -681,6 +512,7 @@ def contact():
 # ----------------------------
 # ✅ PRODUCT DETAIL (DB + Legacy catalog) — FIXED WRONG PRODUCT OPENING
 # ----------------------------
+
 @app.route("/product/<product_id>", methods=["GET", "POST"])
 def product_detail(product_id):
     redirect_resp = redirect_admin_if_needed()
@@ -689,25 +521,60 @@ def product_detail(product_id):
 
     product_for_template = None
 
-    # 1) Try DB product by slug
+    # ======================================================
+    # 1) Try DB product by slug (priority)
+    # ======================================================
     db_product = None
     if product_id:
-        db_product = Product.query.filter_by(slug=product_id, is_active=True).first()
+        db_product = Product.query.filter_by(
+            slug=product_id,
+            is_active=True
+        ).first()
 
-    # 2) If numeric, try DB by id
+    # ======================================================
+    # 2) If numeric, try DB by ID
+    # ======================================================
     if not db_product and str(product_id).isdigit():
-        db_product = Product.query.filter_by(id=int(product_id), is_active=True).first()
+        db_product = Product.query.filter_by(
+            id=int(product_id),
+            is_active=True
+        ).first()
 
+    # ======================================================
+    # 3) Use DB product if found
+    # ======================================================
     if db_product:
         product_for_template = _product_to_template_dict(db_product)
+
+    # ======================================================
+    # 4) Fallback to NEW product_catalogs.py (ALL_PRODUCTS)
+    # ======================================================
     else:
-        # 3) Fallback to legacy catalog
-        catalog_item = PRODUCT_CATALOG.get(product_id)
+        catalog_item = ALL_PRODUCTS.get(product_id)
         if not catalog_item:
             abort(404)
-        product_for_template = catalog_item
 
-    # POST => add to cart
+        # copy so we never mutate catalog
+        product_for_template = dict(catalog_item)
+
+        # ----------------------------------------------
+        # normalize images for product_detail.html
+        # ----------------------------------------------
+        images = product_for_template.get("images") or {}
+
+        product_for_template["image"] = images.get("primary", "")
+        product_for_template["hover_image"] = images.get("hover", "")
+
+        # ----------------------------------------------
+        # normalize category label
+        # ----------------------------------------------
+        product_for_template["category"] = product_for_template.get(
+            "category_label", ""
+        )
+
+    # ======================================================
+    # 5) POST → Add to cart
+    # ======================================================
     if request.method == "POST":
         if not current_user.is_authenticated:
             flash("Please log in to add items to your cart.", "info")
@@ -748,20 +615,70 @@ def product_detail(product_id):
         flash("Item added to cart.", "success")
         return redirect(url_for("cart"))
 
-    
-    # Allow shop (and other pages) to override images via query string so the detail page
-    # can show the EXACT card image the user clicked (useful when multiple cards share a slug).
+    # ======================================================
+    # 6) Image override via query string (CRITICAL FEATURE)
+    # ======================================================
     override_img = request.args.get("img") or request.args.get("image")
     override_hover = request.args.get("hover") or request.args.get("hover_image")
+
     if override_img or override_hover:
-        # ensure we don't mutate the catalog dict
         product_for_template = dict(product_for_template)
         if override_img:
             product_for_template["image"] = override_img
         if override_hover:
             product_for_template["hover_image"] = override_hover
 
-    return render_template("product_detail.html", product=product_for_template)
+    # ======================================================
+    # 7) Render
+    # ======================================================
+    return render_template(
+        "product_detail.html",
+        product=product_for_template
+    )
+
+
+#--------------passing products details from catalog file to index file------#
+
+
+@app.route("/api/aps-products")
+def api_aps_products():
+    gender = (request.args.get("gender") or "women").strip().lower()
+
+    catalog_map = {
+        "women": WOMEN_PRODUCTS,
+        "men": MEN_PRODUCTS,
+        "kids": KIDS_PRODUCTS,
+        "ornaments": ORNAMENT_PRODUCTS,
+    }
+
+    products = catalog_map.get(gender)
+    if products is None:
+        return jsonify({"ok": False, "items": [], "error": "Invalid gender"}), 400
+
+    items = []
+    for p in products:
+        images = p.get("images") or {}
+
+        # IMPORTANT: keep field mapping aligned to product_catalogs.py
+        items.append({
+            # product_catalogs.py fields (source of truth)
+            "id": p.get("id"),
+            "name": p.get("name", ""),
+            "price": p.get("price", 0),
+            "badge": p.get("badge", ""),
+            "category_label": p.get("category_label", ""),
+            "audience": p.get("audience", ""),
+            "type": p.get("type", ""),
+            "menu_category": p.get("menu_category", ""),
+
+            # images normalized for frontend
+            "images": {
+                "primary": images.get("primary", ""),
+                "hover": images.get("hover", images.get("primary", "")),
+            }
+        })
+
+    return jsonify({"ok": True, "items": items})
 
 
 # ----------------------------

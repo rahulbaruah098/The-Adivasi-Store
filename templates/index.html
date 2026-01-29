@@ -11,7 +11,7 @@
         <p class="hero-subtitle">
           Traditional Adivasi weaves, soft as memory and vibrant as our roots, handcrafted with care and culture—designed to be worn, cherished and passed on through generations.
         </p>
-        <a href="#shop" class="hero-cta">Discover</a>
+        <a href="/shop" class="hero-cta">OUR SHOP</a>
       </div>
     </section>
 
@@ -71,670 +71,489 @@
 
 
     <!-- ===== PRODUCT STRIP SECTION (women/men/kids) ===== -->
-<section id="adivasi-product-strip">
-  <!-- INLINE CSS JUST FOR THIS SECTION -->
-  <style>
-    /* ===== Adivasi Store – Product Strip (scoped) ===== */
-    #adivasi-product-strip{
-      padding:40px 60px 60px;
-      background:#f2eee8;
-      font-family:"Playfair Display",serif;
-      color:#151517;
-    }
+  <section id="adivasi-product-strip">
+      <!-- INLINE CSS JUST FOR THIS SECTION -->
+        <style>
+          /* ===== Adivasi Store – Product Strip (scoped) ===== */
+          #adivasi-product-strip{
+            padding:40px 60px 60px;
+            background:#f2eee8;
+            font-family:"Playfair Display",serif;
+            color:#151517;
+          }
 
-    #adivasi-product-strip .aps-inner{
-      max-width:1240px;
-      margin:0 auto;
-    }
+          #adivasi-product-strip .aps-inner{
+            max-width:1240px;
+            margin:0 auto;
+          }
 
-    /* Tabs (Women / Men / Kids / Ornaments) */
-    #adivasi-product-strip .aps-tabs{
-      display:flex;
-      gap:28px;
-      margin-bottom:26px;
-      font-size:18px;
-    }
+          /* Tabs (Women / Men / Kids / Ornaments) */
+          #adivasi-product-strip .aps-tabs{
+            display:flex;
+            gap:28px;
+            margin-bottom:26px;
+            font-size:18px;
+          }
 
-    #adivasi-product-strip .aps-tab{
-      background:none;
-      border:none;
-      padding:0 0 4px;
-      cursor:pointer;
-      font:inherit;
-      color:#7c7a76;
-      position:relative;
-    }
+          #adivasi-product-strip .aps-tab{
+            background:none;
+            border:none;
+            padding:0 0 4px;
+            cursor:pointer;
+            font:inherit;
+            color:#7c7a76;
+            position:relative;
+          }
 
-    #adivasi-product-strip .aps-tab::after{
-      content:"";
-      position:absolute;
-      left:0;
-      bottom:0;
-      width:0;
-      height:2px;
-      background:#151517;
-      transition:width .25s ease;
-    }
+          #adivasi-product-strip .aps-tab::after{
+            content:"";
+            position:absolute;
+            left:0;
+            bottom:0;
+            width:0;
+            height:2px;
+            background:#151517;
+            transition:width .25s ease;
+          }
 
-    #adivasi-product-strip .aps-tab.aps-tab--active{
-      color:#151517;
-    }
+          #adivasi-product-strip .aps-tab.aps-tab--active{
+            color:#151517;
+          }
 
-    #adivasi-product-strip .aps-tab.aps-tab--active::after{
-      width:100%;
-    }
+          #adivasi-product-strip .aps-tab.aps-tab--active::after{
+            width:100%;
+          }
 
-    /* Product grid (desktop/tablet) */
-    #adivasi-product-strip .aps-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
-      gap:24px;
-    }
+          /* Product grid (desktop/tablet) */
+          #adivasi-product-strip .aps-grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+            gap:24px;
+          }
 
-    #adivasi-product-strip .aps-card{
-      background:#e4ded5;
-      padding:16px 16px 18px;
-      display:flex;
-      flex-direction:column;
-      height:100%;
-      position:relative;
-      min-width:0;
-    }
+          #adivasi-product-strip .aps-card{
+            background:#e4ded5;
+            padding:16px 16px 18px;
+            display:flex;
+            flex-direction:column;
+            height:100%;
+            position:relative;
+            min-width:0;
+          }
 
-    #adivasi-product-strip .aps-media{
-      position:relative;
-      background:#d7d1c7;
-      overflow:hidden;
-      aspect-ratio:3/4;
-      margin-bottom:14px;
-    }
+          #adivasi-product-strip .aps-media{
+            position:relative;
+            background:#d7d1c7;
+            overflow:hidden;
+            aspect-ratio:3/4;
+            margin-bottom:14px;
+          }
 
-    #adivasi-product-strip .aps-img{
-      position:absolute;
-      inset:0;
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      transition:opacity .35s ease;
-    }
+          #adivasi-product-strip .aps-img{
+            position:absolute;
+            inset:0;
+            width:100%;
+            height:100%;
+            object-fit:cover;
+            transition:opacity .35s ease;
+          }
 
-    #adivasi-product-strip .aps-img.aps-primary{ opacity:1; }
-    #adivasi-product-strip .aps-img.aps-hover{ opacity:0; }
+          #adivasi-product-strip .aps-img.aps-primary{ opacity:1; }
+          #adivasi-product-strip .aps-img.aps-hover{ opacity:0; }
 
-    #adivasi-product-strip .aps-card:hover .aps-img.aps-primary{ opacity:0; }
-    #adivasi-product-strip .aps-card:hover .aps-img.aps-hover{ opacity:1; }
+          #adivasi-product-strip .aps-card:hover .aps-img.aps-primary{ opacity:0; }
+          #adivasi-product-strip .aps-card:hover .aps-img.aps-hover{ opacity:1; }
 
-    /* Add-to-cart round button with SVG bag */
-    #adivasi-product-strip .aps-add{
-      position:absolute;
-      right:10px;
-      bottom:10px;
-      width:30px;
-      height:30px;
-      border-radius:50%;
-      border:none;
-      background:rgba(255,255,255,0.96);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      cursor:pointer;
-      box-shadow:0 4px 8px rgba(0,0,0,0.18);
-      transition:transform .2s ease, box-shadow .2s ease;
-    }
+          /* Add-to-cart round button with SVG bag */
+          #adivasi-product-strip .aps-add{
+            position:absolute;
+            right:10px;
+            bottom:10px;
+            width:30px;
+            height:30px;
+            border-radius:50%;
+            border:none;
+            background:rgba(255,255,255,0.96);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+            box-shadow:0 4px 8px rgba(0,0,0,0.18);
+            transition:transform .2s ease, box-shadow .2s ease;
+          }
 
-    #adivasi-product-strip .aps-add svg{ width:18px; height:18px; }
+          #adivasi-product-strip .aps-add svg{ width:18px; height:18px; }
 
-    #adivasi-product-strip .aps-add path{
-      stroke:#151517;
-      stroke-width:1.6;
-      fill:none;
-      stroke-linejoin:round;
-      stroke-linecap:round;
-    }
+          #adivasi-product-strip .aps-add path{
+            stroke:#151517;
+            stroke-width:1.6;
+            fill:none;
+            stroke-linejoin:round;
+            stroke-linecap:round;
+          }
 
-    #adivasi-product-strip .aps-add:hover{
-      transform:translateY(-2px);
-      box-shadow:0 6px 14px rgba(0,0,0,0.24);
-    }
+          #adivasi-product-strip .aps-add:hover{
+            transform:translateY(-2px);
+            box-shadow:0 6px 14px rgba(0,0,0,0.24);
+          }
 
-    /* Text */
-    #adivasi-product-strip .aps-info{
-      display:flex;
-      flex-direction:column;
-      flex:1;
-    }
+          /* Text */
+          #adivasi-product-strip .aps-info{
+            display:flex;
+            flex-direction:column;
+            flex:1;
+          }
 
-    #adivasi-product-strip .aps-name{
-      font-size:13px;
-      letter-spacing:.13em;
-      text-transform:uppercase;
-      margin-bottom:6px;
-    }
+          #adivasi-product-strip .aps-name{
+            font-size:13px;
+            letter-spacing:.13em;
+            text-transform:uppercase;
+            margin-bottom:6px;
+          }
 
-    #adivasi-product-strip .aps-price-line{
-      display:flex;
-      align-items:baseline;
-      gap:4px;
-      font-size:13px;
-      margin-bottom:4px;
-    }
+          #adivasi-product-strip .aps-price-line{
+            display:flex;
+            align-items:baseline;
+            gap:4px;
+            font-size:13px;
+            margin-bottom:4px;
+          }
 
-    #adivasi-product-strip .aps-price-label{
-      letter-spacing:.18em;
-      text-transform:uppercase;
-    }
+          #adivasi-product-strip .aps-price-label{
+            letter-spacing:.18em;
+            text-transform:uppercase;
+          }
 
-    #adivasi-product-strip .aps-price{ font-size:13px; }
+          #adivasi-product-strip .aps-price{ font-size:13px; }
 
-    #adivasi-product-strip .aps-subtitle{
-      font-size:11px;
-      letter-spacing:.15em;
-      text-transform:uppercase;
-      color:#7c7a76;
-      font-style:italic;
-    }
+          #adivasi-product-strip .aps-subtitle{
+            font-size:11px;
+            letter-spacing:.15em;
+            text-transform:uppercase;
+            color:#7c7a76;
+            font-style:italic;
+          }
 
-    /* ✨ Funky "added to cart" animation */
-    #adivasi-product-strip .aps-card.aps-added .aps-add{
-      animation:aps-pop .55s ease-out;
-    }
+          /* ✨ Funky "added to cart" animation */
+          #adivasi-product-strip .aps-card.aps-added .aps-add{
+            animation:aps-pop .55s ease-out;
+          }
 
-    #adivasi-product-strip .aps-added-tag{
-      position:absolute;
-      left:12px;
-      bottom:12px;
-      padding:4px 10px;
-      border-radius:999px;
-      background:rgba(0,0,0,0.86);
-      color:#fff;
-      font-size:10px;
-      letter-spacing:.16em;
-      text-transform:uppercase;
-      font-family:"Fjalla One",sans-serif;
-      pointer-events:none;
-      opacity:0;
-      transform:translateY(8px) scale(.9);
-      animation:aps-tag-pop .7s ease-out forwards;
-    }
+          #adivasi-product-strip .aps-added-tag{
+            position:absolute;
+            left:12px;
+            bottom:12px;
+            padding:4px 10px;
+            border-radius:999px;
+            background:rgba(0,0,0,0.86);
+            color:#fff;
+            font-size:10px;
+            letter-spacing:.16em;
+            text-transform:uppercase;
+            font-family:"Fjalla One",sans-serif;
+            pointer-events:none;
+            opacity:0;
+            transform:translateY(8px) scale(.9);
+            animation:aps-tag-pop .7s ease-out forwards;
+          }
 
-    @keyframes aps-pop{
-      0%{transform:translateY(0) scale(1);}
-      35%{transform:translateY(-4px) scale(1.15) rotate(-4deg);}
-      70%{transform:translateY(1px) scale(.96) rotate(2deg);}
-      100%{transform:translateY(0) scale(1);}
-    }
+          @keyframes aps-pop{
+            0%{transform:translateY(0) scale(1);}
+            35%{transform:translateY(-4px) scale(1.15) rotate(-4deg);}
+            70%{transform:translateY(1px) scale(.96) rotate(2deg);}
+            100%{transform:translateY(0) scale(1);}
+          }
 
-    @keyframes aps-tag-pop{
-      0%{opacity:0;transform:translateY(8px) scale(.9);}
-      30%{opacity:1;transform:translateY(0) scale(1);}
-      100%{opacity:0;transform:translateY(-10px) scale(.95);}
-    }
+          @keyframes aps-tag-pop{
+            0%{opacity:0;transform:translateY(8px) scale(.9);}
+            30%{opacity:1;transform:translateY(0) scale(1);}
+            100%{opacity:0;transform:translateY(-10px) scale(.95);}
+          }
 
-    /* Responsive tweaks – section-only */
-    @media (max-width:900px){
-      #adivasi-product-strip{
-        padding:28px 20px 42px;
-      }
-      #adivasi-product-strip .aps-tabs{
-        font-size:16px;
-        gap:18px;
-      }
-      #adivasi-product-strip .aps-grid{
-        grid-template-columns:repeat(2,minmax(0,1fr));
-      }
-    }
+          /* Responsive tweaks – section-only */
+          @media (max-width:900px){
+            #adivasi-product-strip{
+              padding:28px 20px 42px;
+            }
+            #adivasi-product-strip .aps-tabs{
+              font-size:16px;
+              gap:18px;
+            }
+            #adivasi-product-strip .aps-grid{
+              grid-template-columns:repeat(2,minmax(0,1fr));
+            }
+          }
 
-    /* ✅ MOBILE: keep products in a HORIZONTAL strip (like web), not vertical */
-    @media (max-width:600px){
-      #adivasi-product-strip{
-        padding:24px 18px 40px;
-      }
+          /* ✅ MOBILE: keep products in a HORIZONTAL strip (like web), not vertical */
+          @media (max-width:600px){
+            #adivasi-product-strip{
+              padding:24px 18px 40px;
+            }
 
-      /* Turn grid into horizontal scroller */
-      #adivasi-product-strip .aps-grid{
-        display:flex;
-        gap:14px;
-        overflow-x:auto;
-        overflow-y:hidden;
-        -webkit-overflow-scrolling:touch;
-        padding-bottom:6px;
-        scroll-snap-type:x mandatory;
-      }
+            /* Turn grid into horizontal scroller */
+            #adivasi-product-strip .aps-grid{
+              display:flex;
+              gap:14px;
+              overflow-x:auto;
+              overflow-y:hidden;
+              -webkit-overflow-scrolling:touch;
+              padding-bottom:6px;
+              scroll-snap-type:x mandatory;
+            }
 
-      /* Each card keeps a fixed width so multiple cards slide horizontally */
-      #adivasi-product-strip .aps-card{
-        flex:0 0 78%;
-        max-width:78%;
-        scroll-snap-align:start;
-        padding:12px 12px 16px;
-      }
+            /* Each card keeps a fixed width so multiple cards slide horizontally */
+            #adivasi-product-strip .aps-card{
+              flex:0 0 78%;
+              max-width:78%;
+              scroll-snap-align:start;
+              padding:12px 12px 16px;
+            }
 
-      /* Optional: nicer thin scrollbar */
-      #adivasi-product-strip .aps-grid::-webkit-scrollbar{ height:6px; }
-      #adivasi-product-strip .aps-grid::-webkit-scrollbar-thumb{
-        background:rgba(0,0,0,0.18);
-        border-radius:999px;
-      }
-      #adivasi-product-strip .aps-grid::-webkit-scrollbar-track{
-        background:transparent;
-      }
+            /* Optional: nicer thin scrollbar */
+            #adivasi-product-strip .aps-grid::-webkit-scrollbar{ height:6px; }
+            #adivasi-product-strip .aps-grid::-webkit-scrollbar-thumb{
+              background:rgba(0,0,0,0.18);
+              border-radius:999px;
+            }
+            #adivasi-product-strip .aps-grid::-webkit-scrollbar-track{
+              background:transparent;
+            }
 
-      #adivasi-product-strip .aps-name{font-size:12px;}
-      #adivasi-product-strip .aps-price-line,
-      #adivasi-product-strip .aps-price{font-size:12px;}
-      #adivasi-product-strip .aps-subtitle{font-size:10px;}
-    }
+            #adivasi-product-strip .aps-name{font-size:12px;}
+            #adivasi-product-strip .aps-price-line,
+            #adivasi-product-strip .aps-price{font-size:12px;}
+            #adivasi-product-strip .aps-subtitle{font-size:10px;}
+          }
 
-    /* Extra small phones: show a bit more of next card */
-    @media (max-width:420px){
-      #adivasi-product-strip .aps-card{
-        flex-basis:86%;
-        max-width:86%;
-      }
-    }
-  </style>
+          /* Extra small phones: show a bit more of next card */
+          @media (max-width:420px){
+            #adivasi-product-strip .aps-card{
+              flex-basis:86%;
+              max-width:86%;
+            }
+          }
 
-  <!-- HTML CONTENT OF THE SECTION -->
-  <div class="aps-inner">
-    <div class="aps-tabs">
-      <button class="aps-tab aps-tab--active" data-gender="women">Women</button>
-      <button class="aps-tab" data-gender="men">Men</button>
-      <button class="aps-tab" data-gender="kids">Kids</button>
-      <button class="aps-tab" data-gender="ornaments">Ornaments</button>
-    </div>
+           .aps-toggle-card { cursor: pointer; }
 
-    <div class="aps-grid">
-      <!-- JS will inject product cards here -->
-    </div>
-  </div>
+            .aps-toggle-inner{
+              height: 100%;
+              min-height: 260px; /* adjust to match your card height */
+              display: grid;
+              place-items: center;
+              border: 1px solid rgba(0,0,0,0.10);
+              background: rgba(255,255,255,0.35);
+            }
 
-  <!-- INLINE JS JUST FOR THIS SECTION -->
-  <script>
-    // ===== DATA: add / edit as many products as you want =====
-    const apsProducts = [
-      /* WOMEN */
-      {
-        id: 1,
-        productId: "alobert-sleeveless-wool-cardi",
-        gender: "women",
-        name: "ALOMBERT SLEEVELESS WOOL CARDI",
-        subtitle: "SQUIRREL JACQUARD",
-        price: "24,700.00",
-        img: "static/images/IMG_0375.JPG",
-        imgHover: "static/images/IMG_0386.JPG"
-      },
-      {
-        id: 2,
-        productId: "placide-patchwork-sweatshirt",
-        gender: "women",
-        name: "PLACIDE PATCHWORK SWEATSHIRT",
-        subtitle: "PATCH COEUR",
-        price: "21,900.00",
-        img: "static/images/IMG_0375.JPG",
-        imgHover: "static/images/IMG_0376.JPG"
-      },
-      {
-        id: 3,
-        productId: "popincourt-t-shirt-amour",
-        gender: "women",
-        name: "POPINCOURT T-SHIRT",
-        subtitle: "AMOUR",
-        price: "9,900.00",
-        img: "static/images/IMG_0392.JPG",
-        imgHover: "static/images/IMG_0393.JPG"
-      },
-      {
-        id: 4,
-        productId: "cepre-sweatshirt-amour",
-        gender: "women",
-        name: "CÉPRÉ SWEATSHIRT",
-        subtitle: "AMOUR",
-        price: "21,900.00",
-        img: "static/images/IMG_0418.JPG",
-        imgHover: "static/images/IMG_0420.JPG"
-      },
-      {
-        id: 5,
-        productId: "buzelin-cashmere-sweater",
-        gender: "women",
-        name: "BUZELIN CASHMERE SWEATER",
-        subtitle: "COMME CI COMME ÇA",
-        price: "27,500.00",
-        img: "static/images/IMG_0428.JPG",
-        imgHover: "static/images/IMG_0430.JPG"
-      },
+            .aps-toggle-text{
+              font-weight: 600;
+              letter-spacing: 0.08em;
+              text-transform: uppercase;
+            }
 
-      /* MEN */
-      {
-        id: 6,
-        productId: "ribera-cotton-sweater-midnight-blue",
-        gender: "men",
-        name: "RIBERA COTTON SWEATER",
-        subtitle: "MIDNIGHT BLUE",
-        price: "18,900.00",
-        img: "static/images/IMG_0454.JPG",
-        imgHover: "static/images/IMG_0455.JPG"
-      },
-      {
-        id: 7,
-        productId: "moulin-t-shirt-heather-grey",
-        gender: "men",
-        name: "MOULIN T-SHIRT",
-        subtitle: "HEATHER GREY",
-        price: "7,900.00",
-        img: "static/images/IMG_0504.JPG",
-        imgHover: "static/images/IMG_0505.JPG"
-      },
-      {
-        id: 8,
-        productId: "classic-linen-shirt-sand",
-        gender: "men",
-        name: "CLASSIC LINEN SHIRT",
-        subtitle: "SAND",
-        price: "11,500.00",
-        img: "static/images/IMG_0520.JPG",
-        imgHover: "static/images/IMG_0521.JPG"
-      },
-      {
-        id: 9,
-        productId: "lightweight-bomber-ecru",
-        gender: "men",
-        name: "LIGHTWEIGHT BOMBER",
-        subtitle: "ECRU",
-        price: "22,300.00",
-        img: "static/images/IMG_0526.JPG",
-        imgHover: "static/images/IMG_0523.JPG"
-      },
-      ,
-      {
-        id: 10,
-        productId: "lightweight-bomber-ecru",
-        gender: "men",
-        name: "LIGHTWEIGHT BOMBER",
-        subtitle: "ECRU",
-        price: "22,300.00",
-        img: "static/images/adivasi/men1.jpg",
-        imgHover: "static/images/adivasi/men2.jpg"
-      },
-      ,
-      {
-        id: 11,
-        productId: "lightweight-bomber-ecru",
-        gender: "men",
-        name: "LIGHTWEIGHT BOMBER",
-        subtitle: "ECRU",
-        price: "22,300.00",
-        img: "static/images/adivasi/men2.jpg",
-        imgHover: "static/images/adivasi/men2.jpg"
-      },
-      ,
-      {
-        id: 12,
-        productId: "lightweight-bomber-ecru",
-        gender: "men",
-        name: "LIGHTWEIGHT BOMBER",
-        subtitle: "ECRU",
-        price: "22,300.00",
-        img: "static/images/adivasi/men3.jpg",
-        imgHover: "static/images/adivasi/men3.jpg"
-      },
-      ,
-      {
-        id: 13,
-        productId: "lightweight-bomber-ecru",
-        gender: "men",
-        name: "LIGHTWEIGHT BOMBER",
-        subtitle: "ECRU",
-        price: "22,300.00",
-        img: "static/images/adivasi/men4.jpg",
-        imgHover: "static/images/adivasi/men4.jpg"
-      },
-      ,
-      {
-        id: 14,
-        productId: "lightweight-bomber-ecru",
-        gender: "men",
-        name: "LIGHTWEIGHT BOMBER",
-        subtitle: "ECRU",
-        price: "22,300.00",
-        img: "static/images/adivasi/men5.jpg",
-        imgHover: "static/images/adivasi/men5.jpg"
-      },
-      ,
-      {
-        id: 15,
-        productId: "lightweight-bomber-ecru",
-        gender: "men",
-        name: "LIGHTWEIGHT BOMBER",
-        subtitle: "ECRU",
-        price: "22,300.00",
-        img: "static/images/adivasi/men6.jpg",
-        imgHover: "static/images/adivasi/men6.jpg"
-      },
-      ,
-      {
-        id: 16,
-        productId: "lightweight-bomber-ecru",
-        gender: "men",
-        name: "LIGHTWEIGHT BOMBER",
-        subtitle: "ECRU",
-        price: "22,300.00",
-        img: "static/images/adivasi/men7.jpg",
-        imgHover: "static/images/adivasi/men7.jpg"
-      },
-      ,
-      {
-        id: 17,
-        productId: "lightweight-bomber-ecru",
-        gender: "men",
-        name: "LIGHTWEIGHT BOMBER",
-        subtitle: "ECRU",
-        price: "22,300.00",
-        img: "static/images/adivasi/men8.jpg",
-        imgHover: "static/images/adivasi/men8.jpg"
-      },
-      ,
-      {
-        id: 18,
-        productId: "lightweight-bomber-ecru",
-        gender: "men",
-        name: "LIGHTWEIGHT BOMBER",
-        subtitle: "ECRU",
-        price: "22,300.00",
-        img: "static/images/adivasi/men9.jpg",
-        imgHover: "static/images/adivasi/men9.jpg"
-      },
+        </style>
 
-
-      /* KIDS */
-      {
-        id: 10,
-        productId: "mini-handwoven-jacket-adivasi-pattern",
-        gender: "kids",
-        name: "MINI HANDWOVEN JACKETS",
-        subtitle: "ADIVASI PATTERN",
-        price: "5,500.00",
-        img: "static/images/adivasi/kids1.jpg",
-        imgHover: "static/images/adivasi/kids1.jpg"
-      },
-      {
-        id: 11,
-        productId: "kids-festive-kurta-bright-weave",
-        gender: "kids",
-        name: "KIDS FESTIVE KURTA",
-        subtitle: "BRIGHT WEAVE",
-        price: "3,900.00",
-        img: "static/images/adivasi/kids2.jpg",
-        imgHover: "static/images/adivasi/kids2.jpg"
-      },
-      {
-        id: 12,
-        productId: "playday-wrap-skirt-handloom-check",
-        gender: "kids",
-        name: "PLAYDAY WRAP SKIRT",
-        subtitle: "HANDLOOM CHECK",
-        price: "2,700.00",
-        img: "static/images/adivasi/kids3.jpg",
-        imgHover: "static/images/adivasi/kids3.jpg"
-      },
-
-      /* ORNAMENTS */
-      {
-        id: 13,
-        productId: "brass-choker-tribal-curve",
-        gender: "ornaments",
-        name: "BRASS CHOKER",
-        subtitle: "TRIBAL CURVE",
-        price: "1,900.00",
-        img: "",
-        imgHover: ""
-      },
-      {
-        id: 14,
-        productId: "handmade-silver-earrings-spiral",
-        gender: "ornaments",
-        name: "HANDMADE SILVER EARRINGS",
-        subtitle: "SPIRAL",
-        price: "1,250.00",
-        img: "",
-        imgHover: ""
-      },
-      {
-        id: 15,
-        productId: "beaded-necklace-earth-tones",
-        gender: "ornaments",
-        name: "BEADED NECKLACE",
-        subtitle: "EARTH TONES",
-        price: "1,650.00",
-        img: "",
-        imgHover: ""
-      },
-      {
-        id: 16,
-        productId: "tribal-bangle-set-copper",
-        gender: "ornaments",
-        name: "TRIBAL BANGLE SET",
-        subtitle: "COPPER",
-        price: "2,100.00",
-        img: "",
-        imgHover: ""
-      }
-    ];
-
-    const apsSection = document.getElementById("adivasi-product-strip");
-    const apsGrid   = apsSection.querySelector(".aps-grid");
-    const apsTabs   = apsSection.querySelectorAll(".aps-tab");
-
-    // Base URLs from Flask routes (same pattern as shop.html)
-    const apsProductDetailBase   = "{{ url_for('product_detail', product_id='__PID__') }}";
-    const apsProductDetailPrefix = apsProductDetailBase.replace("__PID__", "");
-    const apsAddToCartBase       = "{{ url_for('add_to_cart') }}";
-
-    function apsShowAddedAnimation(card){
-      if(!card) return;
-
-      card.classList.add("aps-added");
-
-      // remove any existing tag
-      const oldTag = card.querySelector(".aps-added-tag");
-      if(oldTag) oldTag.remove();
-
-      const tag = document.createElement("div");
-      tag.className = "aps-added-tag";
-      tag.textContent = "Added to cart";
-      card.appendChild(tag);
-
-      // optional nav cart bounce (if you have .nav-cart in header)
-      const navCart = document.querySelector(".nav-cart");
-      if(navCart){
-        navCart.classList.add("nav-cart--ping");
-        setTimeout(()=>navCart.classList.remove("nav-cart--ping"), 650);
-      }
-
-      setTimeout(()=>{
-        card.classList.remove("aps-added");
-        if(tag && tag.parentNode){ tag.parentNode.removeChild(tag); }
-      }, 900);
-    }
-
-    function renderApsProducts(gender="women"){
-      apsGrid.innerHTML = "";
-      const list = apsProducts.filter(p => p.gender === gender);
-      list.forEach(p => {
-        const card = document.createElement("article");
-        card.className = "aps-card";
-        card.dataset.productId = p.productId || "";
-        card.innerHTML = `
-          <div class="aps-media">
-            <img class="aps-img aps-primary" src="${p.img}" alt="${p.name}">
-            <img class="aps-img aps-hover" src="${p.imgHover}" alt="${p.name}">
-            <button class="aps-add" type="button" title="Add to cart">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M8 9c0-2.2 1.8-4 4-4s4 1.8 4 4"></path>
-                <path d="M7 9h10l-1 9H8L7 9z"></path>
-              </svg>
-            </button>
+        <!-- HTML CONTENT OF THE SECTION -->
+        <div class="aps-inner">
+          <div class="aps-tabs">
+            <button class="aps-tab aps-tab--active" data-gender="women">Women</button>
+            <button class="aps-tab" data-gender="men">Men</button>
+            <button class="aps-tab" data-gender="kids">Kids</button>
+            <button class="aps-tab" data-gender="ornaments">Ornaments</button>
           </div>
-          <div class="aps-info">
-            <div class="aps-name">${p.name}</div>
-            <div class="aps-price-line">
-              <span class="aps-price-label">Rs.</span>
-              <span class="aps-price">${p.price}</span>
+
+          <div class="aps-grid">
+            <!-- JS will inject product cards here -->
+          </div>
+        </div>
+
+          <!-- INLINE JS JUST FOR THIS SECTION -->
+      <script>
+        const apsSection = document.getElementById("adivasi-product-strip");
+        const apsGrid   = apsSection.querySelector(".aps-grid");
+        const apsTabs   = apsSection.querySelectorAll(".aps-tab");
+
+        const apsApiBase = "{{ url_for('api_aps_products') }}";
+
+        const apsProductDetailBase   = "{{ url_for('product_detail', product_id='__PID__') }}";
+        const apsProductDetailPrefix = apsProductDetailBase.replace("__PID__", "");
+        const apsAddToCartBase       = "{{ url_for('add_to_cart') }}";
+
+        // Show 5 items by default
+        const APS_SHOW_COUNT = 5;
+
+        // Expanded state per tab
+        const apsExpanded = { women: false, men: false, kids: false, ornaments: false };
+
+        async function fetchApsProducts(gender){
+          const url = apsApiBase + "?" + new URLSearchParams({ gender });
+          const res = await fetch(url, { credentials: "include" });
+          const data = await res.json();
+          return data.items || [];
+        }
+
+        function apsShowAddedAnimation(card){
+          if(!card) return;
+          card.classList.add("aps-added");
+
+          const oldTag = card.querySelector(".aps-added-tag");
+          if(oldTag) oldTag.remove();
+
+          const tag = document.createElement("div");
+          tag.className = "aps-added-tag";
+          tag.textContent = "Added to cart";
+          card.appendChild(tag);
+
+          const navCart = document.querySelector(".nav-cart");
+          if(navCart){
+            navCart.classList.add("nav-cart--ping");
+            setTimeout(()=>navCart.classList.remove("nav-cart--ping"), 650);
+          }
+
+          setTimeout(()=>{
+            card.classList.remove("aps-added");
+            if(tag && tag.parentNode){ tag.parentNode.removeChild(tag); }
+          }, 900);
+        }
+
+        function makeToggleCard(label, onClick){
+          const card = document.createElement("article");
+          card.className = "aps-card aps-toggle-card";
+          card.innerHTML = `
+            <div class="aps-toggle-inner">
+              <span class="aps-toggle-text">${label}</span>
             </div>
-            <div class="aps-subtitle">${p.subtitle}</div>
-          </div>
-        `;
-        apsGrid.appendChild(card);
-
-        const addBtn = card.querySelector(".aps-add");
-        if (addBtn) {
-          addBtn.addEventListener("click", (ev) => {
+          `;
+          card.addEventListener("click", (ev) => {
+            ev.preventDefault();
             ev.stopPropagation();
+            onClick();
+          });
+          return card;
+        }
 
-            if (!p.productId) return;
+        function renderOneCard(p){
+          const primary = (p.images && p.images.primary) ? p.images.primary : "";
+          const hover   = (p.images && p.images.hover) ? p.images.hover : primary;
 
-            const params = new URLSearchParams({
-              product_id: p.productId,
-              name: p.name,
-              price: p.price,     // "24,700.00" etc
-              image: p.img        // main product image
+          const card = document.createElement("article");
+          card.className = "aps-card";
+          card.dataset.productId = p.id || "";
+
+          card.innerHTML = `
+            <div class="aps-media">
+              <img class="aps-img aps-primary" src="${primary}" alt="${p.name || ""}">
+              <img class="aps-img aps-hover" src="${hover}" alt="${p.name || ""}">
+              <button class="aps-add" type="button" title="Add to cart">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8 9c0-2.2 1.8-4 4-4s4 1.8 4 4"></path>
+                  <path d="M7 9h10l-1 9H8L7 9z"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="aps-info">
+              <div class="aps-name">${p.name || ""}</div>
+              <div class="aps-price-line">
+                <span class="aps-price-label">Rs.</span>
+                <span class="aps-price">${p.price ?? ""}</span>
+              </div>
+              <div class="aps-subtitle">${p.category_label || ""}</div>
+            </div>
+          `;
+
+          apsGrid.appendChild(card);
+
+          // Add to cart
+          const addBtn = card.querySelector(".aps-add");
+          if (addBtn) {
+            addBtn.addEventListener("click", (ev) => {
+              ev.stopPropagation();
+              if (!p.id) return;
+
+              const params = new URLSearchParams({
+                product_id: p.id,
+                name: p.name || "",
+                price: p.price ?? 0,
+                image: primary
+              });
+
+              fetch(apsAddToCartBase + "?" + params.toString(), {
+                method: "GET",
+                credentials: "include"
+              }).catch(()=>{});
+
+              apsShowAddedAnimation(card);
             });
+          }
 
-            const url = apsAddToCartBase + "?" + params.toString();
+          // Click card -> product detail
+          card.addEventListener("click", (ev) => {
+            if (ev.target.closest(".aps-add")) return;
+            if (!p.id) return;
 
-            fetch(url, {
-              method: "GET",
-              credentials: "include"
-            }).catch(()=>{});
+            const detailUrl = apsProductDetailPrefix + encodeURIComponent(p.id)
+              + "?" + new URLSearchParams({ img: primary, hover }).toString();
 
-            // 🔸 Funky animation
-            apsShowAddedAnimation(card);
+            window.location.href = detailUrl;
           });
         }
 
-        // Click anywhere on card (except add button) -> product detail
-        card.addEventListener("click", (ev) => {
-          if (ev.target.closest(".aps-add")) return;
-          if (!p.productId) return;
-          const url = apsProductDetailPrefix + encodeURIComponent(p.productId);
-          window.location.href = url;
+        async function renderApsProducts(gender="women"){
+          apsGrid.innerHTML = "";
+
+          const list = await fetchApsProducts(gender);
+          const expanded = !!apsExpanded[gender];
+
+          // If <= 5 products, no toggle cards
+          if (!list || list.length <= APS_SHOW_COUNT) {
+            (list || []).forEach(renderOneCard);
+            return;
+          }
+
+          if (!expanded) {
+            // First 5 products
+            list.slice(0, APS_SHOW_COUNT).forEach(renderOneCard);
+
+            // 6th: View All toggle card
+            apsGrid.appendChild(
+              makeToggleCard("View All", () => {
+                apsExpanded[gender] = true;
+                renderApsProducts(gender);
+              })
+            );
+            return;
+          }
+
+          // Expanded: show all products
+          list.forEach(renderOneCard);
+
+          // Last: Collapse toggle card
+          apsGrid.appendChild(
+            makeToggleCard("Collapse", () => {
+              apsExpanded[gender] = false;
+              renderApsProducts(gender);
+
+              // optional: scroll back to strip start on collapse
+              document.getElementById("adivasi-product-strip")
+                ?.scrollIntoView({ behavior: "smooth", block: "start" });
+            })
+          );
+        }
+
+        // Initial render
+        renderApsProducts("women");
+
+        // Tabs
+        apsTabs.forEach(tab => {
+          tab.addEventListener("click", () => {
+            apsTabs.forEach(t => t.classList.remove("aps-tab--active"));
+            tab.classList.add("aps-tab--active");
+            renderApsProducts(tab.dataset.gender);
+          });
         });
-      });
-    }
+    </script>
 
-    // Initial render
-    renderApsProducts("women");
 
-    // Tab switching
-    apsTabs.forEach(tab => {
-      tab.addEventListener("click", () => {
-        apsTabs.forEach(t => t.classList.remove("aps-tab--active"));
-        tab.classList.add("aps-tab--active");
-        renderApsProducts(tab.dataset.gender);
-      });
-    });
-  </script>
-</section>
+  </section>
 
 
 
@@ -1120,7 +939,7 @@
 
             <article class="asp-post asp-post--right">
               <div class="asp-frame" data-depth="0.5">
-                <img class="asp-img" src="{{ url_for('static', filename='images/adi4.jpg') }}" alt="Social post 4">
+                <img class="asp-img" src="{{ url_for('static', filename='images/insta4.jpeg') }}" alt="Social post 4">
                 <div class="asp-social-badge">
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <rect x="4" y="4" width="16" height="16" rx="5" ry="5"></rect>
@@ -1147,7 +966,7 @@
           <div class="asp-row">
             <article class="asp-post asp-post--left">
               <div class="asp-frame" data-depth="0.65">
-                <img class="asp-img" src="{{ url_for('static', filename='images/adi5.jpg') }}" alt="Social post 5">
+                <img class="asp-img" src="{{ url_for('static', filename='images/insta5.jpeg') }}" alt="Social post 5">
                 <div class="asp-social-badge">
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <rect x="4" y="4" width="16" height="16" rx="5" ry="5"></rect>
@@ -1171,7 +990,7 @@
 
             <article class="asp-post asp-post--right">
               <div class="asp-frame" data-depth="0.8">
-                <img class="asp-img" src="{{ url_for('static', filename='images/adi6.jpg') }}" alt="Social post 6">
+                <img class="asp-img" src="{{ url_for('static', filename='images/insta6.jpeg') }}" alt="Social post 6">
                 <div class="asp-social-badge">
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <rect x="4" y="4" width="16" height="16" rx="5" ry="5"></rect>
@@ -1253,45 +1072,45 @@
     </section>
 
     <!-- BENEFITS -->
-<section class="benefits">
-  <div class="benefits-inner">
-    <div class="benefit-block">
-      <h3>Secure Payment</h3>
-      <p>
-        “Shop with confidence. Secure checkout guaranteed.”<br>
-        “Your payment info is safe with us.”<br>
-        “Encrypted &amp; trusted payment processing.”
-      </p>
-    </div>
+    <section class="benefits">
+      <div class="benefits-inner">
+        <div class="benefit-block">
+          <h3>Secure Payment</h3>
+          <p>
+            “Shop with confidence. Secure checkout guaranteed.”<br>
+            “Your payment info is safe with us.”<br>
+            “Encrypted &amp; trusted payment processing.”
+          </p>
+        </div>
 
-    <div class="benefit-block">
-      <h3>Fast Shipping</h3>
-      <p>
-        “Quick delivery. Because you’re busy.”<br>
-        “Fast, tracked shipping on all orders.”<br>
-        “Get it sooner. Express shipping options.”
-      </p>
-    </div>
+        <div class="benefit-block">
+          <h3>Fast Shipping</h3>
+          <p>
+            “Quick delivery. Because you’re busy.”<br>
+            “Fast, tracked shipping on all orders.”<br>
+            “Get it sooner. Express shipping options.”
+          </p>
+        </div>
 
-    <div class="benefit-block">
-      <h3>Customer Support</h3>
-      <p>
-        “We’ve got you. 24/7 support.”<br>
-        “Help anytime. Reach out, we’re here.”<br>
-        “Your questions answered, fast.”
-      </p>
-    </div>
+        <div class="benefit-block">
+          <h3>Customer Support</h3>
+          <p>
+            “We’ve got you. 24/7 support.”<br>
+            “Help anytime. Reach out, we’re here.”<br>
+            “Your questions answered, fast.”
+          </p>
+        </div>
 
-    <div class="benefit-block">
-      <h3>Quality Promise</h3>
-      <p>
-        “Crafted with care. Quality you can trust.”<br>
-        “Authentic products. Guaranteed.”<br>
-        “Only the best. Promise.”
-      </p>
-    </div>
-  </div>
-</section>
+        <div class="benefit-block">
+          <h3>Quality Promise</h3>
+          <p>
+            “Crafted with care. Quality you can trust.”<br>
+            “Authentic products. Guaranteed.”<br>
+            “Only the best. Promise.”
+          </p>
+        </div>
+      </div>
+    </section>
 
   </main>
 {% endblock %}
