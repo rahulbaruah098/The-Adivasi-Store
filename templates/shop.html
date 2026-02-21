@@ -479,6 +479,74 @@
         <button class="shop-pill" data-jump="#accessories-row"><span>Accessories</span></button>
       </div>
 
+
+          <!--  Products by admin panel-->
+
+            {# ==============================
+        ✅ ADMIN-ADDED (DB) PRODUCTS
+        ============================== #}
+      {% if db_products and db_products|length %}
+      <section class="shop-row" id="admin-db-row">
+        <header class="shop-row-header">
+          <div>
+            <div class="shop-row-kicker">fresh arrivals</div>
+            <h3 class="shop-row-title">New · Admin Added Products</h3>
+          </div>
+          <p class="shop-row-sub">Products added from Admin Panel (saved in database).</p>
+        </header>
+
+        <div class="product-track" data-autoslide="false">
+          {% for p in db_products %}
+          <article class="product-card"
+                  data-detail-url="{{ url_for('product_detail', product_id=(p.slug or p.id)) }}">
+
+            <div class="product-media">
+              {% if p.stock is not none and p.stock <= 0 %}
+                <span class="product-badge">Out of stock</span>
+              {% endif %}
+
+              <img class="product-img product-img-primary"
+                  src="{{ p.image_url or '' }}" alt="{{ p.name }}">
+
+              <img class="product-img product-img-hover"
+                  src="{{ p.image_url or '' }}" alt="{{ p.name }}">
+
+              <button class="product-add"
+                      data-id="{{ p.slug or p.id }}"
+                      data-name="{{ p.name }}"
+                      data-price="{{ p.price }}"
+                      data-image="{{ p.image_url or '' }}"
+                      {% if p.stock is not none and p.stock <= 0 %} disabled style="opacity:.55; pointer-events:none"{% endif %}>
+                <svg viewBox="0 0 24 24">
+                  <path d="M8 9c0-2.2 1.8-4 4-4s4 1.8 4 4"></path>
+                  <path d="M7 9h10l-1 9H8L7 9z"></path>
+                </svg>
+              </button>
+            </div>
+
+            <div class="product-body">
+              <div class="product-category">{{ p.category }}</div>
+              <div class="product-name">{{ p.name }}</div>
+
+              <div class="product-meta-row">
+                <div class="product-price">
+                  <span class="product-price-label">Rs.</span> {{ p.price }}
+                </div>
+                <a href="#"
+                  class="product-link"
+                  onclick="location=this.closest('.product-card').dataset.detailUrl">
+                  View
+                </a>
+              </div>
+            </div>
+
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+
       <!-- ===== WOMEN ===== -->
       <section class="shop-row" id="women-row">
         <header class="shop-row-header">

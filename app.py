@@ -147,9 +147,11 @@ class CartItem(db.Model):
     product_image = db.Column(db.String(500))
     product_size = db.Column(db.String(50))
     product_color = db.Column(db.String(50))
+    product_db_id = db.Column(db.Integer, db.ForeignKey("product.id"), nullable=True)
 
     quantity = db.Column(db.Integer, default=1)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
 
 
 # ✅ NEW/UPDATED: Product model (Admin-managed products + stock + image upload)
@@ -204,6 +206,7 @@ class Order(db.Model):
 class OrderItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey("order.id"), nullable=False)
+    product_db_id = db.Column(db.Integer, nullable=True)
 
     product_name = db.Column(db.String(255), nullable=False)
     product_price = db.Column(db.Float, nullable=False)
@@ -466,12 +469,22 @@ def shop():
     if redirect_resp:
         return redirect_resp
 
+    # ✅ fetch admin-added products from DB (active only)
+    db_products = (
+        Product.query
+        .filter_by(is_active=True)
+        .order_by(Product.created_at.desc())
+        .all()
+    )
+
     return render_template(
         "shop.html",
         catalogs=SHOP_CATALOGS,
         accessory_categories=ACCESSORY_CATEGORIES,
-    )
 
+        # ✅ NEW: send DB products to template
+        db_products=db_products,
+    )
 # ----------------------------
 # CONTACT PAGE (GET + POST)
 # ----------------------------
@@ -589,12 +602,14 @@ def product_detail(product_id):
         pname = product_for_template.get("name")
         pprice = product_for_template.get("price", 0)
         pimage = product_for_template.get("image", "")
+        db_id = product_for_template.get("_db_id")  # will be int for DB products, None for catalog
 
         existing = CartItem.query.filter_by(
             user_id=current_user.id,
             product_name=pname,
             product_size=selected_size,
-            product_color=selected_color
+            product_color=selected_color,
+            product_db_id=db_id
         ).first()
 
         if existing:
@@ -602,6 +617,7 @@ def product_detail(product_id):
         else:
             item = CartItem(
                 user_id=current_user.id,
+                product_db_id=db_id,
                 product_name=pname,
                 product_price=float(pprice or 0),
                 product_image=pimage,
