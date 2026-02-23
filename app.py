@@ -18,11 +18,7 @@ import razorpay  # Razorpay client
 from product_catalogs import (
     ALL_PRODUCTS,
     SHOP_CATALOGS,
-    ACCESSORY_CATEGORIES,
-    WOMEN_PRODUCTS,
-    MEN_PRODUCTS,
-    KIDS_PRODUCTS,
-    ORNAMENT_PRODUCTS
+    ACCESSORY_CATEGORIES
 )
 
 
