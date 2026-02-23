@@ -71,6 +71,18 @@ def _image_primary(item: Dict[str, Any]) -> str:
     return (images.get("primary") or "").strip()
 
 
+def _image_hover(item: Dict[str, Any]) -> str:
+    """
+    Back/hover image from catalog.
+    If missing, fallback to primary.
+    """
+    images = item.get("images") or {}
+    hover = (images.get("hover") or "").strip()
+    if hover:
+        return hover
+    return _image_primary(item)
+
+
 def _all_items() -> List[Dict[str, Any]]:
     # Use lists so duplicates don’t get overwritten (ALL_PRODUCTS dict would lose them)
     return WOMEN_PRODUCTS + MEN_PRODUCTS + KIDS_PRODUCTS + ORNAMENT_PRODUCTS + ACCESSORY_PRODUCTS
@@ -79,13 +91,18 @@ def _all_items() -> List[Dict[str, Any]]:
 def _map_to_db_fields(item: Dict[str, Any], idx: int) -> Dict[str, Any]:
     """
     Map product_catalogs.py fields -> DB Product fields.
-    DB Product fields:
-      name, slug, price, stock, category, description, sizes, colors, image_url, is_active
+
+    DB Product fields (expected):
+      name, slug, price, stock, category, description, sizes, colors,
+      image_url, image_hover_url, is_active
     """
     name = (item.get("name") or "").strip() or "Untitled Product"
     price = float(item.get("price") or 0)
     category = _pick_category(item)
-    image_url = _image_primary(item)
+
+    # ✅ front/back exactly like old catalog structure
+    image_url = _image_primary(item)         # front
+    image_hover_url = _image_hover(item)     # back (fallback to front)
 
     # Build a stable base slug:
     # - prefer catalog "id" + idx because some catalog ids repeat (hasli/accessory-shawl)
@@ -104,7 +121,8 @@ def _map_to_db_fields(item: Dict[str, Any], idx: int) -> Dict[str, Any]:
         "description": "",           # catalog doesn’t provide; keep blank
         "sizes": "",                 # keep blank (or extend later)
         "colors": "",                # keep blank (or extend later)
-        "image_url": image_url,      # primary image from catalog
+        "image_url": image_url,              # ✅ front
+        "image_hover_url": image_hover_url,  # ✅ back
         "is_active": True,
     }
 
@@ -143,11 +161,15 @@ def main():
                 sizes=data["sizes"],
                 colors=data["colors"],
                 image_url=data["image_url"],
+                image_hover_url=data["image_hover_url"],  # ✅ NEW
                 is_active=data["is_active"],
             )
 
             if DRY_RUN:
-                print(f"[DRY] {p.slug} | {p.name} | {p.category} | Rs {p.price} | stock {p.stock} | img={bool(p.image_url)}")
+                print(
+                    f"[DRY] {p.slug} | {p.name} | {p.category} | Rs {p.price} | "
+                    f"stock {p.stock} | front={bool(p.image_url)} | back={bool(p.image_hover_url)}"
+                )
             else:
                 db.session.add(p)
                 created += 1

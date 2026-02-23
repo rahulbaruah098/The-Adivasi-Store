@@ -352,205 +352,182 @@
 
         </style>
 
-        <!-- HTML CONTENT OF THE SECTION -->
-        <div class="aps-inner">
-          <div class="aps-tabs">
-            <button class="aps-tab aps-tab--active" data-gender="women">Women</button>
-            <button class="aps-tab" data-gender="men">Men</button>
-            <button class="aps-tab" data-gender="kids">Kids</button>
-            <button class="aps-tab" data-gender="ornaments">Ornaments</button>
-          </div>
-
-          <div class="aps-grid">
-            <!-- JS will inject product cards here -->
-          </div>
+      <!-- HTML CONTENT OF THE SECTION -->
+      <div class="aps-inner">
+        <div class="aps-tabs">
+          <button class="aps-tab aps-tab--active" data-gender="women">Women</button>
+          <button class="aps-tab" data-gender="men">Men</button>
+          <button class="aps-tab" data-gender="kids">Kids</button>
+          <button class="aps-tab" data-gender="ornaments">Ornaments</button>
         </div>
 
-          <!-- INLINE JS JUST FOR THIS SECTION -->
+        <div class="aps-grid">
+          <!-- JS will inject product cards here -->
+        </div>
+      </div>
+
       <script>
-        const apsSection = document.getElementById("adivasi-product-strip");
-        const apsGrid   = apsSection.querySelector(".aps-grid");
-        const apsTabs   = apsSection.querySelectorAll(".aps-tab");
+      const apsSection = document.getElementById("adivasi-product-strip");
+      const apsGrid   = apsSection.querySelector(".aps-grid");
+      const apsTabs   = apsSection.querySelectorAll(".aps-tab");
 
-        const apsApiBase = "{{ url_for('api_aps_products') }}";
+      const apsApiBase = "{{ url_for('api_aps_products') }}";
+      const apsProductDetailBase   = "{{ url_for('product_detail', product_id='__PID__') }}";
+      const apsProductDetailPrefix = apsProductDetailBase.replace("__PID__", "");
+      const apsAddToCartBase       = "{{ url_for('add_to_cart') }}";
 
-        const apsProductDetailBase   = "{{ url_for('product_detail', product_id='__PID__') }}";
-        const apsProductDetailPrefix = apsProductDetailBase.replace("__PID__", "");
-        const apsAddToCartBase       = "{{ url_for('add_to_cart') }}";
+      const APS_SHOW_COUNT = 5;
+      const apsExpanded = { women:false, men:false, kids:false, ornaments:false };
 
-        // Show 5 items by default
-        const APS_SHOW_COUNT = 5;
+      async function fetchApsProducts(gender){
+        const url = apsApiBase + "?" + new URLSearchParams({ gender });
+        const res = await fetch(url, { credentials: "include" });
+        const data = await res.json();
+        return data.items || [];
+      }
 
-        // Expanded state per tab
-        const apsExpanded = { women: false, men: false, kids: false, ornaments: false };
+      function apsShowAddedAnimation(card){
+        if(!card) return;
+        card.classList.add("aps-added");
 
-        async function fetchApsProducts(gender){
-          const url = apsApiBase + "?" + new URLSearchParams({ gender });
-          const res = await fetch(url, { credentials: "include" });
-          const data = await res.json();
-          return data.items || [];
-        }
+        const tag = document.createElement("div");
+        tag.className = "aps-added-tag";
+        tag.textContent = "Added to cart";
+        card.appendChild(tag);
 
-        function apsShowAddedAnimation(card){
-          if(!card) return;
-          card.classList.add("aps-added");
+        setTimeout(()=>{
+          card.classList.remove("aps-added");
+          if(tag.parentNode) tag.remove();
+        }, 900);
+      }
 
-          const oldTag = card.querySelector(".aps-added-tag");
-          if(oldTag) oldTag.remove();
+      function makeToggleCard(label, onClick){
+        const card = document.createElement("article");
+        card.className = "aps-card aps-toggle-card";
+        card.innerHTML = `
+          <div class="aps-toggle-inner">
+            <span class="aps-toggle-text">${label}</span>
+          </div>
+        `;
+        card.addEventListener("click", onClick);
+        return card;
+      }
 
-          const tag = document.createElement("div");
-          tag.className = "aps-added-tag";
-          tag.textContent = "Added to cart";
-          card.appendChild(tag);
+      function renderOneCard(p){
 
-          const navCart = document.querySelector(".nav-cart");
-          if(navCart){
-            navCart.classList.add("nav-cart--ping");
-            setTimeout(()=>navCart.classList.remove("nav-cart--ping"), 650);
-          }
+        /* ✅ Use DB images */
+        const primary = (p.images?.primary || "").trim();
+        let hover     = (p.images?.hover || "").trim();
 
-          setTimeout(()=>{
-            card.classList.remove("aps-added");
-            if(tag && tag.parentNode){ tag.parentNode.removeChild(tag); }
-          }, 900);
-        }
+        if(!hover) hover = primary;
 
-        function makeToggleCard(label, onClick){
-          const card = document.createElement("article");
-          card.className = "aps-card aps-toggle-card";
-          card.innerHTML = `
-            <div class="aps-toggle-inner">
-              <span class="aps-toggle-text">${label}</span>
+        const card = document.createElement("article");
+        card.className = "aps-card";
+        card.dataset.productId = p.id || "";
+
+        card.innerHTML = `
+          <div class="aps-media">
+            <img class="aps-img aps-primary" src="${primary}" alt="${p.name || ""}">
+            <img class="aps-img aps-hover" src="${hover}" alt="${p.name || ""}">
+            <button class="aps-add" type="button" title="Add to cart">
+              <svg viewBox="0 0 24 24">
+                <path d="M8 9c0-2.2 1.8-4 4-4s4 1.8 4 4"></path>
+                <path d="M7 9h10l-1 9H8L7 9z"></path>
+              </svg>
+            </button>
+          </div>
+
+          <div class="aps-info">
+            <div class="aps-name">${p.name || ""}</div>
+            <div class="aps-price-line">
+              <span class="aps-price-label">Rs.</span>
+              <span class="aps-price">${p.price ?? ""}</span>
             </div>
-          `;
-          card.addEventListener("click", (ev) => {
-            ev.preventDefault();
-            ev.stopPropagation();
-            onClick();
+            <div class="aps-subtitle">${p.category_label || ""}</div>
+          </div>
+        `;
+
+        apsGrid.appendChild(card);
+
+        /* Add to cart */
+        card.querySelector(".aps-add")?.addEventListener("click",(ev)=>{
+          ev.stopPropagation();
+
+          const params = new URLSearchParams({
+            product_id: p.id,
+            name: p.name || "",
+            price: p.price ?? 0,
+            image: primary
           });
-          return card;
-        }
 
-        function renderOneCard(p){
-          const primary = (p.images && p.images.primary) ? p.images.primary : "";
-          const hover   = (p.images && p.images.hover) ? p.images.hover : primary;
-
-          const card = document.createElement("article");
-          card.className = "aps-card";
-          card.dataset.productId = p.id || "";
-
-          card.innerHTML = `
-            <div class="aps-media">
-              <img class="aps-img aps-primary" src="${primary}" alt="${p.name || ""}">
-              <img class="aps-img aps-hover" src="${hover}" alt="${p.name || ""}">
-              <button class="aps-add" type="button" title="Add to cart">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M8 9c0-2.2 1.8-4 4-4s4 1.8 4 4"></path>
-                  <path d="M7 9h10l-1 9H8L7 9z"></path>
-                </svg>
-              </button>
-            </div>
-            <div class="aps-info">
-              <div class="aps-name">${p.name || ""}</div>
-              <div class="aps-price-line">
-                <span class="aps-price-label">Rs.</span>
-                <span class="aps-price">${p.price ?? ""}</span>
-              </div>
-              <div class="aps-subtitle">${p.category_label || ""}</div>
-            </div>
-          `;
-
-          apsGrid.appendChild(card);
-
-          // Add to cart
-          const addBtn = card.querySelector(".aps-add");
-          if (addBtn) {
-            addBtn.addEventListener("click", (ev) => {
-              ev.stopPropagation();
-              if (!p.id) return;
-
-              const params = new URLSearchParams({
-                product_id: p.id,
-                name: p.name || "",
-                price: p.price ?? 0,
-                image: primary
-              });
-
-              fetch(apsAddToCartBase + "?" + params.toString(), {
-                method: "GET",
-                credentials: "include"
-              }).catch(()=>{});
-
-              apsShowAddedAnimation(card);
-            });
-          }
-
-          // Click card -> product detail
-          card.addEventListener("click", (ev) => {
-            if (ev.target.closest(".aps-add")) return;
-            if (!p.id) return;
-
-            const detailUrl = apsProductDetailPrefix + encodeURIComponent(p.id)
-              + "?" + new URLSearchParams({ img: primary, hover }).toString();
-
-            window.location.href = detailUrl;
+          fetch(apsAddToCartBase + "?" + params.toString(), {
+            method: "GET",
+            credentials: "include"
           });
+
+          apsShowAddedAnimation(card);
+        });
+
+        /* Click card → product detail */
+        card.addEventListener("click",(ev)=>{
+          if(ev.target.closest(".aps-add")) return;
+
+          const detailUrl = apsProductDetailPrefix + encodeURIComponent(p.id)
+            + "?" + new URLSearchParams({ img: primary, hover }).toString();
+
+          window.location.href = detailUrl;
+        });
+      }
+
+      async function renderApsProducts(gender="women"){
+        apsGrid.innerHTML = "";
+
+        const list = await fetchApsProducts(gender);
+        const expanded = apsExpanded[gender];
+
+        if(!list.length){
+          apsGrid.innerHTML = "<p style='opacity:.6'>No products available</p>";
+          return;
         }
 
-        async function renderApsProducts(gender="women"){
-          apsGrid.innerHTML = "";
-
-          const list = await fetchApsProducts(gender);
-          const expanded = !!apsExpanded[gender];
-
-          // If <= 5 products, no toggle cards
-          if (!list || list.length <= APS_SHOW_COUNT) {
-            (list || []).forEach(renderOneCard);
-            return;
-          }
-
-          if (!expanded) {
-            // First 5 products
-            list.slice(0, APS_SHOW_COUNT).forEach(renderOneCard);
-
-            // 6th: View All toggle card
-            apsGrid.appendChild(
-              makeToggleCard("View All", () => {
-                apsExpanded[gender] = true;
-                renderApsProducts(gender);
-              })
-            );
-            return;
-          }
-
-          // Expanded: show all products
+        if(list.length <= APS_SHOW_COUNT){
           list.forEach(renderOneCard);
+          return;
+        }
 
-          // Last: Collapse toggle card
+        if(!expanded){
+          list.slice(0,APS_SHOW_COUNT).forEach(renderOneCard);
+
           apsGrid.appendChild(
-            makeToggleCard("Collapse", () => {
-              apsExpanded[gender] = false;
+            makeToggleCard("View All", ()=>{
+              apsExpanded[gender] = true;
               renderApsProducts(gender);
-
-              // optional: scroll back to strip start on collapse
-              document.getElementById("adivasi-product-strip")
-                ?.scrollIntoView({ behavior: "smooth", block: "start" });
             })
           );
+          return;
         }
 
-        // Initial render
-        renderApsProducts("women");
+        list.forEach(renderOneCard);
 
-        // Tabs
-        apsTabs.forEach(tab => {
-          tab.addEventListener("click", () => {
-            apsTabs.forEach(t => t.classList.remove("aps-tab--active"));
-            tab.classList.add("aps-tab--active");
-            renderApsProducts(tab.dataset.gender);
-          });
+        apsGrid.appendChild(
+          makeToggleCard("Collapse", ()=>{
+            apsExpanded[gender] = false;
+            renderApsProducts(gender);
+            apsSection.scrollIntoView({behavior:"smooth"});
+          })
+        );
+      }
+
+      renderApsProducts("women");
+
+      apsTabs.forEach(tab=>{
+        tab.addEventListener("click", ()=>{
+          apsTabs.forEach(t=>t.classList.remove("aps-tab--active"));
+          tab.classList.add("aps-tab--active");
+          renderApsProducts(tab.dataset.gender);
         });
-    </script>
+      });
+      </script>
 
 
   </section>

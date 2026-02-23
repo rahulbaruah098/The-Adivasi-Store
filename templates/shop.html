@@ -5,6 +5,19 @@
 
   <section class="section shop-page">
     <style>
+
+      .prod-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:opacity .35s ease; }
+      .product-media{ position:relative; overflow:hidden; }
+      .product-img{
+        position:absolute; inset:0;
+        width:100%; height:100%;
+        object-fit:cover;
+        transition:opacity .35s ease;
+      }
+      .product-img-primary{ opacity:1; }
+      .product-img-hover{ opacity:0; }
+      .product-card:hover .product-img-primary{ opacity:0; }
+      .product-card:hover .product-img-hover{ opacity:1; }
       :root{
         --bg-cream:#f4ece0;
         --bg-deep:#1b130e;
@@ -458,6 +471,8 @@
       </div>
     </section>
 
+{# ===================== UPDATED SHOP SHELL (DB hover supported) ===================== #}
+
     <!-- =============== SHOP SHELL =============== -->
     <section class="shop-shell" id="shop">
       <div class="shop-header">
@@ -470,7 +485,7 @@
         </p>
       </div>
 
-      <!-- Category pills (✅ Bags removed) -->
+      <!-- Category pills -->
       <div class="shop-category-pills">
         <button class="shop-pill" data-jump="#women-row"><span>Women</span></button>
         <button class="shop-pill" data-jump="#men-row"><span>Men</span></button>
@@ -479,75 +494,38 @@
         <button class="shop-pill" data-jump="#accessories-row"><span>Accessories</span></button>
       </div>
 
+      {# --------------------------------------------
+        Split DB products into gender/sections
+        -------------------------------------------- #}
+      {% set women_db = [] %}
+      {% set men_db = [] %}
+      {% set kids_db = [] %}
+      {% set ornaments_db = [] %}
+      {% set accessories_db = [] %}
 
-          <!--  Products by admin panel-->
+      {% for p in (db_products or []) %}
+        {% set cat = (p.category or '')|lower %}
+        {# women keywords #}
+        {% if 'saree' in cat or 'women' in cat or 'wrap' in cat or 'stole' in cat or 'dupatta' in cat %}
+          {% set _ = women_db.append(p) %}
+        {# men keywords #}
+        {% elif 'men' in cat or 'shirt' in cat or 'bundi' in cat or 'bandi' in cat or 'gamusa' in cat %}
+          {% set _ = men_db.append(p) %}
+        {# kids keywords #}
+        {% elif 'kid' in cat or 'kids' in cat or 'child' in cat %}
+          {% set _ = kids_db.append(p) %}
+        {# ornaments keywords #}
+        {% elif 'ornament' in cat or 'jewel' in cat or 'bead' in cat or 'brass' in cat %}
+          {% set _ = ornaments_db.append(p) %}
+        {# fallback -> accessories #}
+        {% else %}
+          {% set _ = accessories_db.append(p) %}
+        {% endif %}
+      {% endfor %}
 
-            {# ==============================
-        ✅ ADMIN-ADDED (DB) PRODUCTS
-        ============================== #}
-      {% if db_products and db_products|length %}
-      <section class="shop-row" id="admin-db-row">
-        <header class="shop-row-header">
-          <div>
-            <div class="shop-row-kicker">fresh arrivals</div>
-            <h3 class="shop-row-title">New · Admin Added Products</h3>
-          </div>
-          <p class="shop-row-sub">Products added from Admin Panel (saved in database).</p>
-        </header>
-
-        <div class="product-track" data-autoslide="false">
-          {% for p in db_products %}
-          <article class="product-card"
-                  data-detail-url="{{ url_for('product_detail', product_id=(p.slug or p.id)) }}">
-
-            <div class="product-media">
-              {% if p.stock is not none and p.stock <= 0 %}
-                <span class="product-badge">Out of stock</span>
-              {% endif %}
-
-              <img class="product-img product-img-primary"
-                  src="{{ p.image_url or '' }}" alt="{{ p.name }}">
-
-              <img class="product-img product-img-hover"
-                  src="{{ p.image_url or '' }}" alt="{{ p.name }}">
-
-              <button class="product-add"
-                      data-id="{{ p.slug or p.id }}"
-                      data-name="{{ p.name }}"
-                      data-price="{{ p.price }}"
-                      data-image="{{ p.image_url or '' }}"
-                      {% if p.stock is not none and p.stock <= 0 %} disabled style="opacity:.55; pointer-events:none"{% endif %}>
-                <svg viewBox="0 0 24 24">
-                  <path d="M8 9c0-2.2 1.8-4 4-4s4 1.8 4 4"></path>
-                  <path d="M7 9h10l-1 9H8L7 9z"></path>
-                </svg>
-              </button>
-            </div>
-
-            <div class="product-body">
-              <div class="product-category">{{ p.category }}</div>
-              <div class="product-name">{{ p.name }}</div>
-
-              <div class="product-meta-row">
-                <div class="product-price">
-                  <span class="product-price-label">Rs.</span> {{ p.price }}
-                </div>
-                <a href="#"
-                  class="product-link"
-                  onclick="location=this.closest('.product-card').dataset.detailUrl">
-                  View
-                </a>
-              </div>
-            </div>
-
-          </article>
-          {% endfor %}
-        </div>
-      </section>
-      {% endif %}
-
-
-      <!-- ===== WOMEN ===== -->
+      {# ==========================================================
+        ✅ WOMEN
+        ========================================================== #}
       <section class="shop-row" id="women-row">
         <header class="shop-row-header">
           <div>
@@ -557,26 +535,28 @@
           <p class="shop-row-sub">Soft handloom textures, Adivasi borders and everyday silhouettes.</p>
         </header>
 
-       <div class="product-track" data-autoslide="false">
-            {% for product in catalogs[0].products %}
-            <article class="product-card"
-                    data-detail-url="{{ url_for('product_detail', product_id=product.id, img=product.images.primary, hover=product.images.hover) }}">
+        <div class="product-track" data-autoslide="false">
+          {% for p in women_db %}
+            {% set front = (p.image_url or '') %}
+            {% set hover = (p.image_hover_url or front) %}
 
+            <article class="product-card"
+                    data-detail-url="{{ url_for('product_detail', product_id=(p.slug or p.id)) }}">
               <div class="product-media">
-                {% if product.badge %}
-                  <span class="product-badge">{{ product.badge }}</span>
+                {% if p.stock is not none and p.stock <= 0 %}
+                  <span class="product-badge">Out of stock</span>
                 {% endif %}
 
-                <img class="product-img product-img-primary"
-                    src="{{ product.images.primary }}" alt="">
-
-                <img class="product-img product-img-hover"
-                    src="{{ product.images.hover }}" alt="">
+                <img class="product-img product-img-primary" src="{{ front }}" alt="{{ p.name }}">
+                <img class="product-img product-img-hover"   src="{{ hover }}" alt="{{ p.name }}">
 
                 <button class="product-add"
-                        data-id="{{ product.id }}"
-                        data-name="{{ product.name }}"
-                        data-price="{{ product.price }}">
+                        data-id="{{ p.slug or p.id }}"
+                        data-product-db-id="{{ p.id }}"
+                        data-name="{{ p.name }}"
+                        data-price="{{ p.price }}"
+                        data-image="{{ front }}"
+                        {% if p.stock is not none and p.stock <= 0 %}disabled style="opacity:.55;pointer-events:none"{% endif %}>
                   <svg viewBox="0 0 24 24">
                     <path d="M8 9c0-2.2 1.8-4 4-4s4 1.8 4 4"></path>
                     <path d="M7 9h10l-1 9H8L7 9z"></path>
@@ -585,27 +565,22 @@
               </div>
 
               <div class="product-body">
-                <div class="product-category">{{ product.category_label }}</div>
-                <div class="product-name">{{ product.name }}</div>
+                <div class="product-category">{{ p.category }}</div>
+                <div class="product-name">{{ p.name }}</div>
 
                 <div class="product-meta-row">
-                  <div class="product-price">
-                    <span class="product-price-label">Rs.</span> {{ product.price }}
-                  </div>
-                  <a href="#"
-                    class="product-link"
-                    onclick="location=this.closest('.product-card').dataset.detailUrl">
-                    View
-                  </a>
+                  <div class="product-price"><span class="product-price-label">Rs.</span> {{ p.price }}</div>
+                  <a href="#" class="product-link" onclick="location=this.closest('.product-card').dataset.detailUrl">View</a>
                 </div>
               </div>
             </article>
           {% endfor %}
-       </div>
-
+        </div>
       </section>
 
-      <!-- ===== MEN ===== -->
+      {# ==========================================================
+        ✅ MEN
+        ========================================================== #}
       <section class="shop-row" id="men-row">
         <header class="shop-row-header">
           <div>
@@ -616,43 +591,51 @@
         </header>
 
         <div class="product-track" data-autoslide="false">
-              {% for product in catalogs[1].products %}
-              <article class="product-card"
-                      data-detail-url="{{ url_for('product_detail', product_id=product.id, img=product.images.primary, hover=product.images.hover) }}">
-                <div class="product-media">
-                  {% if product.badge %}
-                    <span class="product-badge">{{ product.badge }}</span>
-                  {% endif %}
+          {% for p in men_db %}
+            {% set front = (p.image_url or '') %}
+            {% set hover = (p.image_hover_url or front) %}
 
-                  <img class="product-img product-img-primary" src="{{ product.images.primary }}" alt="">
-                  <img class="product-img product-img-hover" src="{{ product.images.hover }}" alt="">
+            <article class="product-card"
+                    data-detail-url="{{ url_for('product_detail', product_id=(p.slug or p.id)) }}">
+              <div class="product-media">
+                {% if p.stock is not none and p.stock <= 0 %}
+                  <span class="product-badge">Out of stock</span>
+                {% endif %}
 
-                  <button class="product-add"
-                          data-id="{{ product.id }}"
-                          data-name="{{ product.name }}"
-                          data-price="{{ product.price }}">
-                    <svg viewBox="0 0 24 24">
-                      <path d="M8 9c0-2.2 1.8-4 4-4s4 1.8 4 4"></path>
-                      <path d="M7 9h10l-1 9H8L7 9z"></path>
-                    </svg>
-                  </button>
+                <img class="product-img product-img-primary" src="{{ front }}" alt="{{ p.name }}">
+                <img class="product-img product-img-hover"   src="{{ hover }}" alt="{{ p.name }}">
+
+                <button class="product-add"
+                        data-id="{{ p.slug or p.id }}"
+                        data-product-db-id="{{ p.id }}"
+                        data-name="{{ p.name }}"
+                        data-price="{{ p.price }}"
+                        data-image="{{ front }}"
+                        {% if p.stock is not none and p.stock <= 0 %}disabled style="opacity:.55;pointer-events:none"{% endif %}>
+                  <svg viewBox="0 0 24 24">
+                    <path d="M8 9c0-2.2 1.8-4 4-4s4 1.8 4 4"></path>
+                    <path d="M7 9h10l-1 9H8L7 9z"></path>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="product-body">
+                <div class="product-category">{{ p.category }}</div>
+                <div class="product-name">{{ p.name }}</div>
+
+                <div class="product-meta-row">
+                  <div class="product-price"><span class="product-price-label">Rs.</span> {{ p.price }}</div>
+                  <a href="#" class="product-link" onclick="location=this.closest('.product-card').dataset.detailUrl">View</a>
                 </div>
-
-                <div class="product-body">
-                  <div class="product-category">{{ product.category_label }}</div>
-                  <div class="product-name">{{ product.name }}</div>
-
-                  <div class="product-meta-row">
-                    <div class="product-price"><span class="product-price-label">Rs.</span> {{ product.price }}</div>
-                    <a href="#" class="product-link" onclick="location=this.closest('.product-card').dataset.detailUrl">View</a>
-                  </div>
-                </div>
-              </article>
-              {% endfor %}
+              </div>
+            </article>
+          {% endfor %}
         </div>
       </section>
 
-      <!-- ===== KIDS ===== -->
+      {# ==========================================================
+        ✅ KIDS
+        ========================================================== #}
       <section class="shop-row" id="kids-row">
         <header class="shop-row-header">
           <div>
@@ -663,52 +646,51 @@
         </header>
 
         <div class="product-track" data-autoslide="false">
-          {% for product in catalogs[2].products %}
-          <article class="product-card"
-                  data-detail-url="{{ url_for('product_detail', product_id=product.id, img=product.images.primary, hover=product.images.hover) }}">
+          {% for p in kids_db %}
+            {% set front = (p.image_url or '') %}
+            {% set hover = (p.image_hover_url or front) %}
 
-            <div class="product-media">
-              <img class="product-img product-img-primary"
-                  src="{{ product.images.primary }}"
-                  alt="Coming soon">
+            <article class="product-card"
+                    data-detail-url="{{ url_for('product_detail', product_id=(p.slug or p.id)) }}">
+              <div class="product-media">
+                {% if p.stock is not none and p.stock <= 0 %}
+                  <span class="product-badge">Out of stock</span>
+                {% endif %}
 
-              <img class="product-img product-img-hover"
-                  src="{{ product.images.hover }}"
-                  alt="Coming soon">
+                <img class="product-img product-img-primary" src="{{ front }}" alt="{{ p.name }}">
+                <img class="product-img product-img-hover"   src="{{ hover }}" alt="{{ p.name }}">
 
-              <button class="product-add"
-                      data-id="{{ product.id }}"
-                      data-name="{{ product.name }}"
-                      data-price="{{ product.price }}">
-                <svg viewBox="0 0 24 24">
-                  <path d="M8 9c0-2.2 1.8-4 4-4s4 1.8 4 4"></path>
-                  <path d="M7 9h10l-1 9H8L7 9z"></path>
-                </svg>
-              </button>
-            </div>
-
-            <div class="product-body">
-              <div class="product-category">{{ product.category_label }}</div>
-              <div class="product-name">{{ product.name }}</div>
-
-              <div class="product-meta-row">
-                <div class="product-price">
-                  <span class="product-price-label">Rs.</span> {{ product.price }}
-                </div>
-                <a href="#"
-                  class="product-link"
-                  onclick="location=this.closest('.product-card').dataset.detailUrl">
-                  View
-                </a>
+                <button class="product-add"
+                        data-id="{{ p.slug or p.id }}"
+                        data-product-db-id="{{ p.id }}"
+                        data-name="{{ p.name }}"
+                        data-price="{{ p.price }}"
+                        data-image="{{ front }}"
+                        {% if p.stock is not none and p.stock <= 0 %}disabled style="opacity:.55;pointer-events:none"{% endif %}>
+                  <svg viewBox="0 0 24 24">
+                    <path d="M8 9c0-2.2 1.8-4 4-4s4 1.8 4 4"></path>
+                    <path d="M7 9h10l-1 9H8L7 9z"></path>
+                  </svg>
+                </button>
               </div>
-            </div>
-          </article>
+
+              <div class="product-body">
+                <div class="product-category">{{ p.category }}</div>
+                <div class="product-name">{{ p.name }}</div>
+
+                <div class="product-meta-row">
+                  <div class="product-price"><span class="product-price-label">Rs.</span> {{ p.price }}</div>
+                  <a href="#" class="product-link" onclick="location=this.closest('.product-card').dataset.detailUrl">View</a>
+                </div>
+              </div>
+            </article>
           {% endfor %}
         </div>
-
       </section>
 
-      <!-- ===== ORNAMENTS ===== -->
+      {# ==========================================================
+        ✅ ORNAMENTS
+        ========================================================== #}
       <section class="shop-row" id="ornaments-row">
         <header class="shop-row-header">
           <div>
@@ -719,61 +701,51 @@
         </header>
 
         <div class="product-track" data-autoslide="false">
-          {% for product in catalogs[3].products %}
-          <article class="product-card"
-                  data-detail-url="{{ url_for('product_detail', product_id=product.id, img=product.images.primary if product.images is defined else None, hover=product.images.hover if product.images is defined else None) }}">
+          {% for p in ornaments_db %}
+            {% set front = (p.image_url or '') %}
+            {% set hover = (p.image_hover_url or front) %}
 
-            <div class="product-media">
-              {% if product.badge %}
-                <span class="product-badge">{{ product.badge }}</span>
-              {% endif %}
+            <article class="product-card"
+                    data-detail-url="{{ url_for('product_detail', product_id=(p.slug or p.id)) }}">
+              <div class="product-media">
+                {% if p.stock is not none and p.stock <= 0 %}
+                  <span class="product-badge">Out of stock</span>
+                {% endif %}
 
-              {% if product.images is defined %}
-                <img class="product-img product-img-primary"
-                    src="{{ product.images.primary }}" alt="Coming Soon">
-                <img class="product-img product-img-hover"
-                    src="{{ product.images.hover }}" alt="Coming Soon">
-              {% else %}
-                <img class="product-img product-img-primary"
-                    src="data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23d7cbbd'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='28'>Coming Soon</text></svg>"
-                    alt="Coming Soon">
-                <img class="product-img product-img-hover"
-                    src="data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23cdbfae'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='28'>Coming Soon</text></svg>"
-                    alt="Coming Soon">
-              {% endif %}
+                <img class="product-img product-img-primary" src="{{ front }}" alt="{{ p.name }}">
+                <img class="product-img product-img-hover"   src="{{ hover }}" alt="{{ p.name }}">
 
-              <button class="product-add"
-                      data-id="{{ product.id }}"
-                      data-name="{{ product.name }}"
-                      data-price="{{ product.price }}">
-                <svg viewBox="0 0 24 24">
-                  <path d="M8 9c0-2.2 1.8-4 4-4s4 1.8 4 4"></path>
-                  <path d="M7 9h10l-1 9H8L7 9z"></path>
-                </svg>
-              </button>
-            </div>
-
-            <div class="product-body">
-              <div class="product-category">{{ product.category_label }}</div>
-              <div class="product-name">{{ product.name }}</div>
-
-              <div class="product-meta-row">
-                <div class="product-price">
-                  <span class="product-price-label">Rs.</span> {{ product.price }}
-                </div>
-                <a href="#"
-                  class="product-link"
-                  onclick="location=this.closest('.product-card').dataset.detailUrl">
-                  View
-                </a>
+                <button class="product-add"
+                        data-id="{{ p.slug or p.id }}"
+                        data-product-db-id="{{ p.id }}"
+                        data-name="{{ p.name }}"
+                        data-price="{{ p.price }}"
+                        data-image="{{ front }}"
+                        {% if p.stock is not none and p.stock <= 0 %}disabled style="opacity:.55;pointer-events:none"{% endif %}>
+                  <svg viewBox="0 0 24 24">
+                    <path d="M8 9c0-2.2 1.8-4 4-4s4 1.8 4 4"></path>
+                    <path d="M7 9h10l-1 9H8L7 9z"></path>
+                  </svg>
+                </button>
               </div>
-            </div>
-          </article>
+
+              <div class="product-body">
+                <div class="product-category">{{ p.category }}</div>
+                <div class="product-name">{{ p.name }}</div>
+
+                <div class="product-meta-row">
+                  <div class="product-price"><span class="product-price-label">Rs.</span> {{ p.price }}</div>
+                  <a href="#" class="product-link" onclick="location=this.closest('.product-card').dataset.detailUrl">View</a>
+                </div>
+              </div>
+            </article>
           {% endfor %}
         </div>
       </section>
 
-      <!-- ===== ACCESSORIES (✅ Added requested product shards here) ===== -->
+      {# ==========================================================
+        ✅ ACCESSORIES
+        ========================================================== #}
       <section class="shop-row" id="accessories-row">
         <header class="shop-row-header">
           <div>
@@ -784,273 +756,250 @@
         </header>
 
         <div class="product-track" data-autoslide="false">
-          {% for product in catalogs[4].products %}
-          <article class="product-card"
-                  data-detail-url="{{ url_for('product_detail', product_id=product.id) }}">
+          {% for p in accessories_db %}
+            {% set front = (p.image_url or '') %}
+            {% set hover = (p.image_hover_url or front) %}
 
-            <div class="product-media">
-              {% if product.badge %}
-                <span class="product-badge">{{ product.badge }}</span>
-              {% endif %}
+            <article class="product-card"
+                    data-detail-url="{{ url_for('product_detail', product_id=(p.slug or p.id)) }}">
+              <div class="product-media">
+                {% if p.stock is not none and p.stock <= 0 %}
+                  <span class="product-badge">Out of stock</span>
+                {% endif %}
 
-              {% if product.images is defined %}
-                <img class="product-img product-img-primary"
-                    src="{{ product.images.primary }}"
-                    alt="{{ product.name }}">
-                <img class="product-img product-img-hover"
-                    src="{{ product.images.hover }}"
-                    alt="{{ product.name }}">
-              {% else %}
-                <!-- SVG placeholder (kept EXACTLY same style) -->
-                <img class="product-img product-img-primary"
-                    src="data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23d7cbbd'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='26'>{{ product.name }}</text></svg>"
-                    alt="{{ product.name }}">
+                <img class="product-img product-img-primary" src="{{ front }}" alt="{{ p.name }}">
+                <img class="product-img product-img-hover"   src="{{ hover }}" alt="{{ p.name }}">
 
-                <img class="product-img product-img-hover"
-                    src="data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'><rect width='100%25' height='100%25' fill='%23cdbfae'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235a4d3f' font-family='Arial' font-size='26'>{{ product.name }}</text></svg>"
-                    alt="{{ product.name }}">
-              {% endif %}
-
-              <button class="product-add"
-                      data-id="{{ product.id }}"
-                      data-name="{{ product.name }}"
-                      data-price="{{ product.price }}">
-                <svg viewBox="0 0 24 24">
-                  <path d="M8 9c0-2.2 1.8-4 4-4s4 1.8 4 4"></path>
-                  <path d="M7 9h10l-1 9H8L7 9z"></path>
-                </svg>
-              </button>
-            </div>
-
-            <div class="product-body">
-              <div class="product-category">{{ product.category_label }}</div>
-              <div class="product-name">{{ product.name }}</div>
-
-              <div class="product-meta-row">
-                <div class="product-price">
-                  <span class="product-price-label">Rs.</span> {{ product.price }}
-                </div>
-                <a href="#"
-                  class="product-link"
-                  onclick="location=this.closest('.product-card').dataset.detailUrl">
-                  View
-                </a>
+                <button class="product-add"
+                        data-id="{{ p.slug or p.id }}"
+                        data-product-db-id="{{ p.id }}"
+                        data-name="{{ p.name }}"
+                        data-price="{{ p.price }}"
+                        data-image="{{ front }}"
+                        {% if p.stock is not none and p.stock <= 0 %}disabled style="opacity:.55;pointer-events:none"{% endif %}>
+                  <svg viewBox="0 0 24 24">
+                    <path d="M8 9c0-2.2 1.8-4 4-4s4 1.8 4 4"></path>
+                    <path d="M7 9h10l-1 9H8L7 9z"></path>
+                  </svg>
+                </button>
               </div>
-            </div>
-          </article>
+
+              <div class="product-body">
+                <div class="product-category">{{ p.category }}</div>
+                <div class="product-name">{{ p.name }}</div>
+
+                <div class="product-meta-row">
+                  <div class="product-price"><span class="product-price-label">Rs.</span> {{ p.price }}</div>
+                  <a href="#" class="product-link" onclick="location=this.closest('.product-card').dataset.detailUrl">View</a>
+                </div>
+              </div>
+            </article>
           {% endfor %}
         </div>
-
       </section>
 
     </section>
 
-    <script>
-      // Hero parallax
-      const heroSection = document.querySelector(".hero-shop");
-      window.addEventListener("scroll", () => {
-        if (!heroSection) return;
-        const offset = window.scrollY * 0.25;
-        heroSection.style.setProperty("--hero-offset", offset + "px");
-      }, { passive: true });
+<script>
+              // Hero parallax
+              const heroSection = document.querySelector(".hero-shop");
+              window.addEventListener("scroll", () => {
+                if (!heroSection) return;
+                const offset = window.scrollY * 0.25;
+                heroSection.style.setProperty("--hero-offset", offset + "px");
+              }, { passive: true });
 
-      // Category pills smooth scroll
-      document.querySelectorAll(".shop-pill").forEach(pill => {
-        pill.addEventListener("click", () => {
-          const target = pill.getAttribute("data-jump");
-          if (!target) return;
-          const el = document.querySelector(target);
-          if (el) {
-            const rect = el.getBoundingClientRect();
-            const absoluteY = window.scrollY + rect.top - 80; // header height
-            window.scrollTo({ top: absoluteY, behavior: "smooth" });
-          }
-        });
-      });
+              // Category pills smooth scroll
+              document.querySelectorAll(".shop-pill").forEach(pill => {
+                pill.addEventListener("click", () => {
+                  const target = pill.getAttribute("data-jump");
+                  if (!target) return;
+                  const el = document.querySelector(target);
+                  if (el) {
+                    const rect = el.getBoundingClientRect();
+                    const absoluteY = window.scrollY + rect.top - 80; // header height
+                    window.scrollTo({ top: absoluteY, behavior: "smooth" });
+                  }
+                });
+              });
 
-      // ✅ FIX: Product detail navigation (drag-safe inside horizontal product-track)
-      (function () {
-        let startX = 0, startY = 0;
-        let isDown = false;
+              // ✅ FIX: Product detail navigation (drag-safe inside horizontal product-track)
+              (function () {
+                let startX = 0, startY = 0;
+                let isDown = false;
 
-        document.querySelectorAll(".product-card").forEach((card) => {
-          card.style.cursor = "pointer";
+                document.querySelectorAll(".product-card").forEach((card) => {
+                  card.style.cursor = "pointer";
 
-          card.addEventListener("pointerdown", (e) => {
-            if (e.target.closest(".product-add")) return;
-            if (e.target.closest("a")) return;
-            isDown = true;
-            startX = e.clientX;
-            startY = e.clientY;
-          });
+                  card.addEventListener("pointerdown", (e) => {
+                    if (e.target.closest(".product-add")) return;
+                    if (e.target.closest("a")) return;
+                    isDown = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                  });
 
-          card.addEventListener("pointerup", (e) => {
-            if (!isDown) return;
-            isDown = false;
+                  card.addEventListener("pointerup", (e) => {
+                    if (!isDown) return;
+                    isDown = false;
 
-            if (e.target.closest(".product-add")) return;
-            if (e.target.closest("a")) return;
+                    if (e.target.closest(".product-add")) return;
+                    if (e.target.closest("a")) return;
 
-            const dx = Math.abs(e.clientX - startX);
-            const dy = Math.abs(e.clientY - startY);
+                    const dx = Math.abs(e.clientX - startX);
+                    const dy = Math.abs(e.clientY - startY);
 
-            // If user dragged to scroll horizontally, do not navigate
-            if (dx > 6 || dy > 6) return;
+                    // If user dragged to scroll horizontally, do not navigate
+                    if (dx > 6 || dy > 6) return;
 
-            const url = card.getAttribute("data-detail-url");
-            if (!url) return;
+                    const url = card.getAttribute("data-detail-url");
+                    if (!url) return;
 
-            // Ensure the clicked card opens with its exact images (even when product_id is reused)
-            const primary = card.querySelector(".product-img-primary")?.getAttribute("src") || "";
-            const hover = card.querySelector(".product-img-hover")?.getAttribute("src") || "";
+                    // Keep your image query append logic (safe)
+                    const primary = card.querySelector(".product-img-primary")?.getAttribute("src") || "";
+                    const hover = card.querySelector(".product-img-hover")?.getAttribute("src") || "";
 
-            // Append ?img= &hover= only if we have images and they aren't already present
-            const hasQuery = url.includes("?");
-            const hasImg = url.includes("img=");
-            let finalUrl = url;
+                    const hasQuery = url.includes("?");
+                    const hasImg = url.includes("img=");
+                    let finalUrl = url;
 
-            // IMPORTANT: images in this template are relative like "static/Images/.."
-            // On /product/<id> pages, relative paths become "/product/static/..." (404).
-            // So we normalize them to absolute "/static/..." before passing as query.
-            const norm = (p) => {
-              if (!p) return "";
-              if (p.startsWith("http://") || p.startsWith("https://") || p.startsWith("/")) return p;
-              return "/" + p;
-            };
+                    const norm = (p) => {
+                      if (!p) return "";
+                      if (p.startsWith("http://") || p.startsWith("https://") || p.startsWith("/")) return p;
+                      return "/" + p;
+                    };
 
-            if (primary && !hasImg) {
-              finalUrl += (hasQuery ? "&" : "?") + "img=" + encodeURIComponent(norm(primary));
-              if (hover) finalUrl += "&hover=" + encodeURIComponent(norm(hover));
-            }
+                    if (primary && !hasImg) {
+                      finalUrl += (hasQuery ? "&" : "?") + "img=" + encodeURIComponent(norm(primary));
+                      if (hover) finalUrl += "&hover=" + encodeURIComponent(norm(hover));
+                    }
 
-            window.location.href = finalUrl;
-          });
+                    window.location.href = finalUrl;
+                  });
 
-          card.addEventListener("pointercancel", () => { isDown = false; });
-          card.addEventListener("pointerleave", () => { isDown = false; });
-        });
-      })();
+                  card.addEventListener("pointercancel", () => { isDown = false; });
+                  card.addEventListener("pointerleave", () => { isDown = false; });
+                });
+              })();
 
-      // ✨ Show "Added to cart" tag + nav cart bounce
-      function showCartAdded(card){
-        if(!card) return;
+              // ✨ Show "Added to cart" tag + nav cart bounce
+              function showCartAdded(card){
+                if(!card) return;
 
-        card.classList.add("cart-added");
+                card.classList.add("cart-added");
 
-        const oldTag = card.querySelector(".product-added-tag");
-        if(oldTag) oldTag.remove();
+                const oldTag = card.querySelector(".product-added-tag");
+                if(oldTag) oldTag.remove();
 
-        const tag = document.createElement("div");
-        tag.className = "product-added-tag";
-        tag.textContent = "Added to cart";
-        card.appendChild(tag);
+                const tag = document.createElement("div");
+                tag.className = "product-added-tag";
+                tag.textContent = "Added to cart";
+                card.appendChild(tag);
 
-        const navCart = document.querySelector(".nav-cart");
-        if(navCart){
-          navCart.classList.add("nav-cart--ping");
-          setTimeout(()=>navCart.classList.remove("nav-cart--ping"), 650);
-        }
+                const navCart = document.querySelector(".nav-cart");
+                if(navCart){
+                  navCart.classList.add("nav-cart--ping");
+                  setTimeout(()=>navCart.classList.remove("nav-cart--ping"), 650);
+                }
 
-        setTimeout(()=>{
-          card.classList.remove("cart-added");
-          if(tag && tag.parentNode){
-            tag.parentNode.removeChild(tag);
-          }
-        }, 900);
-      }
+                setTimeout(()=>{
+                  card.classList.remove("cart-added");
+                  if(tag && tag.parentNode){
+                    tag.parentNode.removeChild(tag);
+                  }
+                }, 900);
+              }
 
-      // ✅ Add-to-cart: send id + name + price + image to backend using URLSearchParams (no redirect)
-      const addToCartBaseUrl = "{{ url_for('add_to_cart') }}";
-      document.querySelectorAll(".product-add").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation();
+              // ✅ Add-to-cart: now also sends product_db_id (CRITICAL for stock tracking)
+              const addToCartBaseUrl = "{{ url_for('add_to_cart') }}";
+              document.querySelectorAll(".product-add").forEach(btn => {
+                btn.addEventListener("click", (e) => {
+                  e.stopPropagation();
 
-          const card = btn.closest(".product-card");
-          if (!card) return;
+                  const card = btn.closest(".product-card");
+                  if (!card) return;
 
-          const productId = btn.dataset.id || "";
-          if (!productId) return;
+                  const productId = btn.dataset.id || "";
+                  if (!productId) return;
 
-          const productName =
-            btn.dataset.name ||
-            (card.querySelector(".product-name")?.textContent.trim()) ||
-            productId;
+                  const productDbId = btn.dataset.productDbId || ""; // ✅ NEW
 
-          const rawPrice =
-            btn.dataset.price ||
-            (card.querySelector(".product-price")?.textContent) ||
-            "0";
+                  const productName =
+                    btn.dataset.name ||
+                    (card.querySelector(".product-name")?.textContent.trim()) ||
+                    productId;
 
-          // Clean e.g. "Rs. 2,490" -> "2490"
-          const cleanedPrice = String(rawPrice).replace(/[^\d.]/g, "");
+                  const rawPrice =
+                    btn.dataset.price ||
+                    (card.querySelector(".product-price")?.textContent) ||
+                    "0";
 
-          const imgEl = card.querySelector(".product-img-primary");
-          const imgUrl = imgEl ? imgEl.src : "";
+                  // Clean e.g. "Rs. 2,490" -> "2490"
+                  const cleanedPrice = String(rawPrice).replace(/[^\d.]/g, "");
 
-          const params = new URLSearchParams({
-            product_id: productId,
-            name: productName,
-            price: cleanedPrice,
-            image: imgUrl
-          });
+                  const imgEl = card.querySelector(".product-img-primary");
+                  const imgUrl = imgEl ? imgEl.src : "";
 
-          const url = addToCartBaseUrl + "?" + params.toString();
+                  const params = new URLSearchParams({
+                    product_id: productId,
+                    name: productName,
+                    price: cleanedPrice,
+                    image: imgUrl
+                  });
 
-          fetch(url, {
-            method: "GET",
-            credentials: "include"
-          }).catch(()=>{});
+                  // ✅ include db id when present
+                  if (productDbId) params.set("product_db_id", productDbId);
 
-          // micro animation
-          showCartAdded(card);
-        });
-      });
+                  const url = addToCartBaseUrl + "?" + params.toString();
 
-      // Auto sliding product tracks
-      const tracks = document.querySelectorAll(".product-track[data-autoslide='true']");
+                  fetch(url, {
+                    method: "GET",
+                    credentials: "include"
+                  }).catch(()=>{});
 
-  tracks.forEach(track => {
-    const cards = track.querySelectorAll(".product-card");
-    if (cards.length <= 1) return;
+                  showCartAdded(card);
+                });
+              });
 
-    let direction = 1;
+              // Auto sliding product tracks
+              const tracks = document.querySelectorAll(".product-track[data-autoslide='true']");
 
-    const timer = setInterval(() => {
-      const card = cards[0];
-      const step = card.getBoundingClientRect().width + 22;
-      const maxScroll = track.scrollWidth - track.clientWidth;
+              tracks.forEach(track => {
+                const cards = track.querySelectorAll(".product-card");
+                if (cards.length <= 1) return;
 
-      if (direction === 1) {
-        if (track.scrollLeft + step >= maxScroll - 5) {
-          direction = -1;
-        } else {
-          track.scrollBy({ left: step, behavior: "smooth" });
-        }
-      } else {
-        if (track.scrollLeft - step <= 0) {
-          direction = 1;
-        } else {
-          track.scrollBy({ left: -step, behavior: "smooth" });
-        }
-      }
-    }, 3500);
-    // Optional: if user interacts, stop autoslide
-    const stop = () => clearInterval(timer);
-    track.addEventListener("pointerdown", stop, { once: true });
-    track.addEventListener("wheel", stop, { once: true, passive: true });
-    track.addEventListener("touchstart", stop, { once: true, passive: true });
+                let direction = 1;
 
-      });
+                const timer = setInterval(() => {
+                  const card = cards[0];
+                  const step = card.getBoundingClientRect().width + 22;
+                  const maxScroll = track.scrollWidth - track.clientWidth;
+
+                  if (direction === 1) {
+                    if (track.scrollLeft + step >= maxScroll - 5) {
+                      direction = -1;
+                    } else {
+                      track.scrollBy({ left: step, behavior: "smooth" });
+                    }
+                  } else {
+                    if (track.scrollLeft - step <= 0) {
+                      direction = 1;
+                    } else {
+                      track.scrollBy({ left: -step, behavior: "smooth" });
+                    }
+                  }
+                }, 3500);
+
+                // Optional: if user interacts, stop autoslide
+                const stop = () => clearInterval(timer);
+                track.addEventListener("pointerdown", stop, { once: true });
+                track.addEventListener("wheel", stop, { once: true, passive: true });
+                track.addEventListener("touchstart", stop, { once: true, passive: true });
+              });
     </script>
 
     <script>
-    /* ==========================================================
-      UNIVERSAL PRODUCT VIEW (QUICK VIEW MODAL)
-      - Intercepts ONLY .product-link clicks
-      - Shows the EXACT clicked product card details (images/title/category/price)
-      - Includes working Add-to-Cart (same backend endpoint + same animation)
-      - Keeps "Open full page" link (original href)
-      ========================================================== */
+
     (function () {
       // ---- 1) Styles (injected once) ----
       if (!document.getElementById("pvx-style")) {
@@ -1274,7 +1223,6 @@
         open: overlay.querySelector(".pvx-open")
       };
 
-      // ---- 3) Helpers ----
       const addToCartBaseUrl = "{{ url_for('add_to_cart') }}";
 
       function openModal() {
@@ -1305,7 +1253,7 @@
         });
       }
 
-      function addToCart(productId, productName, price, imageUrl, originCard) {
+      function addToCart(productId, productDbId, productName, price, imageUrl, originCard) {
         if (!productId) return;
 
         const cleanedPrice = String(price || "0").replace(/[^\d.]/g, "");
@@ -1316,6 +1264,9 @@
           image: imageUrl || ""
         });
 
+        // ✅ include db id when present
+        if (productDbId) params.set("product_db_id", productDbId);
+
         const url = addToCartBaseUrl + "?" + params.toString();
 
         fetch(url, { method: "GET", credentials: "include" }).catch(() => {});
@@ -1324,7 +1275,7 @@
         }
       }
 
-      // ---- 4) Wire close interactions ----
+      // Close handlers
       els.close.addEventListener("click", closeModal);
       overlay.addEventListener("click", (e) => {
         if (e.target === overlay) closeModal();
@@ -1333,7 +1284,7 @@
         if (e.key === "Escape" && overlay.classList.contains("pvx-open")) closeModal();
       });
 
-      // ---- 5) Intercept "View" clicks ----
+      // Intercept "View" clicks
       document.addEventListener("click", (e) => {
         const link = e.target.closest(".product-link");
         if (!link) return;
@@ -1341,7 +1292,6 @@
         const card = link.closest(".product-card");
         if (!card) return;
 
-        // Prevent normal navigation (we will provide "Open Full Page" inside modal)
         e.preventDefault();
 
         const primaryImg = card.querySelector(".product-img-primary")?.src || "";
@@ -1349,10 +1299,9 @@
         const productName = card.querySelector(".product-name")?.textContent?.trim() || "Product";
         const productCat = card.querySelector(".product-category")?.textContent?.trim() || "";
         const productPriceText = card.querySelector(".product-price")?.textContent?.trim() || "0";
-
-        // Pull same data used by your Add-to-cart button (if present)
         const addBtn = card.querySelector(".product-add");
-        const productId = addBtn?.dataset?.id || (card.getAttribute("data-detail-url") || "");
+        const productId = addBtn?.dataset?.id || "";
+        const productDbId = addBtn?.dataset?.productDbId || ""; // ✅ NEW
         const datasetName = addBtn?.dataset?.name || productName;
         const datasetPrice = addBtn?.dataset?.price || productPriceText;
 
@@ -1360,28 +1309,14 @@
         els.name.textContent = productName;
         els.price.textContent = productPriceText;
 
-        // Set "Open full page" to the original href
-        const baseHref = link.getAttribute("href") || "#";
-        if (baseHref && baseHref !== "#") {
-          try {
-            const u = new URL(baseHref, window.location.origin);
-            if (primaryImg) u.searchParams.set("img", primaryImg);
-            if (hoverImg) u.searchParams.set("hover", hoverImg);
-            els.open.href = u.toString();
-          } catch (err) {
-            // fallback (shouldn't happen)
-            els.open.href = baseHref;
-          }
-        } else {
-          els.open.href = "#";
-        }
+        // "Open full page" (use card detail url always)
+        const detailUrl = card.getAttribute("data-detail-url") || "#";
+        els.open.href = detailUrl;
 
-        // Render images
         const images = [primaryImg, hoverImg].filter(Boolean);
         renderThumbs(images.length ? images : [primaryImg || hoverImg], productName);
 
-        // Add-to-cart inside modal
-        els.add.onclick = () => addToCart(productId, datasetName, datasetPrice, primaryImg || hoverImg, card);
+        els.add.onclick = () => addToCart(productId, productDbId, datasetName, datasetPrice, primaryImg || hoverImg, card);
 
         openModal();
       });

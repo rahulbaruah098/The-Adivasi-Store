@@ -328,6 +328,7 @@
               <h3 class="checkout-card-title">Shipping details</h3>
 
               <form method="POST" class="checkout-form" id="checkoutForm">
+
                 <div class="checkout-field">
                   <label class="checkout-label" for="name">Full name</label>
                   <div class="checkout-input-wrap">
@@ -370,11 +371,30 @@
                   </div>
                 </div>
 
-                <!-- Always submit online payment only -->
-                <input type="hidden" name="payment_mode" value="online">
+                <!-- ✅ NEW: Payment mode selector (keeps your theme, same input styling) -->
+                <div class="checkout-field">
+                  <label class="checkout-label" for="payment_mode">Payment method</label>
+                  <div class="checkout-input-wrap">
+                    <select id="payment_mode" name="payment_mode" class="checkout-input" style="appearance:none; -webkit-appearance:none;">
+                      <option value="online" {% if (request.form.get('payment_mode') or 'online') == 'online' %}selected{% endif %}>Pay Online (Razorpay)</option>
+                      <option value="cod" {% if (request.form.get('payment_mode') or '') == 'cod' %}selected{% endif %}>Cash on Delivery (COD)</option>
+                    </select>
+                  </div>
+                </div>
 
                 <div class="checkout-actions">
-                  <button type="submit" class="checkout-pay-btn checkout-pay-btn--online" id="payOnlineBtn">
+                  <!-- ✅ COD button (normal submit) -->
+                  <button type="submit"
+                          class="checkout-pay-btn"
+                          id="payCodBtn"
+                          style="background:rgba(255,255,255,0.88); color:#22150e; border:1px solid rgba(27,19,14,0.55);">
+                    Place Order (COD)
+                  </button>
+
+                  <!-- ✅ Razorpay button (normal submit; backend returns checkout.html with razorpay_order_id) -->
+                  <button type="submit"
+                          class="checkout-pay-btn checkout-pay-btn--online"
+                          id="payOnlineBtn">
                     Pay Online (Razorpay)
                   </button>
                 </div>
@@ -519,6 +539,24 @@
             setTimeout(openRazorpay, 250);
           });
         })();
+
+
+        (function(){
+    var sel = document.getElementById("payment_mode");
+    var codBtn = document.getElementById("payCodBtn");
+    var onlineBtn = document.getElementById("payOnlineBtn");
+
+    function sync(){
+      var mode = (sel && sel.value) ? sel.value : "online";
+      if(codBtn) codBtn.style.display = (mode === "cod") ? "inline-flex" : "none";
+      if(onlineBtn) onlineBtn.style.display = (mode === "online") ? "inline-flex" : "none";
+    }
+
+    if(sel){
+      sel.addEventListener("change", sync);
+      sync();
+    }
+  })();
       </script>
     {% endif %}
 

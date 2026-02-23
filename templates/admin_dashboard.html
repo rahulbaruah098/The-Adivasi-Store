@@ -9,6 +9,56 @@
          Scoped to this template only
          ============================== */
 
+
+         .img2-grid{
+            display:grid;
+            grid-template-columns: 1fr 1fr;
+            gap:14px;
+          }
+
+          .img2{
+            border:1px solid rgba(0,0,0,0.10);
+            border-radius:14px;
+            padding:12px;
+            background: rgba(255,255,255,0.35);
+          }
+
+          .img2-label{
+            font-size:11px;
+            letter-spacing:.18em;
+            text-transform:uppercase;
+            color:#4b4741;
+            margin-bottom:8px;
+            font-family:"Fjalla One",sans-serif;
+          }
+
+          .hint.mini{
+            font-size:12px;
+            opacity:.75;
+            margin-top:6px;
+          }
+
+          /* Reuse your preview styles, just ensure image fits nicely */
+          .preview .ph{
+            width:100%;
+            aspect-ratio: 3/4;
+            border-radius:12px;
+            overflow:hidden;
+            background:#e9e3da;
+            border:1px solid rgba(0,0,0,0.08);
+          }
+
+          .preview .ph img{
+            width:100%;
+            height:100%;
+            object-fit:cover;
+            display:block;
+          }
+
+          /* Mobile */
+          @media (max-width:720px){
+            .img2-grid{ grid-template-columns: 1fr; }
+          }
       :root{
         --bg: #f6efe5;
         --paper: #fffaf2;
@@ -543,6 +593,156 @@
         .field input{ width: 100%; min-width: 0; }
         .form-grid{ grid-template-columns: 1fr; }
       }
+
+
+      /* ------------------------------
+   ADD STOCK (NEW TAB)
+   - table-like grid
+   - same theme tokens & shadows
+------------------------------ */
+
+.stock-table{
+  width:100%;
+  border-radius: var(--radius2);
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.35);
+  overflow:hidden;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+}
+
+.stock-head{
+  display:grid;
+  grid-template-columns: 64px 1.4fr 140px 160px 160px;
+  gap: 0;
+  padding: 12px 12px;
+  background: rgba(255,250,242,0.85);
+  border-bottom: 1px solid var(--line);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  color: rgba(34,21,14,0.78);
+  font-family: "Fjalla One", sans-serif;
+}
+
+.stock-row{
+  display:grid;
+  grid-template-columns: 64px 1.4fr 140px 160px 160px;
+  gap: 0;
+  padding: 12px 12px;
+  align-items:center;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  background: rgba(255,255,255,0.22);
+}
+
+.stock-row:nth-child(even){
+  background: rgba(255,255,255,0.30);
+}
+
+.stock-row:last-child{
+  border-bottom: none;
+}
+
+.stock-name{
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: rgba(34,21,14,0.95);
+}
+
+.stock-left{
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  color: rgba(34,21,14,0.92);
+}
+
+.stock-input{
+  width: 100%;
+  border: 1px solid rgba(0,0,0,0.18);
+  border-radius: 999px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.65);
+  color: var(--ink);
+  outline:none;
+  font-size: 13px;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.06);
+}
+
+.stock-input:focus{
+  box-shadow: var(--focus), 0 8px 18px rgba(0,0,0,0.06);
+  border-color: rgba(43,108,176,0.35);
+  background: rgba(255,255,255,0.88);
+}
+
+.stock-btn{
+  width: 100%;
+  appearance:none;
+  border: 1px solid rgba(0,0,0,0.30);
+  border-radius: 999px;
+  padding: 10px 12px;
+  background: rgba(43,108,176,0.10);
+  color: var(--ink);
+  cursor:pointer;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  font-family: "Fjalla One", sans-serif;
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+}
+
+.stock-btn:hover{
+  transform: translateY(-1px);
+  background: rgba(43,108,176,0.16);
+  border-color: rgba(43,108,176,0.38);
+}
+
+.stock-btn:active{
+  transform: translateY(1px);
+}
+
+@media (max-width: 980px){
+  .stock-head,
+  .stock-row{
+    grid-template-columns: 54px 1.2fr 120px 140px 140px;
+  }
+}
+
+@media (max-width: 760px){
+  /* Stack into neat blocks on mobile */
+  .stock-head{ display:none; }
+
+  .stock-row{
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 14px 12px;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+  }
+
+  .stock-row > div{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+  }
+
+  .stock-row > div:nth-child(1)::before{ content:"SL"; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color: var(--muted); font-family:"Fjalla One",sans-serif; }
+  .stock-row > div:nth-child(2)::before{ content:"Product"; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color: var(--muted); font-family:"Fjalla One",sans-serif; }
+  .stock-row > div:nth-child(3)::before{ content:"Stocks left"; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color: var(--muted); font-family:"Fjalla One",sans-serif; }
+  .stock-row > div:nth-child(4)::before{ content:"Add stock"; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color: var(--muted); font-family:"Fjalla One",sans-serif; }
+  .stock-row > div:nth-child(5)::before{ content:"Action"; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color: var(--muted); font-family:"Fjalla One",sans-serif; }
+
+  .stock-name{
+    text-align:right;
+    max-width: 70%;
+  }
+  .stock-left{
+    text-align:right;
+  }
+  .stock-input{ max-width: 180px; }
+  .stock-btn{ max-width: 220px; }
+}
     </style>
 
     <div class="admin-container">
@@ -601,6 +801,10 @@
 
           <button class="tab-btn" role="tab" aria-selected="false" data-tab="messages">
             Contact Messages <span class="tabcount">{{ contact_messages|length if contact_messages else 0 }}</span>
+          </button>
+
+          <button class="tab-btn" role="tab" aria-selected="false" data-tab="addstock">
+            Add Stock <span class="tabcount">{{ products|length if products else 0 }}</span>
           </button>
         </div>
 
@@ -829,18 +1033,38 @@
                         <textarea name="description" placeholder="Write product details (material, care, notes)…"></textarea>
                       </div>
 
-                      <div class="fg full">
-                        <label>Image (upload from phone / PC)</label>
-                        <input name="image" type="file" accept="image/*" required id="prodImage">
-                        <div class="hint">
-                          Tip: use JPG/PNG/WEBP. After save, this image will be used in category pages & product detail page.
-                        </div>
+                        <div class="fg full">
+                          <label>Images (Front + Back)</label>
 
-                        <div class="preview" id="prodPreview" style="display:none;">
-                          <div class="ph"><img id="prodPreviewImg" alt="Preview"></div>
-                          <div class="meta" id="prodPreviewMeta"></div>
+                          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                            <div>
+                              <div style="font-size:12px; letter-spacing:.14em; text-transform:uppercase; opacity:.7; margin-bottom:6px;">
+                                Front image
+                              </div>
+                              <input name="images" type="file" accept="image/*" required id="prodImageFront">
+                            </div>
+
+                            <div>
+                              <div style="font-size:12px; letter-spacing:.14em; text-transform:uppercase; opacity:.7; margin-bottom:6px;">
+                                Back / Hover image
+                              </div>
+                              <input name="images" type="file" accept="image/*" required id="prodImageBack">
+                            </div>
+                          </div>
+
+                          <div class="hint">
+                            Tip: upload 2 images. They will be saved in <b>static/images/adivasi/</b>.
+                          </div>
+
+                          <!-- Optional previews -->
+                          <div class="preview" id="prodPreview" style="display:none;">
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                              <div class="ph"><img id="prodPreviewImgFront" alt="Front Preview"></div>
+                              <div class="ph"><img id="prodPreviewImgBack" alt="Back Preview"></div>
+                            </div>
+                            <div class="meta" id="prodPreviewMeta"></div>
+                          </div>
                         </div>
-                      </div>
                     </div>
 
                     <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
@@ -1069,6 +1293,84 @@
               <div class="empty">No contact messages yet.</div>
             {% endif %}
           </div>
+
+             <!-- ======================
+              ADD STOCK PANEL (NEW TAB)
+              ====================== -->
+          <div class="panel" id="panel-addstock" role="tabpanel">
+            <div class="toolbar">
+              <div class="left">
+                <div class="field">
+                  <span style="font-size:12px;opacity:.7;">🔎</span>
+                  <input id="stockSearch" type="text" placeholder="Search product by name, category…">
+                </div>
+              </div>
+              <div class="right">
+                <button class="pill-btn" type="button" id="collapseStockHelp">Collapse</button>
+                <button class="pill-btn" type="button" id="expandStockHelp">Expand</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="cardhead">
+                <div>
+                  <div class="titleline">Add stock</div>
+                  <div class="subline">Increase stock for existing products (updates Product.stock in DB).</div>
+                </div>
+                <div class="rightmeta">
+                  <div class="subline">Only positive numbers allowed</div>
+                </div>
+              </div>
+
+              <div class="divider">
+                {% if products %}
+                  <div class="stock-table" id="stockList">
+                    <div class="stock-head">
+                      <div>SL</div>
+                      <div>Product</div>
+                      <div>Stocks left</div>
+                      <div>Add stock</div>
+                      <div>Action</div>
+                    </div>
+
+                    {% for p in products %}
+                      {% set stock_search = ((p.name or "") ~ " " ~ (p.category or "")) %}
+                      <form class="stock-row"
+                            method="POST"
+                            action="{{ url_for('admin_add_stock', product_id=p.id) }}"
+                            data-search="{{ stock_search|lower }}">
+                        <div><strong>{{ loop.index }}</strong></div>
+
+                        <div class="stock-name">
+                          {{ p.name }}
+                          <div class="subline" style="margin-top:6px;">{{ p.category }}</div>
+                        </div>
+
+                        <div class="stock-left">{{ p.stock or 0 }}</div>
+
+                        <div>
+                          <input class="stock-input"
+                                type="number"
+                                name="add_stock"
+                                min="1"
+                                step="1"
+                                placeholder="e.g. 10"
+                                required>
+                        </div>
+
+                        <div>
+                          <button class="stock-btn" type="submit">Add stock</button>
+                        </div>
+                      </form>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <div class="empty">No products found. Add products first.</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -1082,10 +1384,11 @@
         if(!tabsRoot) return;
 
         const tabBtns = Array.from(tabsRoot.querySelectorAll(".tab-btn"));
-        const panels = {
+       const panels = {
           orders: document.getElementById("panel-orders"),
           products: document.getElementById("panel-products"),
           messages: document.getElementById("panel-messages"),
+          addstock: document.getElementById("panel-addstock"),
         };
 
         function activate(tab){
@@ -1158,6 +1461,25 @@
           listRoot: document.getElementById("msgsList"),
           cardSelector: ".msg-card"
         });
+
+        // Add Stock filter (NEW)
+        (function(){
+  const listRoot = document.getElementById("stockList");
+  const searchInput = document.getElementById("stockSearch");
+  if(!listRoot || !searchInput) return;
+
+  function apply(){
+    const q = (searchInput.value || "").trim().toLowerCase();
+    const rows = Array.from(listRoot.querySelectorAll(".stock-row"));
+    rows.forEach(r => {
+      const hay = (r.getAttribute("data-search") || "");
+      r.style.display = (!q || hay.includes(q)) ? "" : "none";
+    });
+  }
+
+  searchInput.addEventListener("input", apply);
+  apply();
+})();
 
         // Products filter (NEW)
         (function(){
@@ -1267,6 +1589,35 @@
           if(previewImg) previewImg.removeAttribute("src");
         });
 
+         (function(){
+            const front = document.getElementById("prodImageFront");
+            const back  = document.getElementById("prodImageBack");
+            const wrap  = document.getElementById("prodPreview");
+            const imgF  = document.getElementById("prodPreviewImgFront");
+            const imgB  = document.getElementById("prodPreviewImgBack");
+
+            function show(){
+              if(!wrap) return;
+              const has = (front?.files?.[0] || back?.files?.[0]);
+              wrap.style.display = has ? "" : "none";
+            }
+
+            function read(file, img){
+              if(!file || !img) return;
+              const url = URL.createObjectURL(file);
+              img.src = url;
+            }
+
+            front?.addEventListener("change", () => {
+              read(front.files[0], imgF);
+              show();
+            });
+
+            back?.addEventListener("change", () => {
+              read(back.files[0], imgB);
+              show();
+            });
+          })();
       })();
     </script>
   </section>

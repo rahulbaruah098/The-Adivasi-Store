@@ -33,7 +33,14 @@ app = Flask(__name__)
 # ----------------------------
 # ⚠️ SECURITY: put real values in environment variables in production
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "change-this-secret-key")
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///adivasi_store.db")
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+DB_PATH = os.path.join(BASE_DIR, "instance", "adivasi_store.db")
+
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
+    "DATABASE_URL",
+    f"sqlite:///{DB_PATH}"
+)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Gmail SMTP (use app password)
@@ -60,7 +67,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024  # 8MB
 
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+
 
 
 def allowed_file(filename: str) -> bool:
@@ -68,27 +75,43 @@ def allowed_file(filename: str) -> bool:
 
 
 
+ALLOWED_IMAGE_EXTS = {"png", "jpg", "jpeg", "webp"}
 
-
-def save_product_image(file_storage):
+def save_product_image(file):
     """
-    Save upload to static/uploads/products/
-    Return a public URL like: /static/uploads/products/<filename>
+    Saves ONE image into: static/images/adivasi/
+    Returns URL like: /static/images/adivasi/prod_xxx.jpg
     """
-    if not file_storage or not getattr(file_storage, "filename", ""):
+    if not file or not file.filename:
         return ""
 
-    filename = secure_filename(file_storage.filename)
-    if not filename or not allowed_file(filename):
+    filename = secure_filename(file.filename)
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+    if ext not in ALLOWED_IMAGE_EXTS:
         return ""
 
-    ext = filename.rsplit(".", 1)[1].lower()
-    new_name = f"prod_{uuid.uuid4().hex}.{ext}"
-    abs_path = os.path.join(app.config["UPLOAD_FOLDER"], new_name)
-    file_storage.save(abs_path)
+    fname = f"prod_{uuid.uuid4().hex}.{ext}"
 
-    return f"/static/uploads/products/{new_name}"
+    abs_dir = os.path.join(app.root_path, "static", "images", "adivasi")
+    os.makedirs(abs_dir, exist_ok=True)
 
+    abs_path = os.path.join(abs_dir, fname)
+    file.save(abs_path)
+
+    return f"/static/images/adivasi/{fname}"
+
+
+def save_multiple_product_images(files):
+    """
+    Saves MULTIPLE images into static/images/adivasi/
+    """
+    urls = []
+    for f in (files or []):
+        if f and f.filename:
+            u = save_product_image(f)
+            if u:
+                urls.append(u)
+    return urls
 
 db = SQLAlchemy(app)
 
@@ -174,6 +197,7 @@ class Product(db.Model):
     colors = db.Column(db.String(200), default="")  # "Red,Black"
 
     image_url = db.Column(db.String(500), default="")  # "/static/uploads/products/xxx.jpg"
+    image_hover_url = db.Column(db.String(500), nullable=True)
 
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -229,6 +253,14 @@ class ContactMessage(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+
+class ProductImage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey("product.id"), nullable=False, index=True)
+    image_url = db.Column(db.String(500), nullable=False)
+    sort_order = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 # ----------------------------
 # LOGIN MANAGER
 # ----------------------------
@@ -257,6 +289,9 @@ def inject_cart_info():
         cart_count=int(cart_count),
         cart_just_added=bool(cart_just_added),
     )
+
+
+
 
 
 # ----------------------------
@@ -370,6 +405,30 @@ The Adivasi Store system
 # ----------------------------
 # ADMIN DECORATOR & HELPER
 # ----------------------------
+
+import re
+
+def derive_hover_image(primary_url: str) -> str:
+    """
+    Convert ...1f.jpeg -> ...1b.jpeg (front -> back) if that back image exists by naming.
+    If pattern not matched, fallback to primary.
+    """
+    if not primary_url:
+        return primary_url
+
+    # match "...<number>f.<ext>" at end
+    m = re.search(r'(\d+)f(\.[a-zA-Z0-9]+)$', primary_url)
+    if m:
+        return re.sub(r'(\d+)f(\.[a-zA-Z0-9]+)$', r'\1b\2', primary_url)
+
+    # match "...f.<ext>" at end (less strict)
+    m2 = re.search(r'f(\.[a-zA-Z0-9]+)$', primary_url)
+    if m2:
+        return re.sub(r'f(\.[a-zA-Z0-9]+)$', r'b\1', primary_url)
+
+    return primary_url
+
+
 def admin_required(fn):
     from functools import wraps
 
@@ -407,6 +466,30 @@ def ensure_product_slug(p: Product):
         i += 1
     p.slug = candidate
 
+
+
+def _decrement_stock_for_items(items):
+    """
+    Decrement Product.stock for cart items that have product_db_id.
+    Raises ValueError if stock is insufficient.
+    """
+    # lockless SQLite approach: do checks then decrement
+    # (good enough for your current scale)
+    for ci in items:
+        if not ci.product_db_id:
+            continue  # legacy catalog item - no stock tracking
+        p = Product.query.get(ci.product_db_id)
+        if not p or not p.is_active:
+            raise ValueError(f"Product not available: {ci.product_name}")
+        if (p.stock or 0) < (ci.quantity or 0):
+            raise ValueError(f"Not enough stock for {p.name}. Left: {p.stock}, Needed: {ci.quantity}")
+
+    # apply decrements
+    for ci in items:
+        if not ci.product_db_id:
+            continue
+        p = Product.query.get(ci.product_db_id)
+        p.stock = int(p.stock or 0) - int(ci.quantity or 0)
 
 # ----------------------------
 # ✅ HELPERS FOR PRODUCT VIEW (DB + CATALOG)
@@ -477,14 +560,21 @@ def shop():
         .all()
     )
 
+    # ✅ attach image dict in SAME SHAPE as product catalog + index strip
+    for p in db_products:
+        primary = p.image_url or ""
+        hover = derive_hover_image(primary) or primary
+
+        # add non-db attributes (safe for Jinja)
+        p.images = {"primary": primary, "hover": hover}
+
     return render_template(
         "shop.html",
         catalogs=SHOP_CATALOGS,
         accessory_categories=ACCESSORY_CATEGORIES,
-
-        # ✅ NEW: send DB products to template
         db_products=db_products,
     )
+
 # ----------------------------
 # CONTACT PAGE (GET + POST)
 # ----------------------------
@@ -656,47 +746,101 @@ def product_detail(product_id):
 #--------------passing products details from catalog file to index file------#
 
 
-@app.route("/api/aps-products")
+@app.get("/api/aps-products")
 def api_aps_products():
-    gender = (request.args.get("gender") or "women").strip().lower()
+    gender = (request.args.get("gender") or "women").lower().strip()
 
-    catalog_map = {
-        "women": WOMEN_PRODUCTS,
-        "men": MEN_PRODUCTS,
-        "kids": KIDS_PRODUCTS,
-        "ornaments": ORNAMENT_PRODUCTS,
-    }
+    q = Product.query.filter_by(is_active=True)
 
-    products = catalog_map.get(gender)
-    if products is None:
-        return jsonify({"ok": False, "items": [], "error": "Invalid gender"}), 400
+    # SAME category split logic as shop.html (keywords)
+    if gender == "women":
+        q = q.filter(
+            (Product.category.ilike("%saree%")) |
+            (Product.category.ilike("%women%")) |
+            (Product.category.ilike("%wrap%")) |
+            (Product.category.ilike("%stole%")) |
+            (Product.category.ilike("%dupatta%"))
+        )
+    elif gender == "men":
+        q = q.filter(
+            (Product.category.ilike("%men%")) |
+            (Product.category.ilike("%shirt%")) |
+            (Product.category.ilike("%bundi%")) |
+            (Product.category.ilike("%bandi%")) |
+            (Product.category.ilike("%gamusa%"))
+        )
+    elif gender == "kids":
+        q = q.filter(
+            (Product.category.ilike("%kid%")) |
+            (Product.category.ilike("%kids%")) |
+            (Product.category.ilike("%child%"))
+        )
+    elif gender == "ornaments":
+        q = q.filter(
+            (Product.category.ilike("%ornament%")) |
+            (Product.category.ilike("%jewel%")) |
+            (Product.category.ilike("%bead%")) |
+            (Product.category.ilike("%brass%"))
+        )
+    else:
+        # accessories tab = everything else (fallback)
+        # easiest: do NOT filter here and let UI show; OR exclude other groups.
+        # We'll exclude other groups to match your shop.html "else -> accessories"
+        q = q.filter(
+            ~(
+                (Product.category.ilike("%saree%")) |
+                (Product.category.ilike("%women%")) |
+                (Product.category.ilike("%wrap%")) |
+                (Product.category.ilike("%stole%")) |
+                (Product.category.ilike("%dupatta%")) |
+                (Product.category.ilike("%men%")) |
+                (Product.category.ilike("%shirt%")) |
+                (Product.category.ilike("%bundi%")) |
+                (Product.category.ilike("%bandi%")) |
+                (Product.category.ilike("%gamusa%")) |
+                (Product.category.ilike("%kid%")) |
+                (Product.category.ilike("%kids%")) |
+                (Product.category.ilike("%child%")) |
+                (Product.category.ilike("%ornament%")) |
+                (Product.category.ilike("%jewel%")) |
+                (Product.category.ilike("%bead%")) |
+                (Product.category.ilike("%brass%"))
+            )
+        )
+
+    prods = q.order_by(Product.created_at.desc()).limit(50).all()
 
     items = []
-    for p in products:
-        images = p.get("images") or {}
+    for p in prods:
+        primary = (p.image_url or "").strip()
 
-        # IMPORTANT: keep field mapping aligned to product_catalogs.py
+        # ✅ use DB hover if you backfilled it
+        hover = (getattr(p, "image_hover_url", "") or "").strip()
+
+        # fallback: derive hover if missing (optional)
+        if not hover and primary:
+            try:
+                hover = derive_hover_image(primary)
+            except Exception:
+                hover = primary
+
+        # IMPORTANT: your product_detail expects product_id=(p.slug or p.id)
+        # ✅ best: send slug if present
+        pid = (p.slug or str(p.id))
+
         items.append({
-            # product_catalogs.py fields (source of truth)
-            "id": p.get("id"),
-            "name": p.get("name", ""),
-            "price": p.get("price", 0),
-            "badge": p.get("badge", ""),
-            "category_label": p.get("category_label", ""),
-            "audience": p.get("audience", ""),
-            "type": p.get("type", ""),
-            "menu_category": p.get("menu_category", ""),
-
-            # images normalized for frontend
+            "id": pid,
+            "name": p.name,
+            "price": float(p.price or 0),
+            "category_label": p.category or "",
+            "stock": int(p.stock) if p.stock is not None else None,
             "images": {
-                "primary": images.get("primary", ""),
-                "hover": images.get("hover", images.get("primary", "")),
+                "primary": primary,
+                "hover": hover or primary
             }
         })
 
-    return jsonify({"ok": True, "items": items})
-
-
+    return jsonify({"items": items})
 # ----------------------------
 # AUTH
 # ----------------------------
@@ -860,11 +1004,16 @@ def add_to_cart():
 
     name = price = image = size = color = None
     product_id = None
+    product_db_id = None  # ✅ NEW (for DB products)
 
+    # -----------------------------
+    # Read inputs (POST/GET, JSON/form/query)
+    # -----------------------------
     if request.method == "POST":
         if request.is_json:
             data = request.get_json() or {}
             product_id = data.get("product_id")
+            product_db_id = data.get("product_db_id")  # ✅ NEW
             name = data.get("name")
             price = data.get("price", "0")
             image = data.get("image", "")
@@ -872,6 +1021,7 @@ def add_to_cart():
             color = data.get("color", "")
         else:
             product_id = request.form.get("product_id")
+            product_db_id = request.form.get("product_db_id")  # ✅ NEW
             name = request.form.get("name")
             price = request.form.get("price", "0")
             image = request.form.get("image", "")
@@ -879,24 +1029,38 @@ def add_to_cart():
             color = request.form.get("color", "")
     else:
         product_id = request.args.get("product_id") or request.args.get("id")
+        product_db_id = request.args.get("product_db_id")  # ✅ NEW
         name = request.args.get("name") or request.args.get("product_name") or request.args.get("product_id")
         price = request.args.get("price", "0")
         image = request.args.get("image", "")
         size = request.args.get("size", "")
         color = request.args.get("color", "")
 
+    # ✅ normalize product_db_id to int (or None)
+    try:
+        product_db_id = int(product_db_id) if product_db_id not in (None, "", "null") else None
+    except Exception:
+        product_db_id = None
+
+    # -----------------------------
     # Legacy fallback from catalog if missing fields
+    # NOTE: uses ALL_PRODUCTS now (your file is product_catalogs.py)
+    # -----------------------------
     if product_id and (not name or not price or not image):
-        catalog_item = PRODUCT_CATALOG.get(product_id)
+        catalog_item = ALL_PRODUCTS.get(product_id)
         if catalog_item:
-            name = catalog_item["name"]
-            price = catalog_item["price"]
-            image = catalog_item["image"]
+            name = catalog_item.get("name") or name
+            price = catalog_item.get("price") if price in (None, "", "0") else price
+            images = catalog_item.get("images") or {}
+            image = image or images.get("primary", "")
 
     if not name:
         flash("No product information received.", "error")
         return redirect(request.referrer or url_for("shop"))
 
+    # -----------------------------
+    # Parse price
+    # -----------------------------
     if isinstance(price, str):
         price_clean = price.replace(",", "").strip()
     else:
@@ -907,18 +1071,29 @@ def add_to_cart():
     except Exception:
         price_val = 0.0
 
+    # -----------------------------
+    # Merge cart rows properly (includes product_db_id ✅)
+    # -----------------------------
     existing = CartItem.query.filter_by(
         user_id=current_user.id,
         product_name=name,
         product_size=size or "",
-        product_color=color or ""
+        product_color=color or "",
+        product_db_id=product_db_id  # ✅ CRITICAL
     ).first()
 
     if existing:
         existing.quantity += 1
+        # keep db_id if it comes later
+        if existing.product_db_id is None and product_db_id is not None:
+            existing.product_db_id = product_db_id
+        # refresh image if missing
+        if not existing.product_image and image:
+            existing.product_image = image
     else:
         item = CartItem(
             user_id=current_user.id,
+            product_db_id=product_db_id,  # ✅ NEW
             product_name=name,
             product_price=price_val,
             product_image=image or None,
@@ -930,6 +1105,9 @@ def add_to_cart():
     db.session.commit()
     session["cart_just_added"] = True
 
+    # -----------------------------
+    # AJAX response
+    # -----------------------------
     if request.is_json or request.headers.get("X-Requested-With") == "XMLHttpRequest":
         new_count = (
             db.session.query(db.func.coalesce(db.func.sum(CartItem.quantity), 0))
@@ -942,7 +1120,6 @@ def add_to_cart():
     flash("Item added to cart.", "success")
     return redirect(request.referrer or url_for("cart"))
 
-
 @app.route("/cart/update/<int:item_id>", methods=["POST"])
 @login_required
 def update_cart_item(item_id):
@@ -950,8 +1127,18 @@ def update_cart_item(item_id):
         return redirect(url_for("admin_dashboard"))
 
     item = CartItem.query.filter_by(id=item_id, user_id=current_user.id).first_or_404()
-    qty = request.form.get("quantity", type=int)
-    if qty is not None and qty > 0:
+
+    qty_raw = request.form.get("quantity", "").strip()
+    try:
+        qty = int(qty_raw)
+    except Exception:
+        flash("Invalid quantity.", "error")
+        return redirect(url_for("cart"))
+
+    if qty > 0:
+        # optional hard cap
+        if qty > 999:
+            qty = 999
         item.quantity = qty
         db.session.commit()
         flash("Cart updated.", "success")
@@ -959,8 +1146,8 @@ def update_cart_item(item_id):
         db.session.delete(item)
         db.session.commit()
         flash("Item removed from cart.", "info")
-    return redirect(url_for("cart"))
 
+    return redirect(url_for("cart"))
 
 @app.route("/cart/remove/<int:item_id>", methods=["POST"])
 @login_required
@@ -989,10 +1176,10 @@ def checkout():
         flash("Your cart is empty.", "info")
         return redirect(url_for("shop"))
 
-    total = sum(i.product_price * i.quantity for i in items)
+    total = sum((i.product_price or 0) * (i.quantity or 0) for i in items)
 
     if request.method == "POST":
-        payment_mode = request.form.get("payment_mode", "cod")
+        payment_mode = (request.form.get("payment_mode") or "cod").strip().lower()
 
         shipping_name = (request.form.get("name") or "").strip() or (current_user.name or "")
         shipping_email = (request.form.get("email") or "").strip() or (current_user.email or "")
@@ -1003,47 +1190,87 @@ def checkout():
         shipping_post_office = (request.form.get("nearest_post_office") or "").strip() or (current_user.nearest_post_office or "")
         shipping_pincode = (request.form.get("pincode") or "").strip() or (current_user.pincode or "")
 
-        # ---------------- COD / MANUAL PAYMENT ----------------
-        if payment_mode == "cod":
-            order = Order(
-                user_id=current_user.id,
-                total_amount=total,
-                status="Placed",
-                payment_status="Pending",
-                tracking_message="Order placed (Cash/manual). Preparing for dispatch.",
-                shipping_name=shipping_name,
-                shipping_email=shipping_email,
-                shipping_phone=shipping_phone,
-                shipping_address=shipping_address,
-                shipping_post_office=shipping_post_office,
-                shipping_pincode=shipping_pincode,
-            )
-            db.session.add(order)
-            db.session.flush()
+        # --------------------------------------------
+        # ✅ STOCK VALIDATION (DB products only)
+        # We only manage stock for items that have product_db_id
+        # --------------------------------------------
+        req = {}
+        for i in items:
+            if i.product_db_id:
+                req[i.product_db_id] = req.get(i.product_db_id, 0) + int(i.quantity or 0)
 
-            for i in items:
-                db.session.add(OrderItem(
-                    order_id=order.id,
-                    product_name=i.product_name,
-                    product_price=i.product_price,
-                    product_image=i.product_image,
-                    product_size=i.product_size,
-                    product_color=i.product_color,
-                    quantity=i.quantity,
-                ))
+        products_by_id = {}
+        if req:
+            db_products = Product.query.filter(Product.id.in_(list(req.keys()))).all()
+            products_by_id = {p.id: p for p in db_products}
 
-            for i in items:
-                db.session.delete(i)
+            missing = [pid for pid in req.keys() if pid not in products_by_id]
+            if missing:
+                flash("Some items are no longer available. Please remove them and try again.", "error")
+                return redirect(url_for("cart"))
 
-            db.session.commit()
+            for pid, need_qty in req.items():
+                p = products_by_id[pid]
+                if not p.is_active:
+                    flash(f"'{p.name}' is currently unavailable.", "error")
+                    return redirect(url_for("cart"))
+                if (p.stock or 0) < need_qty:
+                    flash(f"Not enough stock for '{p.name}'. Available: {p.stock or 0}", "error")
+                    return redirect(url_for("cart"))
 
-            send_order_confirmation_email(order)
-            send_new_order_admin_email(order)
+                # ---------------- COD / MANUAL PAYMENT ----------------
+                if payment_mode == "cod":
+                    order = Order(
+                        user_id=current_user.id,
+                        total_amount=total,
+                        status="Placed",
+                        payment_status="Pending",
+                        tracking_message="Order placed (Cash/manual). Preparing for dispatch.",
+                        shipping_name=shipping_name,
+                        shipping_email=shipping_email,
+                        shipping_phone=shipping_phone,
+                        shipping_address=shipping_address,
+                        shipping_post_office=shipping_post_office,
+                        shipping_pincode=shipping_pincode,
+                    )
+                    db.session.add(order)
+                    db.session.flush()
 
-            flash("Order placed successfully (Cash/manual).", "success")
-            return redirect(url_for("order_success", order_id=order.id))
+                    # ✅ create order items with product_db_id
+                    for i in items:
+                        db.session.add(OrderItem(
+                            order_id=order.id,
+                            product_db_id=i.product_db_id,  # ✅ NEW
+                            product_name=i.product_name,
+                            product_price=i.product_price,
+                            product_image=i.product_image,
+                            product_size=i.product_size,
+                            product_color=i.product_color,
+                            quantity=i.quantity,
+                        ))
+
+                    # ✅ decrement stock for DB products
+                    try:
+                        _decrement_stock_for_items(items)
+                    except ValueError as e:
+                        db.session.rollback()
+                        flash(str(e), "error")
+                        return redirect(url_for("cart"))
+
+                    # clear cart
+                    for i in items:
+                        db.session.delete(i)
+
+                    db.session.commit()
+
+                    send_order_confirmation_email(order)
+                    send_new_order_admin_email(order)
+
+                    flash("Order placed successfully (Cash/manual).", "success")
+                    return redirect(url_for("order_success", order_id=order.id))
 
         # ---------------- ONLINE PAYMENT – RAZORPAY ----------------
+        # Create order as Pending Payment (NO stock decrement yet)
         order = Order(
             user_id=current_user.id,
             total_amount=total,
@@ -1060,9 +1287,11 @@ def checkout():
         db.session.add(order)
         db.session.flush()
 
+        # ✅ Save product_db_id into OrderItem (needed later at verify time)
         for i in items:
             db.session.add(OrderItem(
                 order_id=order.id,
+                product_db_id=i.product_db_id,  # ✅ IMPORTANT
                 product_name=i.product_name,
                 product_price=i.product_price,
                 product_image=i.product_image,
@@ -1107,10 +1336,9 @@ def checkout():
 
     return render_template("checkout.html", items=items, user=current_user, total=total)
 
-
 # ----------------------------
 # RAZORPAY PAYMENT VERIFY
-# ----------------------------
+
 @app.route("/payment/razorpay/verify", methods=["POST"])
 @login_required
 def razorpay_verify():
@@ -1132,6 +1360,7 @@ def razorpay_verify():
     if order.payment_status == "Paid":
         return jsonify({"ok": True, "already_paid": True, "order_id": order.id})
 
+    # 1) Verify signature
     try:
         razorpay_client.utility.verify_payment_signature({
             "razorpay_order_id": rp_order_id,
@@ -1148,11 +1377,58 @@ def razorpay_verify():
         print("Razorpay verify error:", e)
         return jsonify({"ok": False, "error": "Verification error"}), 400
 
+    # 2) ✅ Stock check + decrement (DB products only)
+    # We decrement ONLY for items where product_db_id is present.
+    order_items = OrderItem.query.filter_by(order_id=order.id).all()
+
+    req = {}
+    for it in order_items:
+        if it.product_db_id:
+            req[it.product_db_id] = req.get(it.product_db_id, 0) + int(it.quantity or 0)
+
+    if req:
+        products = Product.query.filter(Product.id.in_(list(req.keys()))).all()
+        products_by_id = {p.id: p for p in products}
+
+        missing = [pid for pid in req.keys() if pid not in products_by_id]
+        if missing:
+            # Payment OK but product missing (rare). Mark order & stop.
+            order.payment_status = "Paid"
+            order.status = "Stock Issue"
+            order.tracking_message = "Payment received but some products are missing. Admin will contact you."
+            db.session.commit()
+            return jsonify({"ok": False, "error": "Stock issue: product missing. Contact support."}), 409
+
+        # check sufficient stock
+        for pid, need_qty in req.items():
+            p = products_by_id[pid]
+            if not p.is_active:
+                order.payment_status = "Paid"
+                order.status = "Stock Issue"
+                order.tracking_message = f"Payment received but '{p.name}' is inactive. Admin will contact you."
+                db.session.commit()
+                return jsonify({"ok": False, "error": f"Product inactive: {p.name}"}), 409
+
+            if (p.stock or 0) < need_qty:
+                # Payment OK but stock insufficient (race condition)
+                order.payment_status = "Paid"
+                order.status = "Stock Issue"
+                order.tracking_message = f"Payment received but stock became insufficient for '{p.name}'. Admin will contact you."
+                db.session.commit()
+                return jsonify({"ok": False, "error": f"Insufficient stock for {p.name}"}), 409
+
+        # decrement
+        for pid, need_qty in req.items():
+            p = products_by_id[pid]
+            p.stock = int(p.stock or 0) - int(need_qty)
+
+    # 3) Mark paid + confirmed
     order.payment_status = "Paid"
     order.status = "Placed"
     order.tracking_message = "Payment received. Order confirmed."
     db.session.commit()
 
+    # 4) Clear cart after paid
     CartItem.query.filter_by(user_id=order.user_id).delete()
     db.session.commit()
 
@@ -1160,7 +1436,6 @@ def razorpay_verify():
     send_new_order_admin_email(order)
 
     return jsonify({"ok": True, "order_id": order.id})
-
 
 # ----------------------------
 # ORDER SUCCESS PAGE
@@ -1262,6 +1537,9 @@ def admin_order_detail(order_id):
 # ADMIN PRODUCTS (CRUD)
 # These are the routes your updated admin_dashboard.html will call.
 # ----------------------------
+# ============================================================
+# ✅ UPDATED: /admin/products/create
+# ============================================================
 @app.route("/admin/products/create", methods=["POST"])
 @admin_required
 def admin_create_product():
@@ -1281,12 +1559,21 @@ def admin_create_product():
         flash("Invalid category selected.", "error")
         return redirect(url_for("admin_dashboard"))
 
-    image_file = request.files.get("image")
-    image_url = save_product_image(image_file)
-    if not image_url:
-        flash("Please upload a valid image (png/jpg/jpeg/webp).", "error")
+    # ✅ Multi-image support:
+    # Accept either:
+    #   - multiple input: <input type="file" name="images" multiple>
+    #   - OR legacy single input: <input type="file" name="image">
+    files = request.files.getlist("images")
+    if not files:
+        single = request.files.get("image")
+        files = [single] if (single and single.filename) else []
+
+    image_urls = save_multiple_product_images(files)
+    if not image_urls:
+        flash("Please upload at least one valid image (png/jpg/jpeg/webp).", "error")
         return redirect(url_for("admin_dashboard"))
 
+    # ✅ First image becomes primary (backward compatible)
     p = Product(
         name=name,
         category=category,
@@ -1295,7 +1582,7 @@ def admin_create_product():
         sizes=sizes,
         colors=colors,
         description=description,
-        image_url=image_url,
+        image_url=image_urls[0],
         is_active=True,
     )
     db.session.add(p)
@@ -1303,6 +1590,10 @@ def admin_create_product():
 
     # Optional slug
     ensure_product_slug(p)
+
+    # ✅ Store ALL images into ProductImage table
+    for idx, url in enumerate(image_urls):
+        db.session.add(ProductImage(product_id=p.id, image_url=url, sort_order=idx))
 
     db.session.commit()
     flash("Product added successfully.", "success")
@@ -1340,6 +1631,10 @@ def admin_delete_product(product_id):
     return redirect(url_for("admin_dashboard"))
 
 
+# ============================================================
+# ✅ UPDATED: /admin/products/<id>/edit
+# ============================================================
+
 @app.route("/admin/products/<int:product_id>/edit", methods=["GET", "POST"])
 @admin_required
 def admin_edit_product(product_id):
@@ -1370,7 +1665,7 @@ def admin_edit_product(product_id):
         p.colors = colors
         p.description = description
 
-        # new image optional
+        # ✅ Option A (legacy): replace primary image using "image"
         image_file = request.files.get("image")
         if image_file and image_file.filename:
             new_url = save_product_image(image_file)
@@ -1378,6 +1673,33 @@ def admin_edit_product(product_id):
                 flash("Invalid image. Allowed: png/jpg/jpeg/webp", "error")
                 return redirect(url_for("admin_edit_product", product_id=p.id))
             p.image_url = new_url
+
+            # also store this replacement into gallery (optional but useful)
+            max_sort = (
+                db.session.query(db.func.coalesce(db.func.max(ProductImage.sort_order), 0))
+                .filter(ProductImage.product_id == p.id)
+                .scalar()
+                or 0
+            )
+            db.session.add(ProductImage(product_id=p.id, image_url=new_url, sort_order=int(max_sort) + 1))
+
+        # ✅ Option B: add MORE images via multiple input name="images"
+        more_files = request.files.getlist("images")
+        if more_files:
+            more_urls = save_multiple_product_images(more_files)
+            if more_urls:
+                max_sort = (
+                    db.session.query(db.func.coalesce(db.func.max(ProductImage.sort_order), 0))
+                    .filter(ProductImage.product_id == p.id)
+                    .scalar()
+                    or 0
+                )
+                for idx, url in enumerate(more_urls, start=int(max_sort) + 1):
+                    db.session.add(ProductImage(product_id=p.id, image_url=url, sort_order=idx))
+
+                # if product has no primary for some reason, set it
+                if not p.image_url:
+                    p.image_url = more_urls[0]
 
         ensure_product_slug(p)
 
@@ -1390,7 +1712,6 @@ def admin_edit_product(product_id):
         p=p,
         categories=ACCESSORY_CATEGORIES
     )
-
 
 # ----------------------------
 # FORGOT / RESET PASSWORD
@@ -1447,6 +1768,23 @@ def reset_password():
         return redirect(url_for("profile"))
 
     return render_template("reset_password.html")
+
+
+@app.route("/admin/products/<int:product_id>/add-stock", methods=["POST"])
+@admin_required
+def admin_add_stock(product_id):
+    p = Product.query.get_or_404(product_id)
+
+    add_qty = request.form.get("add_stock", type=int)
+    if add_qty is None or add_qty <= 0:
+        flash("Enter a valid stock quantity (> 0).", "error")
+        return redirect(url_for("admin_dashboard"))
+
+    p.stock = int(p.stock or 0) + int(add_qty)
+    db.session.commit()
+
+    flash(f"Stock updated: {p.name} → {p.stock}", "success")
+    return redirect(url_for("admin_dashboard", tab="addstock"))
 
 
 # ----------------------------
